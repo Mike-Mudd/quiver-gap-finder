@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiver Gap Finder</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="site-header">
+      <h1>🎿 Quiver Gap Finder</h1>
+      <p class="subtitle">
+        Pick 1–6 skis from your quiver and find out where you're covered — and where you're not.
+      </p>
+    </header>
+
+    <main>
+      <section class="panel" aria-labelledby="picker-heading">
+        <h2 id="picker-heading">1. Build your quiver</h2>
+
+        <div class="search-wrap">
+          <label for="ski-search" class="visually-hidden">Search skis</label>
+          <input
+            type="text"
+            id="ski-search"
+            placeholder="Search skis by name (e.g. Enforcer, Mantra, Kore)…"
+            autocomplete="off"
+          />
+          <ul id="search-results" class="search-results" role="listbox" hidden></ul>
+        </div>
+
+        <div class="quiver-wrap">
+          <h3>My quiver <span id="quiver-count" class="count-badge">0 / 6</span></h3>
+          <ul id="quiver-list" class="quiver-list">
+            <li class="empty-hint">No skis added yet — search above to add up to 6.</li>
+          </ul>
+        </div>
+
+        <button id="find-gaps-btn" type="button" disabled>Find gaps</button>
+      </section>
+
+      <section class="panel" aria-labelledby="results-heading">
+        <h2 id="results-heading">2. Coverage results</h2>
+        <div id="results" class="results">
+          <p class="empty-hint">Add some skis and click "Find gaps" to see your coverage breakdown.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        All data is illustrative/approximate for demo purposes. See
+        <a href="README.md">README.md</a> for how the scoring works.
+      </p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
