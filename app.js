@@ -31,15 +31,15 @@ const REDUNDANCY_THRESHOLD = 3;
 const MAX_QUIVER_SIZE = 6;
 
 const WAIST_BUCKETS = [
-  { key: "narrow", label: "narrow / firm-groomer", min: WAIST_MIN, max: 89 },
-  { key: "allmtn", label: "all-mountain", min: 90, max: 109 },
-  { key: "wide", label: "wide / powder", min: 110, max: WAIST_MAX },
+  { key: "narrow", label: "narrow / firm-groomer", short: "Narrow", min: WAIST_MIN, max: 89 },
+  { key: "allmtn", label: "all-mountain", short: "All-mtn", min: 90, max: 109 },
+  { key: "wide", label: "wide / powder", short: "Wide", min: 110, max: WAIST_MAX },
 ];
 
 const STAB_BUCKETS = [
-  { key: "playful", label: "playful / light", min: 0, max: 33.33 },
-  { key: "balanced", label: "balanced", min: 33.33, max: 66.67 },
-  { key: "damp", label: "damp / charging", min: 66.67, max: 100 },
+  { key: "playful", label: "playful / light", short: "Playful", min: 0, max: 33.33 },
+  { key: "balanced", label: "balanced", short: "Balanced", min: 33.33, max: 66.67 },
+  { key: "damp", label: "damp / charging", short: "Damp", min: 66.67, max: 100 },
 ];
 
 // Plain-language "what this bucket is good for" copy, used in output text.
@@ -330,6 +330,19 @@ function renderResults(grid) {
   resultsEl.innerHTML = parts.join("\n");
 }
 
+/**
+ * Renders a table header cell's label as two swappable spans: the full
+ * bucket label for normal widths, and an abbreviated one that a narrow
+ * media query switches to on small screens (see .th-full/.th-short in
+ * style.css) so headers like "narrow / firm-groomer" don't wrap into
+ * several cramped lines on a phone.
+ */
+function headerLabel(bucket) {
+  return `<span class="th-full">${escapeHtml(bucket.label)}</span><span class="th-short">${escapeHtml(
+    bucket.short
+  )}</span>`;
+}
+
 function renderGridTable(grid) {
   // grid is ordered stab-major (damp bucket rows iterate through waist
   // buckets); STAB_BUCKETS is ordered playful->balanced->damp, so reverse
@@ -339,12 +352,12 @@ function renderGridTable(grid) {
   let html = '<div class="grid-table-wrap"><table class="grid-table">';
   html += "<thead><tr><th></th>";
   for (const wb of WAIST_BUCKETS) {
-    html += `<th>${escapeHtml(wb.label)}</th>`;
+    html += `<th title="${escapeHtml(wb.label)}">${headerLabel(wb)}</th>`;
   }
   html += "</tr></thead><tbody>";
 
   for (const sb of rows) {
-    html += `<tr><th>${escapeHtml(sb.label)}</th>`;
+    html += `<tr><th title="${escapeHtml(sb.label)}">${headerLabel(sb)}</th>`;
     for (const wb of WAIST_BUCKETS) {
       const cell = grid.find((c) => c.stabBucket.key === sb.key && c.waistBucket.key === wb.key);
       const count = cell.skis.length;

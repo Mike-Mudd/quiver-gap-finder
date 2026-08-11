@@ -189,7 +189,9 @@ body {
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  /* Slightly wider than a minimal gap so adjacent chips' tap targets
+     (see .quiver-chip button below) don't crowd each other on mobile. */
+  gap: 0.65rem;
 }
 
 .quiver-list .empty-hint {
@@ -200,7 +202,7 @@ body {
 .quiver-chip {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 999px;
@@ -212,8 +214,11 @@ body {
   border: none;
   background: var(--color-border);
   color: var(--color-text);
-  width: 20px;
-  height: 20px;
+  /* Visual size stays compact, but the tappable box meets the WCAG 2.2
+     minimum target size (24x24 CSS px) so it's reliably tappable on a
+     phone without a mis-tap onto a neighboring chip. */
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   cursor: pointer;
   line-height: 1;
@@ -222,6 +227,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .quiver-chip button:hover {
@@ -344,6 +350,30 @@ body {
 .grid-table th {
   background: var(--color-bg);
   font-weight: 600;
+}
+
+/* Two labels per header cell: the full bucket name normally, an
+   abbreviation on narrow screens (see headerLabel() in app.js). Swapping
+   text via a media query avoids the full label wrapping into several
+   cramped lines inside a ~70px-wide mobile column. */
+.grid-table .th-short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .grid-table th,
+  .grid-table td {
+    padding: 0.4rem 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  .grid-table .th-full {
+    display: none;
+  }
+
+  .grid-table .th-short {
+    display: inline;
+  }
 }
 
 .grid-table td.cell-empty {
