@@ -166,7 +166,8 @@ thing everywhere on the page.
 
 ## Data
 
-`data/skis.json` holds 30 popular all-mountain/freeride ski models,
+`data/skis.json` holds 50 popular all-mountain/freeride ski models across
+18 brands,
 sourced (not estimated) from Blister Review's measured data, manufacturer
 spec pages, and retail spec tables. The file is a versioned envelope:
 
@@ -196,8 +197,9 @@ Each ski entry:
 | `verified_date`        | when it was last checked against a source                       |
 | `notes`                | anything a future editor should know (ambiguous figures, corrections made, etc.) |
 
-**Why this schema, not just numbers:** the dataset is meant to grow well
-past 30 skis over time. `reference_length_cm`, `model_year`,
+**Why this schema, not just numbers:** the dataset is meant to keep
+growing over time (30 → 50 skis and 9 → 18 brands as of this writing).
+`reference_length_cm`, `model_year`,
 `source`/`source_url`, and `verified_date` exist so a future pass can
 tell *which* number is being compared to *what*, and refresh stale
 entries without re-deriving the whole file. `data/SOURCING.md` documents
