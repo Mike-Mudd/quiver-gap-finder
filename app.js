@@ -460,7 +460,8 @@ function mapY(stab) {
 
 function skiAriaLabel(ski) {
   const stab = stabilityScore(ski);
-  return `${ski.name}: ${ski.waist_width_mm}mm waist, ${ski.weight_g} grams, ${metalLabel(
+  const yearPart = ski.model_year ? `${ski.model_year} model, ` : "";
+  return `${ski.name}: ${yearPart}${ski.waist_width_mm}mm waist, ${ski.weight_g} grams, ${metalLabel(
     ski.metal_content
   )} metal, temperament: ${temperamentPhrase(stab)} (${Math.round(stab)} of 100)`;
 }
@@ -573,7 +574,9 @@ function renderCoverageMapTable(skis) {
         WAIST_BUCKETS.find((b) => ski.waist_width_mm >= b.min && ski.waist_width_mm <= b.max) ||
         WAIST_BUCKETS[WAIST_BUCKETS.length - 1];
       const sBucket = temperamentBucket(region.stab);
-      return `<tr><td>${escapeHtml(ski.name)}</td><td>${ski.waist_width_mm}</td><td>${escapeHtml(
+      return `<tr><td>${escapeHtml(ski.name)}</td><td>${escapeHtml(
+        ski.model_year || "—"
+      )}</td><td>${ski.waist_width_mm}</td><td>${escapeHtml(
         rockerProfileLabel(ski.rocker_profile)
       )} (${rockerPercent(ski)}%)</td><td>${renderTemperamentGauge(
         region.stab
@@ -583,7 +586,7 @@ function renderCoverageMapTable(skis) {
 
   return `
     <table class="chart-table">
-      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Rocker</th><th>Temperament</th><th>Bucket</th></tr></thead>
+      <thead><tr><th>Ski</th><th>Year</th><th>Waist (mm)</th><th>Rocker</th><th>Temperament</th><th>Bucket</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
@@ -612,6 +615,14 @@ function skiTooltipHtml(ski) {
   title.className = "tooltip-title";
   title.textContent = ski.name;
 
+  // Specs (weight, radius, etc.) drift year to year — sourced model_year
+  // is shown so a tester can spot-check it against the exact ski they
+  // own and flag a mismatch, without the app having to support picking
+  // a specific year (see data/SOURCING.md).
+  const year = document.createElement("div");
+  year.className = "tooltip-year";
+  year.textContent = ski.model_year ? `${ski.model_year} model` : "Model year unknown";
+
   // One fact per row, in a label/value grid — not run-on text joined by
   // "·" separators, which gets ragged the moment a value is long enough
   // to wrap inside the tooltip's narrow width.
@@ -631,7 +642,7 @@ function skiTooltipHtml(ski) {
   gauge.innerHTML = renderTemperamentGauge(stabilityScore(ski));
 
   const wrap = document.createElement("div");
-  wrap.append(title, specGrid, gauge);
+  wrap.append(title, year, specGrid, gauge);
   return wrap;
 }
 
