@@ -8,7 +8,7 @@
       "brand": "Nordica",
       "model_year": "2024-2025",
       "reference_length_cm": 179,
-      "waist_width_mm": 95,
+      "waist_width_mm": 94,
       "weight_g": 2090,
       "turn_radius_m": 17.5,
       "rocker_profile": "camber_tip_tail_rocker",
@@ -17,7 +17,7 @@
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2024-2025-nordica-enforcer-94",
       "verified_date": "2026-08-11",
-      "notes": "2 sheets titanal, Pulse Core elastomer layer. rocker_percent estimated from profile category (no published tip/camber/tail % breakdown)."
+      "notes": "2 sheets titanal, Pulse Core elastomer layer. rocker_percent estimated from profile category (no published tip/camber/tail % breakdown). Blister's measured waist (95mm) rounded to the catalog nominal 94mm to match the model name."
     },
     {
       "name": "Nordica Enforcer 104 Free",
@@ -104,7 +104,7 @@
       "brand": "K2",
       "model_year": "2023-2024",
       "reference_length_cm": 186,
-      "waist_width_mm": 107,
+      "waist_width_mm": 108,
       "weight_g": 2220,
       "turn_radius_m": 22.8,
       "rocker_profile": "camber_tip_tail_rocker",
@@ -113,7 +113,7 @@
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-k2-mindbender-108ti",
       "verified_date": "2026-08-11",
-      "notes": "Titanal Y-Beam construction. Measured tip/camber/tail splay 64mm / 4mm / 19.5mm. rocker_percent estimated from profile category."
+      "notes": "Titanal Y-Beam construction. Measured tip/camber/tail splay 64mm / 4mm / 19.5mm. rocker_percent estimated from profile category. Blister's measured waist (107.4mm) rounded to the catalog nominal 108mm to match the model name."
     },
     {
       "name": "K2 Mindbender 116C",
@@ -440,7 +440,7 @@
       "brand": "Head",
       "model_year": "2022-2023",
       "reference_length_cm": 184,
-      "waist_width_mm": 95,
+      "waist_width_mm": 93,
       "weight_g": 1750,
       "turn_radius_m": 17.7,
       "rocker_profile": "camber_tip_tail_rocker",
@@ -449,7 +449,7 @@
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-head-kore-93",
       "verified_date": "2026-08-11",
-      "notes": "Corrected from 'none' - core is karuba/poplar + graphene + a titanal binding-area reinforcement plate + carbon/fiberglass, not metal-free despite the 'Graphene' marketing. Measured tip/tail splay 60mm/21mm, camber underfoot 5mm."
+      "notes": "Corrected from 'none' - core is karuba/poplar + graphene + a titanal binding-area reinforcement plate + carbon/fiberglass, not metal-free despite the 'Graphene' marketing. Measured tip/tail splay 60mm/21mm, camber underfoot 5mm. Blister's measured waist (94.6mm) rounded to the catalog nominal 93mm to match the model name - the largest measured/nominal gap in the dataset."
     },
     {
       "name": "Head Kore 105",
