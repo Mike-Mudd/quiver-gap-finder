@@ -99,8 +99,33 @@ For the selected quiver:
    overlap, since that's more skis doing similar jobs than the space
    really needs.
 
-The results panel shows these as plain-language bullets, plus a reference
-3×3 grid table with per-bucket ski counts.
+### 5. Results dashboard
+
+The results panel is a small dashboard, not a wall of text:
+
+- **Stat tiles** — three KPIs at a glance: buckets covered (X/9), coverage
+  gaps, and redundant zones.
+- **Coverage map** — an SVG scatter/region chart on the actual waist ×
+  stability plane. Each ski is a dot at its exact spec, surrounded by a
+  translucent box for its coverage region; overlapping regions darken
+  where they stack, which is what visually signals redundancy. A "View as
+  table" toggle swaps it for a plain data table (the accessible twin of
+  the chart — same numbers, no color required to read them).
+- **Coverage grid** — the same 3×3 bucket grid as a status-coded heatmap:
+  red/"Gap" for zero skis, green/"Covered" for 1–2, amber/"Redundant" for
+  3+. Every tile pairs its color with an icon and a text label (never
+  color alone), and hovering or focusing a tile shows exactly which skis
+  land there.
+- **Plain-language details** — the original bullet-point gap/redundancy
+  summary, kept as a collapsible section under the visuals.
+
+Colors follow a small fixed rule set: a **single sequential hue** (blue)
+for the coverage map — there's no per-ski color coding, so a quiver of 6
+skis never needs 6 distinguishable hues — and a **fixed status scale**
+(good/warning/critical) for anything that represents a state (gap,
+covered, redundant), reused identically across the stat tiles, the
+heatmap, and the bullet icons so the same color always means the same
+thing everywhere on the page.
 
 ## Data
 

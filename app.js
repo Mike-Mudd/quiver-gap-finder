@@ -72,6 +72,7 @@ const quiverListEl = document.getElementById("quiver-list");
 const quiverCountEl = document.getElementById("quiver-count");
 const findGapsBtn = document.getElementById("find-gaps-btn");
 const resultsEl = document.getElementById("results");
+const tooltipEl = document.getElementById("chart-tooltip");
 
 /* ------------------------------------------------------------------ *
  *  Init
@@ -257,13 +258,15 @@ function buildGrid(skis) {
 }
 
 /* ------------------------------------------------------------------ *
- *  Results rendering
+ *  Results rendering — dashboard: stat tiles, a coverage map, a
+ *  status-coded heatmap grid, and the plain-language bullets tucked
+ *  into a collapsible detail section.
  * ------------------------------------------------------------------ */
 
 function onFindGaps() {
   if (quiver.length === 0) return;
   const grid = buildGrid(quiver);
-  renderResults(grid);
+  renderDashboard(grid, quiver);
 }
 
 function bucketLabel(cell) {
@@ -275,102 +278,429 @@ function bucketDescription(cell) {
   return BUCKET_DESCRIPTIONS[key] || "this combination of width and stability";
 }
 
-function renderResults(grid) {
+/**
+ * Classify a bucket's ski count into one of three fixed states. These
+ * map 1:1 onto the status colors defined in style.css (good/warning/
+ * critical) — never assigned ad hoc, always via this function.
+ */
+function cellStatus(count) {
+  if (count === 0) return "critical"; // gap
+  if (count >= REDUNDANCY_THRESHOLD) return "warning"; // redundant
+  return "good"; // covered
+}
+
+function statusMeta(status) {
+  switch (status) {
+    case "critical":
+      return { icon: "✕", label: "Gap" };
+    case "warning":
+      return { icon: "▲", label: "Redundant" };
+    default:
+      return { icon: "✓", label: "Covered" };
+  }
+}
+
+function metalLabel(metal) {
+  if (metal === "none") return "no";
+  if (metal === "partial") return "partial";
+  return "full";
+}
+
+function renderDashboard(grid, skis) {
   const gaps = grid.filter((c) => c.skis.length === 0);
   const redundant = grid.filter((c) => c.skis.length >= REDUNDANCY_THRESHOLD);
   const covered = grid.length - gaps.length;
 
-  const parts = [];
+  resultsEl.innerHTML = [
+    renderStatTiles({ covered, gapCount: gaps.length, redundantCount: redundant.length }),
+    renderCoverageMapSection(skis),
+    renderHeatmapSection(grid),
+    renderDetailsSection(gaps, redundant),
+  ].join("\n");
 
-  parts.push(
-    `<p class="results-summary">Your ${quiver.length}-ski quiver covers <strong>${covered} of 9</strong> buckets in the coverage grid.</p>`
-  );
-
-  // Gaps
-  parts.push('<div class="result-group"><h3>Coverage gaps</h3>');
-  if (gaps.length === 0) {
-    parts.push(
-      `<ul class="result-list"><li class="result-item ok"><strong>No gaps</strong> — every bucket in the grid has at least one ski covering it.</li></ul>`
-    );
-  } else {
-    const items = gaps
-      .map(
-        (cell) =>
-          `<li class="result-item gap">No coverage for <strong>${escapeHtml(
-            bucketLabel(cell)
-          )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}.</li>`
-      )
-      .join("");
-    parts.push(`<ul class="result-list">${items}</ul>`);
-  }
-  parts.push("</div>");
-
-  // Redundancy
-  parts.push('<div class="result-group"><h3>Redundancy</h3>');
-  if (redundant.length === 0) {
-    parts.push(
-      `<ul class="result-list"><li class="result-item ok">No buckets have ${REDUNDANCY_THRESHOLD}+ overlapping skis — your quiver looks efficiently spread out.</li></ul>`
-    );
-  } else {
-    const items = redundant
-      .map((cell) => {
-        const names = cell.skis.map((s) => s.name).join(", ");
-        return `<li class="result-item redundancy"><strong>${cell.skis.length} skis</strong> overlap in <strong>${escapeHtml(
-          bucketLabel(cell)
-        )}</strong> — you may have redundant width/stability here (${escapeHtml(names)}).</li>`;
-      })
-      .join("");
-    parts.push(`<ul class="result-list">${items}</ul>`);
-  }
-  parts.push("</div>");
-
-  // Full grid table for reference
-  parts.push(renderGridTable(grid));
-
-  resultsEl.innerHTML = parts.join("\n");
+  wireCoverageMap(skis);
+  wireHeatmap(grid);
 }
 
-/**
- * Renders a table header cell's label as two swappable spans: the full
- * bucket label for normal widths, and an abbreviated one that a narrow
- * media query switches to on small screens (see .th-full/.th-short in
- * style.css) so headers like "narrow / firm-groomer" don't wrap into
- * several cramped lines on a phone.
- */
-function headerLabel(bucket) {
-  return `<span class="th-full">${escapeHtml(bucket.label)}</span><span class="th-short">${escapeHtml(
-    bucket.short
-  )}</span>`;
+/* ---- Stat tiles (KPI row) ----------------------------------------- */
+
+function renderStatTiles({ covered, gapCount, redundantCount }) {
+  const gapStatus = gapCount === 0 ? "good" : "critical";
+  const gapBadge = gapCount === 0 ? { icon: "✓", text: "fully covered" } : { icon: "✕", text: "needs attention" };
+
+  const redStatus = redundantCount === 0 ? "good" : "warning";
+  const redBadge =
+    redundantCount === 0 ? { icon: "✓", text: "well spread out" } : { icon: "▲", text: "overlapping skis" };
+
+  return `
+    <div class="stat-row">
+      <div class="stat-tile" data-status="neutral">
+        <div class="stat-label">Coverage</div>
+        <div class="stat-value">${covered}<span class="stat-value-total"> / 9</span></div>
+        <div class="stat-badge">buckets covered</div>
+      </div>
+      <div class="stat-tile" data-status="${gapStatus}">
+        <div class="stat-label">Coverage gaps</div>
+        <div class="stat-value">${gapCount}</div>
+        <div class="stat-badge"><span class="stat-icon" aria-hidden="true">${gapBadge.icon}</span>${gapBadge.text}</div>
+      </div>
+      <div class="stat-tile" data-status="${redStatus}">
+        <div class="stat-label">Redundant zones</div>
+        <div class="stat-value">${redundantCount}</div>
+        <div class="stat-badge"><span class="stat-icon" aria-hidden="true">${redBadge.icon}</span>${redBadge.text}</div>
+      </div>
+    </div>
+  `;
 }
 
-function renderGridTable(grid) {
-  // grid is ordered stab-major (damp bucket rows iterate through waist
-  // buckets); STAB_BUCKETS is ordered playful->balanced->damp, so reverse
-  // for a top-to-bottom "charging at top" reading of the table.
-  const rows = [...STAB_BUCKETS].reverse();
+/* ---- Coverage map (SVG scatter + region plot) ---------------------- */
 
-  let html = '<div class="grid-table-wrap"><table class="grid-table">';
-  html += "<thead><tr><th></th>";
+const MAP_W = 640;
+const MAP_H = 380;
+const MAP_MARGIN = { top: 16, right: 16, bottom: 30, left: 16 };
+const MAP_PLOT_W = MAP_W - MAP_MARGIN.left - MAP_MARGIN.right;
+const MAP_PLOT_H = MAP_H - MAP_MARGIN.top - MAP_MARGIN.bottom;
+
+function mapX(waist) {
+  return MAP_MARGIN.left + ((waist - WAIST_MIN) / (WAIST_MAX - WAIST_MIN)) * MAP_PLOT_W;
+}
+
+function mapY(stab) {
+  // Inverted: higher stability score plots nearer the top.
+  return MAP_MARGIN.top + ((STAB_MAX - stab) / (STAB_MAX - STAB_MIN)) * MAP_PLOT_H;
+}
+
+function skiAriaLabel(ski) {
+  const stab = Math.round(stabilityScore(ski));
+  return `${ski.name}: ${ski.waist_width_mm}mm waist, ${ski.weight_g} grams, ${metalLabel(
+    ski.metal_content
+  )} metal, stability score ${stab} of 100`;
+}
+
+function renderCoverageMapSvg(skis) {
+  const plotLeft = MAP_MARGIN.left;
+  const plotRight = MAP_MARGIN.left + MAP_PLOT_W;
+  const plotTop = MAP_MARGIN.top;
+  const plotBottom = MAP_MARGIN.top + MAP_PLOT_H;
+
+  const vx1 = mapX(89.5);
+  const vx2 = mapX(109.5);
+  const hy1 = mapY(33.33);
+  const hy2 = mapY(66.67);
+
+  let svg = `<rect x="${plotLeft}" y="${plotTop}" width="${MAP_PLOT_W}" height="${MAP_PLOT_H}" class="map-plot-border" />`;
+  svg += `<line x1="${vx1}" y1="${plotTop}" x2="${vx1}" y2="${plotBottom}" class="map-gridline" />`;
+  svg += `<line x1="${vx2}" y1="${plotTop}" x2="${vx2}" y2="${plotBottom}" class="map-gridline" />`;
+  svg += `<line x1="${plotLeft}" y1="${hy1}" x2="${plotRight}" y2="${hy1}" class="map-gridline" />`;
+  svg += `<line x1="${plotLeft}" y1="${hy2}" x2="${plotRight}" y2="${hy2}" class="map-gridline" />`;
+
+  // X-axis zone labels, centered under each waist bucket.
+  const xLabels = ["Narrow", "All-mountain", "Wide / powder"];
+  const xCenters = [(WAIST_MIN + 89) / 2, (90 + 109) / 2, (110 + WAIST_MAX) / 2];
+  xLabels.forEach((label, i) => {
+    const x = mapX(xCenters[i]);
+    svg += `<text x="${x.toFixed(1)}" y="${MAP_H - 10}" text-anchor="middle" class="map-axis-label">${escapeHtml(
+      label
+    )}</text>`;
+  });
+
+  // Y-axis zone labels, top-left of each stability band (damp at top).
+  const yLabels = ["Damp / charging", "Balanced", "Playful / light"];
+  const bandTopY = [plotTop, hy2, hy1];
+  yLabels.forEach((label, i) => {
+    svg += `<text x="${plotLeft + 8}" y="${(bandTopY[i] + 16).toFixed(
+      1
+    )}" text-anchor="start" class="map-axis-label map-axis-label-y">${escapeHtml(label)}</text>`;
+  });
+
+  // One mark per ski: a translucent region (opacity stacks where skis
+  // overlap, which is what visually signals redundancy) plus a solid
+  // dot at its exact spec position and a direct name label.
+  // Direct labels are shown only when they don't collide with one already
+  // placed — a quiver with several similar skis clusters tightly, and a
+  // pile of overlapping text is worse than a dot with a hover/focus
+  // tooltip (every ski's full spec is also in the "View as table" twin
+  // and the mark's aria-label, so nothing is gated behind the label).
+  const placedLabelBoxes = [];
+  const CHAR_W = 5.6; // px, approx. at 11px font
+  const LABEL_H = 13;
+  const LABEL_PAD = 4; // extra buffer so near-misses don't render edge-to-edge
+
+  skis.forEach((ski, i) => {
+    const region = coverageRegion(ski);
+    const rx1 = mapX(region.xMin);
+    const rx2 = mapX(region.xMax);
+    const ry1 = mapY(region.yMax);
+    const ry2 = mapY(region.yMin);
+    const cx = mapX(ski.waist_width_mm);
+    const cy = mapY(region.stab);
+
+    const nearRight = cx > plotRight - 90;
+    const nearTop = cy < plotTop + 18;
+    const labelX = nearRight ? cx - 9 : cx + 9;
+    const labelY = nearTop ? cy + 18 : cy - 9;
+    const anchor = nearRight ? "end" : "start";
+
+    const labelW = ski.name.length * CHAR_W;
+    const box = {
+      left: (anchor === "end" ? labelX - labelW : labelX) - LABEL_PAD,
+      right: (anchor === "end" ? labelX : labelX + labelW) + LABEL_PAD,
+      top: labelY - LABEL_H - LABEL_PAD,
+      bottom: labelY + LABEL_PAD,
+    };
+    const collides = placedLabelBoxes.some(
+      (b) => box.left < b.right && box.right > b.left && box.top < b.bottom && box.bottom > b.top
+    );
+
+    let labelSvg = "";
+    if (!collides) {
+      placedLabelBoxes.push(box);
+      labelSvg = `<text class="ski-mark-label" x="${labelX.toFixed(1)}" y="${labelY.toFixed(
+        1
+      )}" text-anchor="${anchor}">${escapeHtml(ski.name)}</text>`;
+    }
+
+    svg += `
+      <g class="ski-mark" tabindex="0" role="img" data-ski-index="${i}" aria-label="${escapeHtml(
+      skiAriaLabel(ski)
+    )}">
+        <rect class="ski-region" x="${rx1.toFixed(1)}" y="${ry1.toFixed(1)}" width="${(rx2 - rx1).toFixed(
+      1
+    )}" height="${(ry2 - ry1).toFixed(1)}" rx="8" />
+        <circle class="ski-hit" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="15" />
+        <circle class="ski-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" />
+        ${labelSvg}
+      </g>
+    `;
+  });
+
+  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and stability">${svg}</svg>`;
+}
+
+function renderCoverageMapTable(skis) {
+  const rows = skis
+    .map((ski) => {
+      const region = coverageRegion(ski);
+      const wBucket =
+        WAIST_BUCKETS.find((b) => ski.waist_width_mm >= b.min && ski.waist_width_mm <= b.max) ||
+        WAIST_BUCKETS[WAIST_BUCKETS.length - 1];
+      const sBucket =
+        STAB_BUCKETS.find((b) => region.stab >= b.min && region.stab <= b.max) || STAB_BUCKETS[STAB_BUCKETS.length - 1];
+      return `<tr><td>${escapeHtml(ski.name)}</td><td>${ski.waist_width_mm}</td><td>${Math.round(
+        region.stab
+      )}</td><td>${escapeHtml(wBucket.label)} + ${escapeHtml(sBucket.label)}</td></tr>`;
+    })
+    .join("");
+
+  return `
+    <table class="chart-table">
+      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Stability score</th><th>Bucket</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderCoverageMapSection(skis) {
+  return `
+    <section class="panel dashboard-card">
+      <div class="card-header">
+        <h3>Coverage map</h3>
+        <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
+      </div>
+      <p class="map-caption">
+        Each dot is a ski's exact spec. The shaded box around it is the terrain/stability
+        range it covers — darker overlap means more than one ski covers that zone. Hover or
+        focus a dot for its name and specs when labels are too close to show.
+      </p>
+      <div class="chart-wrap" id="map-chart-wrap">${renderCoverageMapSvg(skis)}</div>
+      <div class="chart-table-wrap" id="map-table-wrap" hidden>${renderCoverageMapTable(skis)}</div>
+    </section>
+  `;
+}
+
+function skiTooltipHtml(ski) {
+  const stab = Math.round(stabilityScore(ski));
+  const title = document.createElement("div");
+  title.className = "tooltip-title";
+  title.textContent = ski.name;
+
+  const specs = document.createElement("div");
+  specs.className = "tooltip-detail";
+  specs.textContent = `${ski.waist_width_mm}mm waist · ${ski.weight_g}g · ${metalLabel(ski.metal_content)} metal`;
+
+  const score = document.createElement("div");
+  score.className = "tooltip-detail";
+  score.textContent = `Stability score: ${stab} / 100`;
+
+  const wrap = document.createElement("div");
+  wrap.append(title, specs, score);
+  return wrap;
+}
+
+function wireCoverageMap(skis) {
+  const chartWrap = document.getElementById("map-chart-wrap");
+  const tableWrap = document.getElementById("map-table-wrap");
+  const toggleBtn = document.getElementById("map-table-toggle");
+
+  toggleBtn.addEventListener("click", () => {
+    const showTable = tableWrap.hidden;
+    tableWrap.hidden = !showTable;
+    chartWrap.hidden = showTable;
+    toggleBtn.setAttribute("aria-pressed", String(showTable));
+    toggleBtn.textContent = showTable ? "View as chart" : "View as table";
+  });
+
+  chartWrap.querySelectorAll(".ski-mark").forEach((mark) => {
+    const ski = skis[Number(mark.dataset.skiIndex)];
+    const show = () => showTooltip(mark, skiTooltipHtml(ski));
+    mark.addEventListener("pointerenter", show);
+    mark.addEventListener("focus", show);
+    mark.addEventListener("pointerleave", hideTooltip);
+    mark.addEventListener("blur", hideTooltip);
+  });
+}
+
+/* ---- Heatmap grid (status-coded 3x3) -------------------------------- */
+
+function renderHeatmapSection(grid) {
+  const rows = [...STAB_BUCKETS].reverse(); // damp/charging at top
+
+  let cells = `<div class="heatmap-corner" role="presentation"></div>`;
   for (const wb of WAIST_BUCKETS) {
-    html += `<th title="${escapeHtml(wb.label)}">${headerLabel(wb)}</th>`;
+    cells += `<div class="heatmap-colhead">${escapeHtml(wb.short)}</div>`;
   }
-  html += "</tr></thead><tbody>";
 
+  let cellIndex = 0;
+  const cellRefs = [];
   for (const sb of rows) {
-    html += `<tr><th title="${escapeHtml(sb.label)}">${headerLabel(sb)}</th>`;
+    cells += `<div class="heatmap-rowhead">${escapeHtml(sb.short)}</div>`;
     for (const wb of WAIST_BUCKETS) {
       const cell = grid.find((c) => c.stabBucket.key === sb.key && c.waistBucket.key === wb.key);
-      const count = cell.skis.length;
-      let cls = "cell-ok";
-      if (count === 0) cls = "cell-empty";
-      else if (count >= REDUNDANCY_THRESHOLD) cls = "cell-redundant";
-      html += `<td class="${cls}" title="${escapeHtml(cell.skis.map((s) => s.name).join(", "))}">${count}</td>`;
+      cellRefs.push(cell);
+      const status = cellStatus(cell.skis.length);
+      const meta = statusMeta(status);
+      cells += `
+        <div class="heat-tile" data-status="${status}" data-cell-index="${cellIndex}" tabindex="0"
+             aria-label="${escapeHtml(bucketLabel(cell))}: ${cell.skis.length} ski${
+        cell.skis.length === 1 ? "" : "s"
+      }, ${meta.label}${cell.skis.length ? ` — ${escapeHtml(cell.skis.map((s) => s.name).join(", "))}` : ""}">
+          <span class="heat-icon" aria-hidden="true">${meta.icon}</span>
+          <span class="heat-count">${cell.skis.length}</span>
+          <span class="heat-label">${meta.label}</span>
+        </div>
+      `;
+      cellIndex++;
     }
-    html += "</tr>";
   }
 
-  html += "</tbody></table></div>";
-  return html;
+  return `
+    <section class="panel dashboard-card">
+      <h3>Coverage grid</h3>
+      <div class="heatmap" data-cell-count="${cellRefs.length}">${cells}</div>
+    </section>
+  `;
+}
+
+function heatTooltipHtml(cell) {
+  const title = document.createElement("div");
+  title.className = "tooltip-title";
+  title.textContent = bucketLabel(cell);
+
+  const detail = document.createElement("div");
+  detail.className = "tooltip-detail";
+  detail.textContent = cell.skis.length ? cell.skis.map((s) => s.name).join(", ") : "No skis cover this zone";
+
+  const wrap = document.createElement("div");
+  wrap.append(title, detail);
+  return wrap;
+}
+
+function wireHeatmap(grid) {
+  const rows = [...STAB_BUCKETS].reverse();
+  const orderedCells = [];
+  for (const sb of rows) {
+    for (const wb of WAIST_BUCKETS) {
+      orderedCells.push(grid.find((c) => c.stabBucket.key === sb.key && c.waistBucket.key === wb.key));
+    }
+  }
+
+  document.querySelectorAll(".heat-tile").forEach((tile) => {
+    const cell = orderedCells[Number(tile.dataset.cellIndex)];
+    const show = () => showTooltip(tile, heatTooltipHtml(cell));
+    tile.addEventListener("pointerenter", show);
+    tile.addEventListener("focus", show);
+    tile.addEventListener("pointerleave", hideTooltip);
+    tile.addEventListener("blur", hideTooltip);
+  });
+}
+
+/* ---- Collapsible plain-language detail ------------------------------ */
+
+function renderDetailsSection(gaps, redundant) {
+  const gapItems =
+    gaps.length === 0
+      ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No gaps — every bucket has at least one ski covering it.</span></li>`
+      : gaps
+          .map(
+            (cell) =>
+              `<li class="result-item gap"><span class="status-icon status-critical" aria-hidden="true">✕</span><span>No coverage for <strong>${escapeHtml(
+                bucketLabel(cell)
+              )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}.</span></li>`
+          )
+          .join("");
+
+  const redItems =
+    redundant.length === 0
+      ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No buckets have ${REDUNDANCY_THRESHOLD}+ overlapping skis — your quiver looks efficiently spread out.</span></li>`
+      : redundant
+          .map((cell) => {
+            const names = cell.skis.map((s) => s.name).join(", ");
+            return `<li class="result-item redundancy"><span class="status-icon status-warning" aria-hidden="true">▲</span><span><strong>${cell.skis.length} skis</strong> overlap in <strong>${escapeHtml(
+              bucketLabel(cell)
+            )}</strong> — you may have redundant width/stability here (${escapeHtml(names)}).</span></li>`;
+          })
+          .join("");
+
+  return `
+    <details class="result-details">
+      <summary>Plain-language details</summary>
+      <div class="result-group">
+        <h4>Coverage gaps</h4>
+        <ul class="result-list">${gapItems}</ul>
+      </div>
+      <div class="result-group">
+        <h4>Redundancy</h4>
+        <ul class="result-list">${redItems}</ul>
+      </div>
+    </details>
+  `;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Shared chart tooltip
+ * ------------------------------------------------------------------ */
+
+function showTooltip(targetEl, contentNode) {
+  tooltipEl.innerHTML = "";
+  tooltipEl.appendChild(contentNode);
+  tooltipEl.hidden = false;
+  positionTooltip(targetEl);
+}
+
+function positionTooltip(targetEl) {
+  const rect = targetEl.getBoundingClientRect();
+  const tw = tooltipEl.offsetWidth;
+  const th = tooltipEl.offsetHeight;
+  let left = rect.left + rect.width / 2 - tw / 2;
+  let top = rect.top - th - 10;
+  if (top < 8) top = rect.bottom + 10;
+  left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+  tooltipEl.style.left = `${left}px`;
+  tooltipEl.style.top = `${top}px`;
+}
+
+function hideTooltip() {
+  tooltipEl.hidden = true;
 }
 
 /* ------------------------------------------------------------------ *
