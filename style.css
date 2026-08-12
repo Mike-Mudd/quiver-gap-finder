@@ -503,6 +503,64 @@ body {
   text-align: left;
 }
 
+/* Temperament gauge: a word + position-on-a-spectrum widget, used
+   identically in the table view and the tooltip (see .chart-tooltip
+   below) so it's never shown as a bare "X / 100" number. Text colors
+   use `currentColor`/inherit rather than fixed tokens so the same
+   markup reads correctly on the tooltip's inverted (dark-on-light or
+   light-on-dark) background too. */
+.temperament-gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 110px;
+}
+
+.temperament-gauge-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.temperament-gauge-divider {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--chart-muted);
+  opacity: 0.6;
+}
+
+.temperament-gauge-dot {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  background: var(--chart-accent);
+  border: 2px solid var(--color-panel);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.temperament-gauge-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: inherit;
+}
+
+.temperament-gauge-phrase {
+  font-weight: 600;
+  color: inherit;
+}
+
+.temperament-gauge-value {
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
 .chart-table th {
   background: var(--color-bg);
   font-weight: 600;

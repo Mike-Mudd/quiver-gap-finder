@@ -267,6 +267,56 @@ function rectsOverlap(a, b) {
   return a.xMin <= b.max && a.xMax >= b.min;
 }
 
+/* ------------------------------------------------------------------ *
+ *  Temperament display
+ *
+ *  The underlying 0-100 number (computed by stabilityScore) is never
+ *  shown to the user as a bare "X / 100" — on its own that reads like a
+ *  quality grade (higher = better), when really it's a spectrum with no
+ *  good/bad direction: a playful ski isn't a worse ski than a damp one,
+ *  just a different one. User-facing UI calls this "Temperament" and
+ *  always shows it as a short phrase + a position-on-a-spectrum gauge,
+ *  with the raw number kept only as a small secondary detail.
+ * ------------------------------------------------------------------ */
+
+function temperamentBucket(score) {
+  return STAB_BUCKETS.find((b) => score >= b.min && score <= b.max) || STAB_BUCKETS[STAB_BUCKETS.length - 1];
+}
+
+function temperamentPhrase(score) {
+  const key = temperamentBucket(score).key;
+  if (key === "playful") return "Leans playful";
+  if (key === "damp") return "Leans damp/charging";
+  return "Balanced";
+}
+
+/**
+ * A compact "word + gauge" widget: a track with dividers at the bucket
+ * boundaries, a dot marking the ski's position, and a short phrase
+ * (never the bare number) as the headline. Used identically in the
+ * coverage-map tooltip and the table view so temperament reads the same
+ * way everywhere it appears.
+ */
+function renderTemperamentGauge(score) {
+  const pct = clamp(score, 0, 100);
+  const phrase = temperamentPhrase(score);
+  return `
+    <div class="temperament-gauge" role="img" aria-label="Temperament: ${escapeHtml(phrase)} (${Math.round(
+    score
+  )} of 100)">
+      <div class="temperament-gauge-track">
+        <span class="temperament-gauge-divider" style="left: 33.33%"></span>
+        <span class="temperament-gauge-divider" style="left: 66.67%"></span>
+        <span class="temperament-gauge-dot" style="left: ${pct.toFixed(1)}%"></span>
+      </div>
+      <div class="temperament-gauge-caption">
+        <span class="temperament-gauge-phrase">${escapeHtml(phrase)}</span>
+        <span class="temperament-gauge-value">(${Math.round(score)})</span>
+      </div>
+    </div>
+  `;
+}
+
 /**
  * Build the 3x3 grid. Each cell holds the list of skis (from the given
  * quiver) whose coverage region overlaps that bucket.
@@ -313,7 +363,7 @@ function bucketLabel(cell) {
 
 function bucketDescription(cell) {
   const key = `${cell.waistBucket.key}-${cell.stabBucket.key}`;
-  return BUCKET_DESCRIPTIONS[key] || "this combination of width and stability";
+  return BUCKET_DESCRIPTIONS[key] || "this combination of width and temperament";
 }
 
 /**
@@ -409,10 +459,10 @@ function mapY(stab) {
 }
 
 function skiAriaLabel(ski) {
-  const stab = Math.round(stabilityScore(ski));
+  const stab = stabilityScore(ski);
   return `${ski.name}: ${ski.waist_width_mm}mm waist, ${ski.weight_g} grams, ${metalLabel(
     ski.metal_content
-  )} metal, stability score ${stab} of 100`;
+  )} metal, temperament: ${temperamentPhrase(stab)} (${Math.round(stab)} of 100)`;
 }
 
 function renderCoverageMapSvg(skis) {
@@ -512,7 +562,7 @@ function renderCoverageMapSvg(skis) {
     `;
   });
 
-  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and stability">${svg}</svg>`;
+  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${svg}</svg>`;
 }
 
 function renderCoverageMapTable(skis) {
@@ -522,11 +572,10 @@ function renderCoverageMapTable(skis) {
       const wBucket =
         WAIST_BUCKETS.find((b) => ski.waist_width_mm >= b.min && ski.waist_width_mm <= b.max) ||
         WAIST_BUCKETS[WAIST_BUCKETS.length - 1];
-      const sBucket =
-        STAB_BUCKETS.find((b) => region.stab >= b.min && region.stab <= b.max) || STAB_BUCKETS[STAB_BUCKETS.length - 1];
+      const sBucket = temperamentBucket(region.stab);
       return `<tr><td>${escapeHtml(ski.name)}</td><td>${ski.waist_width_mm}</td><td>${escapeHtml(
         rockerProfileLabel(ski.rocker_profile)
-      )} (${rockerPercent(ski)}%)</td><td>${Math.round(
+      )} (${rockerPercent(ski)}%)</td><td>${renderTemperamentGauge(
         region.stab
       )}</td><td>${escapeHtml(wBucket.label)} + ${escapeHtml(sBucket.label)}</td></tr>`;
     })
@@ -534,7 +583,7 @@ function renderCoverageMapTable(skis) {
 
   return `
     <table class="chart-table">
-      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Rocker</th><th>Stability score</th><th>Bucket</th></tr></thead>
+      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Rocker</th><th>Temperament</th><th>Bucket</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
@@ -548,7 +597,7 @@ function renderCoverageMapSection(skis) {
         <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
       </div>
       <p class="map-caption">
-        Each dot is a ski's exact spec. The shaded box around it is the terrain/stability
+        Each dot is a ski's exact spec. The shaded box around it is the terrain/temperament
         range it covers — darker overlap means more than one ski covers that zone. Hover or
         focus a dot for its name and specs when labels are too close to show.
       </p>
@@ -559,7 +608,6 @@ function renderCoverageMapSection(skis) {
 }
 
 function skiTooltipHtml(ski) {
-  const stab = Math.round(stabilityScore(ski));
   const title = document.createElement("div");
   title.className = "tooltip-title";
   title.textContent = ski.name;
@@ -572,12 +620,13 @@ function skiTooltipHtml(ski) {
   rocker.className = "tooltip-detail";
   rocker.textContent = `${rockerProfileLabel(ski.rocker_profile)} · ${rockerPercent(ski)}% rocker`;
 
-  const score = document.createElement("div");
-  score.className = "tooltip-detail";
-  score.textContent = `Stability score: ${stab} / 100`;
+  // renderTemperamentGauge() only ever embeds a fixed phrase + a number,
+  // both already escaped inside it - safe to insert as HTML.
+  const gauge = document.createElement("div");
+  gauge.innerHTML = renderTemperamentGauge(stabilityScore(ski));
 
   const wrap = document.createElement("div");
-  wrap.append(title, specs, rocker, score);
+  wrap.append(title, specs, rocker, gauge);
   return wrap;
 }
 
@@ -712,7 +761,7 @@ function renderDetailsSection(gaps, redundant) {
             const names = cell.skis.map((s) => s.name).join(", ");
             return `<li class="result-item redundancy"><span class="status-icon status-warning" aria-hidden="true">▲</span><span><strong>${cell.skis.length} skis</strong> overlap in <strong>${escapeHtml(
               bucketLabel(cell)
-            )}</strong> — you may have redundant width/stability here (${escapeHtml(names)}).</span></li>`;
+            )}</strong> — you may have redundant width/temperament here (${escapeHtml(names)}).</span></li>`;
           })
           .join("");
 

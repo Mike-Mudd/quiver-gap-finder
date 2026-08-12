@@ -36,7 +36,7 @@ Every ski is placed in a 2D space:
   - `narrow / firm-groomer` (60–89mm)
   - `all-mountain` (90–109mm)
   - `wide / powder` (110–130mm)
-- **Y axis — stability score (0–100)**, a derived value (see below), split
+- **Y axis — temperament (0–100)**, a derived value (see below), split
   into 3 buckets:
   - `playful / light` (0–33.3)
   - `balanced` (33.3–66.7)
@@ -45,11 +45,21 @@ Every ski is placed in a 2D space:
 That gives a 3×3 grid of 9 buckets, each representing a distinct kind of
 ski day (e.g. "wide/powder + damp/charging" = big powder days at speed).
 
-### 2. Stability score
+### 2. Temperament
 
-Waist width is a given data field, but "stability" isn't something ski
-brands publish directly — it's derived from three inputs that correlate
-with how damp/composed vs. playful/light a ski feels:
+Waist width is a given data field, but a ski's "temperament" — how
+damp/composed vs. playful/light it feels — isn't something ski brands
+publish directly. It's deliberately **not called "stability score"** in
+the UI: a bare 0–100 number reads like a quality grade (higher = better),
+but this is a spectrum with no good/bad direction — a playful ski isn't
+a worse ski than a damp one, just a different one suited to different
+days. Every place it's shown to the user, it's a short phrase ("Leans
+playful" / "Balanced" / "Leans damp/charging") plus a small gauge marking
+its position on the spectrum — never a bare number. See "Results
+dashboard" below.
+
+Under the hood it's derived from three inputs that correlate with how
+damp/composed vs. playful/light a ski feels:
 
 - **Weight** — heavier skis are generally more stable at speed and in
   crud. Weight is normalized against a 1550–2360g range (the
@@ -71,9 +81,9 @@ Weight and metal are combined into a base score, then rocker pulls that
 base down:
 
 ```
-base            = (weight_norm * 0.65 + metal_norm * 0.35) * 100
-rocker_pull     = (rocker_percent / 100) * 25   // max 25-point pull at 100% rocker
-stability_score = clamp(base - rocker_pull, 0, 100)
+base               = (weight_norm * 0.65 + metal_norm * 0.35) * 100
+rocker_pull        = (rocker_percent / 100) * 25   // max 25-point pull at 100% rocker
+temperament_score  = clamp(base - rocker_pull, 0, 100)
 ```
 
 Weight is weighted higher than metal content in the base because it's a
@@ -95,12 +105,12 @@ See `data/SOURCING.md` for both.
 ### 3. Coverage regions, not points
 
 A ski doesn't just "count" for the single bucket its exact waist width and
-stability score fall into — real skis are versatile within a range around
+temperament fall into — real skis are versatile within a range around
 their specs. Each ski gets a rectangular **coverage region** centered on
-its (waist, stability) position:
+its (waist, temperament) position:
 
 - ±7mm on the waist width axis
-- ±12 points on the stability axis
+- ±12 points on the temperament axis
 
 That region is clamped to the axis bounds (60–130mm, 0–100). A ski
 **covers** a bucket if its coverage rectangle overlaps that bucket's area
@@ -127,11 +137,17 @@ The results panel is a small dashboard, not a wall of text:
 - **Stat tiles** — three KPIs at a glance: buckets covered (X/9), coverage
   gaps, and redundant zones.
 - **Coverage map** — an SVG scatter/region chart on the actual waist ×
-  stability plane. Each ski is a dot at its exact spec, surrounded by a
+  temperament plane. Each ski is a dot at its exact spec, surrounded by a
   translucent box for its coverage region; overlapping regions darken
   where they stack, which is what visually signals redundancy. A "View as
   table" toggle swaps it for a plain data table (the accessible twin of
   the chart — same numbers, no color required to read them).
+- **Temperament gauge** — hovering/focusing a ski's dot (or its row in the
+  table view) shows temperament as a short phrase ("Leans playful" /
+  "Balanced" / "Leans damp/charging") next to a small track-and-dot gauge
+  marking its position between the two poles, with the raw 0–100 number
+  kept only as a small secondary detail — never shown alone as a bare
+  number that would read like a grade.
 - **Coverage grid** — the same 3×3 bucket grid as a status-coded heatmap:
   red/"Gap" for zero skis, green/"Covered" for 1–2, amber/"Redundant" for
   3+. Every tile pairs its color with an icon and a text label (never
