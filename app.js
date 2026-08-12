@@ -15,17 +15,37 @@ const STAB_MAX = 100;
 const WAIST_RADIUS = 7; // mm
 const STAB_RADIUS = 12; // stability points (0-100 scale)
 
-// Weight range used to normalize stability score. Roughly spans the
-// lightest (touring-oriented) to heaviest (charger) skis in the dataset.
-const WEIGHT_MIN = 1500;
-const WEIGHT_MAX = 2300;
+// Weight range used to normalize stability score. Spans the lightest
+// (DPS Pagoda Tour 100) to heaviest (Volkl Katana 108) skis in the
+// sourced dataset — see data/SOURCING.md.
+const WEIGHT_MIN = 1550;
+const WEIGHT_MAX = 2360;
 
 // Contribution of metal content to the stability score (0-1 scale).
 const METAL_SCORE = { none: 0, partial: 0.5, full: 1 };
 
-// Weighting between weight and metal content in the final stability score.
+// Weighting between weight and metal content in the "base" stability
+// score, before the rocker pull below is applied.
 const WEIGHT_FACTOR = 0.65;
 const METAL_FACTOR = 0.35;
+
+// Rocker independently pulls a ski's stability score toward "playful,"
+// regardless of weight/metal: a heavy, full-metal, heavily-rockered
+// powder ski still skis loose, not damp. This is the max number of
+// points a 100%-rocker ski gets pulled down by; a full-camber ski gets
+// no pull at all. See README.md "Stability score" for the reasoning.
+const ROCKER_PULL_MAX = 25;
+
+// Fallback rocker_percent when a ski entry doesn't have one sourced
+// directly (see data/SOURCING.md "Classifying rocker profile") - the
+// midpoint of each profile's typical rocker coverage.
+const ROCKER_PROFILE_DEFAULT_PERCENT = {
+  full_camber: 5,
+  camber_tip_rocker: 20,
+  camber_tip_tail_rocker: 40,
+  flat_tip_tail_rocker: 65,
+  full_rocker: 90,
+};
 
 const REDUNDANCY_THRESHOLD = 3;
 const MAX_QUIVER_SIZE = 6;
@@ -84,7 +104,11 @@ async function init() {
   try {
     const res = await fetch("data/skis.json");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    allSkis = await res.json();
+    const payload = await res.json();
+    if (!payload || !Array.isArray(payload.skis)) {
+      throw new Error("Unexpected data/skis.json format (expected a { skis: [...] } object)");
+    }
+    allSkis = payload.skis;
   } catch (err) {
     searchResultsEl.hidden = false;
     searchResultsEl.innerHTML = `<li class="no-match">Couldn't load data/skis.json (${escapeHtml(
@@ -200,14 +224,28 @@ function clamp(value, min, max) {
 }
 
 /**
- * Derive a 0-100 "stability score" from weight and metal content.
- * Heavier + more metal => higher score => damper/more charging-oriented.
- * Lighter + no metal => lower score => more playful.
+ * A ski's rocker_percent if sourced directly, otherwise the midpoint
+ * default for its rocker_profile category. See data/SOURCING.md.
+ */
+function rockerPercent(ski) {
+  if (typeof ski.rocker_percent === "number") return ski.rocker_percent;
+  return ROCKER_PROFILE_DEFAULT_PERCENT[ski.rocker_profile] ?? 40;
+}
+
+/**
+ * Derive a 0-100 "stability score" from weight, metal content, and
+ * rocker. Heavier + more metal => higher base score => damper/more
+ * charging-oriented. Rocker then independently pulls the score back
+ * toward "playful," regardless of weight/metal — a heavy, full-metal,
+ * heavily-rockered powder ski still skis loose, not damp; a full-camber
+ * ski gets no pull at all.
  */
 function stabilityScore(ski) {
   const weightNorm = clamp((ski.weight_g - WEIGHT_MIN) / (WEIGHT_MAX - WEIGHT_MIN), 0, 1);
   const metalNorm = METAL_SCORE[ski.metal_content] ?? 0;
-  return weightNorm * WEIGHT_FACTOR * 100 + metalNorm * METAL_FACTOR * 100;
+  const base = weightNorm * WEIGHT_FACTOR * 100 + metalNorm * METAL_FACTOR * 100;
+  const rockerPull = (rockerPercent(ski) / 100) * ROCKER_PULL_MAX;
+  return clamp(base - rockerPull, 0, 100);
 }
 
 /**
@@ -486,7 +524,9 @@ function renderCoverageMapTable(skis) {
         WAIST_BUCKETS[WAIST_BUCKETS.length - 1];
       const sBucket =
         STAB_BUCKETS.find((b) => region.stab >= b.min && region.stab <= b.max) || STAB_BUCKETS[STAB_BUCKETS.length - 1];
-      return `<tr><td>${escapeHtml(ski.name)}</td><td>${ski.waist_width_mm}</td><td>${Math.round(
+      return `<tr><td>${escapeHtml(ski.name)}</td><td>${ski.waist_width_mm}</td><td>${escapeHtml(
+        rockerProfileLabel(ski.rocker_profile)
+      )} (${rockerPercent(ski)}%)</td><td>${Math.round(
         region.stab
       )}</td><td>${escapeHtml(wBucket.label)} + ${escapeHtml(sBucket.label)}</td></tr>`;
     })
@@ -494,7 +534,7 @@ function renderCoverageMapTable(skis) {
 
   return `
     <table class="chart-table">
-      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Stability score</th><th>Bucket</th></tr></thead>
+      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Rocker</th><th>Stability score</th><th>Bucket</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
@@ -528,13 +568,28 @@ function skiTooltipHtml(ski) {
   specs.className = "tooltip-detail";
   specs.textContent = `${ski.waist_width_mm}mm waist · ${ski.weight_g}g · ${metalLabel(ski.metal_content)} metal`;
 
+  const rocker = document.createElement("div");
+  rocker.className = "tooltip-detail";
+  rocker.textContent = `${rockerProfileLabel(ski.rocker_profile)} · ${rockerPercent(ski)}% rocker`;
+
   const score = document.createElement("div");
   score.className = "tooltip-detail";
   score.textContent = `Stability score: ${stab} / 100`;
 
   const wrap = document.createElement("div");
-  wrap.append(title, specs, score);
+  wrap.append(title, specs, rocker, score);
   return wrap;
+}
+
+function rockerProfileLabel(profile) {
+  const labels = {
+    full_camber: "Full camber",
+    camber_tip_rocker: "Camber + tip rocker",
+    camber_tip_tail_rocker: "Camber + tip/tail rocker",
+    flat_tip_tail_rocker: "Flat + tip/tail rocker",
+    full_rocker: "Full rocker",
+  };
+  return labels[profile] || "Unknown rocker profile";
 }
 
 function wireCoverageMap(skis) {

@@ -48,28 +48,49 @@ ski day (e.g. "wide/powder + damp/charging" = big powder days at speed).
 ### 2. Stability score
 
 Waist width is a given data field, but "stability" isn't something ski
-brands publish directly — it's derived from two inputs that correlate
+brands publish directly — it's derived from three inputs that correlate
 with how damp/composed vs. playful/light a ski feels:
 
 - **Weight** — heavier skis are generally more stable at speed and in
-  crud. Weight is normalized against a 1500–2300g range (roughly the
-  lightest-to-heaviest skis in the dataset) to a 0–1 scale.
+  crud. Weight is normalized against a 1550–2360g range (the
+  lightest-to-heaviest skis in the sourced dataset) to a 0–1 scale.
 - **Metal content** — `none` / `partial` / `full` sheets of metal (usually
   titanal) in the layup add dampness and stability. This maps to a 0 / 0.5
-  / 1 score.
+  / 1 score. `partial` covers constructions like a binding-area
+  reinforcement plate or a tapered/segmented layer, as opposed to a
+  full-length sheet — see `data/SOURCING.md` for how that distinction is
+  drawn per ski.
+- **Rocker** — independent of weight and metal. A heavy, full-metal ski
+  with a lot of tip/tail rocker still skis loose in the tail and forgives
+  mistakes more than its weight alone suggests (and vice versa: a light
+  ski with full camber still feels locked-in and precise). Rocker doesn't
+  raise the score — it only *pulls it down* toward "playful," in
+  proportion to how much of the ski's length is rockered.
 
-The two are combined as a weighted sum, then scaled to 0–100:
+Weight and metal are combined into a base score, then rocker pulls that
+base down:
 
 ```
-stability_score = (weight_norm * 0.65 + metal_norm * 0.35) * 100
+base            = (weight_norm * 0.65 + metal_norm * 0.35) * 100
+rocker_pull     = (rocker_percent / 100) * 25   // max 25-point pull at 100% rocker
+stability_score = clamp(base - rocker_pull, 0, 100)
 ```
 
-Weight is weighted higher than metal content because it's a continuous,
-more reliable signal; metal content is a coarser 3-value proxy.
+Weight is weighted higher than metal content in the base because it's a
+continuous, more reliable signal; metal content is a coarser 3-value
+proxy. The 25-point rocker pull is capped below the base's own 100-point
+range so weight/metal remain the primary signal and rocker acts as a
+correction, not a competing axis.
 
-These weights and the normalization range are simple, tunable heuristics,
-not a physics model — the goal is a reasonable relative ordering of skis
-from "playful" to "charging," not a precise number.
+These weights, the normalization range, and the rocker pull cap are
+simple, tunable heuristics, not a physics model — the goal is a
+reasonable relative ordering of skis from "playful" to "charging," not a
+precise number.
+
+`rocker_percent` is sourced directly (as tip-rocker% + tail-rocker% of
+the ski's length) when a source publishes that breakdown; otherwise it
+falls back to a midpoint default for the ski's `rocker_profile` category.
+See `data/SOURCING.md` for both.
 
 ### 3. Coverage regions, not points
 
@@ -129,27 +150,69 @@ thing everywhere on the page.
 
 ## Data
 
-`data/skis.json` contains ~30 popular all-mountain/freeride ski models
-with:
+`data/skis.json` holds 30 popular all-mountain/freeride ski models,
+sourced (not estimated) from Blister Review's measured data, manufacturer
+spec pages, and retail spec tables. The file is a versioned envelope:
 
-| field             | meaning                                      |
-| ----------------- | --------------------------------------------- |
-| `name`            | model name                                    |
-| `waist_width_mm`  | waist width in millimeters                    |
-| `weight_g`        | per-ski weight in grams (approx., per pair/2) |
-| `rocker_percent`  | approximate % of ski length in rocker/splay   |
-| `turn_radius_m`   | manufacturer-stated turn radius in meters     |
-| `metal_content`   | `none`, `partial`, or `full` sheet(s) of metal|
+```json
+{
+  "schema_version": 2,
+  "last_updated": "2026-08-11",
+  "skis": [ { "name": "...", "waist_width_mm": 95, ... }, ... ]
+}
+```
 
-Values are realistic approximations for well-known models, not scraped
-from official spec sheets — treat them as illustrative, not authoritative.
+Each ski entry:
+
+| field                  | meaning                                                        |
+| ---------------------- | ---------------------------------------------------------------|
+| `name`                 | model name, as marketed                                        |
+| `brand`                | manufacturer                                                   |
+| `model_year`           | the season the specs below were sourced from                   |
+| `reference_length_cm`  | the specific length `weight_g`/`turn_radius_m` were measured at — both vary by length, so a number without this attached isn't comparable across skis |
+| `waist_width_mm`       | waist width at the reference length                             |
+| `weight_g`             | **per ski**, preferring a physically-measured figure over manufacturer-claimed weight |
+| `turn_radius_m`        | at the reference length                                         |
+| `rocker_profile`       | one of 5 categorical shapes (`full_camber` → `full_rocker`) — see below |
+| `rocker_percent`       | tip% + tail% rocker coverage, 0–100, when a source publishes the exact split; otherwise a per-category default |
+| `metal_content`        | `none` / `partial` (binding-area reinforcement or a tapered/segmented layer) / `full` (a complete sheet the length of the ski) |
+| `source`, `source_url` | where the entry came from                                       |
+| `verified_date`        | when it was last checked against a source                       |
+| `notes`                | anything a future editor should know (ambiguous figures, corrections made, etc.) |
+
+**Why this schema, not just numbers:** the dataset is meant to grow well
+past 30 skis over time. `reference_length_cm`, `model_year`,
+`source`/`source_url`, and `verified_date` exist so a future pass can
+tell *which* number is being compared to *what*, and refresh stale
+entries without re-deriving the whole file. `data/SOURCING.md` documents
+the exact, repeatable process (source priority, per-field rules, how to
+classify `rocker_profile`) for adding or updating an entry — follow it
+for any new ski so the dataset stays internally consistent as it grows.
+
+**Rocker profile categories** (see `data/SOURCING.md` for the full
+classification guide):
+
+| value                    | shape                                          |
+| ------------------------ | ------------------------------------------------|
+| `full_camber`             | classic camber, no rocker                      |
+| `camber_tip_rocker`       | camber underfoot + tip rocker only              |
+| `camber_tip_tail_rocker`  | camber underfoot + rocker at tip and tail        |
+| `flat_tip_tail_rocker`    | flat underfoot + tip and tail rocker             |
+| `full_rocker`             | continuous rocker, no camber ("inverted camber") |
+
+Note that this particular 30-ski dataset (deliberately curated as
+all-mountain/freeride) skews heavily toward `camber_tip_tail_rocker` —
+that's a real reflection of the category, not a data-quality issue. The
+field becomes more differentiating once dedicated powder, park, or race
+skis are added.
 
 ## Files
 
 ```
-index.html      Page structure
-style.css       Styling
-app.js          Search/multi-select UI + gap-finding logic
-data/skis.json  Ski dataset
-README.md       This file
+index.html         Page structure
+style.css          Styling
+app.js             Search/multi-select UI + gap-finding logic
+data/skis.json     Ski dataset
+data/SOURCING.md   Methodology for adding/refreshing a ski entry
+README.md          This file
 ```
