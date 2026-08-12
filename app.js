@@ -612,33 +612,61 @@ function skiTooltipHtml(ski) {
   title.className = "tooltip-title";
   title.textContent = ski.name;
 
-  const specs = document.createElement("div");
-  specs.className = "tooltip-detail";
-  specs.textContent = `${ski.waist_width_mm}mm waist · ${ski.weight_g}g · ${metalLabel(ski.metal_content)} metal`;
-
-  const rocker = document.createElement("div");
-  rocker.className = "tooltip-detail";
-  rocker.textContent = `${rockerProfileLabel(ski.rocker_profile)} · ${rockerPercent(ski)}% rocker`;
+  // One fact per row, in a label/value grid — not run-on text joined by
+  // "·" separators, which gets ragged the moment a value is long enough
+  // to wrap inside the tooltip's narrow width.
+  const specGrid = document.createElement("div");
+  specGrid.className = "tooltip-spec-grid";
+  specGrid.append(
+    specRow("Waist", `${ski.waist_width_mm}mm`),
+    specRow("Weight", `${ski.weight_g}g`),
+    specRow("Metal", metalContentLabel(ski.metal_content)),
+    specRow("Rocker", `${rockerProfileLabel(ski.rocker_profile)} (${rockerPercent(ski)}%)`)
+  );
 
   // renderTemperamentGauge() only ever embeds a fixed phrase + a number,
   // both already escaped inside it - safe to insert as HTML.
   const gauge = document.createElement("div");
+  gauge.className = "tooltip-gauge-wrap";
   gauge.innerHTML = renderTemperamentGauge(stabilityScore(ski));
 
   const wrap = document.createElement("div");
-  wrap.append(title, specs, rocker, gauge);
+  wrap.append(title, specGrid, gauge);
   return wrap;
+}
+
+/** One label/value row for a tooltip spec grid (see .tooltip-spec-grid). */
+function specRow(label, value) {
+  const row = document.createElement("div");
+  row.className = "tooltip-spec-row";
+
+  const labelEl = document.createElement("span");
+  labelEl.className = "tooltip-spec-label";
+  labelEl.textContent = label;
+
+  const valueEl = document.createElement("span");
+  valueEl.className = "tooltip-spec-value";
+  valueEl.textContent = value;
+
+  row.append(labelEl, valueEl);
+  return row;
+}
+
+function metalContentLabel(metal) {
+  if (metal === "none") return "None";
+  if (metal === "partial") return "Partial";
+  return "Full";
 }
 
 function rockerProfileLabel(profile) {
   const labels = {
     full_camber: "Full camber",
-    camber_tip_rocker: "Camber + tip rocker",
-    camber_tip_tail_rocker: "Camber + tip/tail rocker",
-    flat_tip_tail_rocker: "Flat + tip/tail rocker",
+    camber_tip_rocker: "Camber + tip",
+    camber_tip_tail_rocker: "Camber + tip/tail",
+    flat_tip_tail_rocker: "Flat + tip/tail",
     full_rocker: "Full rocker",
   };
-  return labels[profile] || "Unknown rocker profile";
+  return labels[profile] || "Unknown profile";
 }
 
 function wireCoverageMap(skis) {

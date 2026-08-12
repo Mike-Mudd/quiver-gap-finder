@@ -31,6 +31,11 @@
   --chart-accent-stroke: rgba(42, 120, 214, 0.4);
   --chart-gridline: #e1e0d9;
   --chart-muted: #898781;
+
+  /* .chart-tooltip inverts colors (dark bg / light text in light mode,
+     flipped in dark mode) — this divider must flip with it, not just
+     assume a dark background. */
+  --tooltip-divider: rgba(255, 255, 255, 0.15);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,6 +62,10 @@
     --chart-accent-stroke: rgba(57, 135, 229, 0.55);
     --chart-gridline: #2c2c2a;
     --chart-muted: #898781;
+
+    /* Tooltip is inverted relative to page mode - in dark mode its
+       background is light, so the divider needs to be dark here. */
+    --tooltip-divider: rgba(0, 0, 0, 0.12);
   }
 }
 
@@ -774,20 +783,52 @@ body {
   background: var(--color-text);
   color: var(--color-panel);
   border-radius: 6px;
-  padding: 0.5rem 0.65rem;
+  padding: 0.55rem 0.7rem;
   font-size: 0.8rem;
-  max-width: 220px;
+  max-width: 250px;
   pointer-events: none;
   box-shadow: var(--shadow);
 }
 
 .tooltip-title {
   font-weight: 700;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.3rem;
 }
 
 .tooltip-detail {
   opacity: 0.85;
+}
+
+/* One fact per row (label left, value right) instead of several facts
+   joined by "·" on one line — a joined line gets ragged the moment it
+   has to wrap; a labeled row just wraps its own value cleanly. */
+.tooltip-spec-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 0.6rem;
+  row-gap: 0.2rem;
+  margin-bottom: 0.45rem;
+}
+
+.tooltip-spec-row {
+  display: contents;
+}
+
+.tooltip-spec-label {
+  opacity: 0.65;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  padding-top: 0.05rem;
+}
+
+.tooltip-spec-value {
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.tooltip-gauge-wrap {
+  border-top: 1px solid var(--tooltip-divider);
+  padding-top: 0.4rem;
 }
 
 .site-footer {
