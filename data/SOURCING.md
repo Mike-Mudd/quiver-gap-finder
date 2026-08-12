@@ -12,8 +12,9 @@ catch.
 |---|---|
 | `name` | Manufacturer's marketing name, as printed (e.g. "Nordica Enforcer 94"). |
 | `brand` | Manufacturer, split out for future filtering/search. |
-| `model_year` | The season the sourced specs are from (e.g. `"2024-2025"`). Construction changes year to year — the same name can mean a different ski (see Nordica Enforcer 94: the 2024-2025 rebuild added a "Pulse Core" elastomer layer that materially changed its weight and flex vs. the 2020-2021 version). Always record which year's specs you used; prefer the current or most recent model year. |
-| `reference_length_cm` | The specific length the below numbers were measured at. Weight and turn radius both scale with length — a number without a length attached isn't comparable to anything. Pick the length closest to ~180-186cm that the source actually tested/measured (don't interpolate). |
+| `model_year` | The season the sourced specs are from (e.g. `"2024-2025"`). Construction changes year to year — the same name can mean a different ski (see Nordica Enforcer 94: the 2024-2025 rebuild added a "Pulse Core" elastomer layer that materially changed its weight and flex vs. the 2020-2021 version). **Prefer the newest model year that has solid, physically-measured data (a Blister Review or equivalent) — don't jump to a newer year just because it's newer if that means falling back to unmeasured manufacturer claims.** An older `model_year` isn't automatically "stale data": many skis go multiple seasons without a construction change, and the recorded year is accurate for as long as that's true. Only bump it when the *construction itself* changed (see "Refreshing an existing ski"). |
+| `reference_length_cm` | The specific length the below numbers were measured at. Weight and turn radius both scale with length — a number without a length attached isn't comparable to anything. **Target 180cm** for unisex/men's-marketed lines, **165cm for women's-specific lines** (see `womens_specific` below) — a flat 180cm target for women's models means extrapolating past sizes some of those skis aren't even sold in, which is worse than the inconsistency this rule exists to fix. ~±6cm from the target is acceptable without extra work. Beyond that, look for a second real measured length from the *same* model/variant and linearly interpolate toward the target — never extrapolate beyond the two real points, and never interpolate across two different metal/construction variants (e.g. a standard build and a "Ti" build) even if they share a name. If no second point exists, keep the closest real one and say so plainly in `notes` rather than forcing a number that isn't real. |
+| `womens_specific` | Boolean, **only present when `true`** (omit entirely for unisex/men's-marketed lines — absence means false). Marks which entries use the 165cm reference-length target instead of 180cm, so the choice is self-documenting rather than tribal knowledge. |
 | `waist_width_mm` | The manufacturer's stated/nominal waist width — i.e. the number in the model name (a "Kore 93" is `93`), not a third-party measured figure. Reviewers like Blister measure the actual underfoot width themselves, and it's often 1-2mm off the catalog number; that's the *right* number for weight (manufacturer claims run optimistic) but the *wrong* one here, since the model name is how a user identifies and searches for the ski — showing a "93" as `95` reads as a bug, not precision. If a source only gives a measured figure, use it, but round to match the name when they're within ~2mm of each other. |
 | `weight_g` | **Per ski, not per pair.** Prefer a source that physically weighs the ski (Blister Review does) over manufacturer-claimed weight, which runs optimistic/rounded. |
 | `turn_radius_m` | At the reference length — this is the field most likely to be wrong if pulled from a generic spec blurb instead of a length-specific table; it can vary 3m+ across a model's length range. |
@@ -88,3 +89,20 @@ the source doesn't report them — don't block an entry on missing them.
 Re-run the same process; only update `model_year` if the construction
 actually changed (check the source's stated model year against the
 existing entry — a re-skin with no spec change isn't worth a new row).
+
+## Freshness audit (periodic, not per-ski)
+
+Separately from adding new skis, periodically check whether a *newer*
+model year exists for entries already in the dataset, and whether it has
+a solid measured source yet:
+
+1. Search `"<name> Blister Review <current model year>"`.
+2. If a newer model year has a real review with measured data, and the
+   construction changed enough to matter (metal content, or weight/radius
+   drifting far enough to plausibly cross a bucket boundary), refresh the
+   entry per "Refreshing an existing ski" above.
+3. If the newer year exists but only has manufacturer claims (no
+   independent measurement yet), leave the entry as-is — the older,
+   measured data is more trustworthy than the newer, unmeasured data.
+4. If nothing changed, just bump `verified_date` so the entry doesn't
+   look untouched forever.
