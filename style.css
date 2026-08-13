@@ -743,6 +743,15 @@ body {
   gap: 0.5rem;
 }
 
+/* Suggested skis for a gap - a distinct, slightly quieter voice from the
+   diagnostic sentence it follows, so "here's the problem" and "here's
+   what might fix it" read as two different kinds of statement. */
+.result-suggestion {
+  display: inline-block;
+  font-style: italic;
+  color: var(--color-muted);
+}
+
 .result-item.gap {
   background: var(--status-critical-bg);
 }
@@ -803,6 +812,11 @@ body {
 
 .tooltip-detail {
   opacity: 0.85;
+}
+
+.tooltip-suggestion {
+  font-style: italic;
+  margin-top: 0.15rem;
 }
 
 /* One fact per row (label left, value right) instead of several facts

@@ -366,6 +366,53 @@ function bucketDescription(cell) {
   return BUCKET_DESCRIPTIONS[key] || "this combination of width and temperament";
 }
 
+function bucketCenter(bucket) {
+  return (bucket.min + bucket.max) / 2;
+}
+
+/**
+ * For a gap bucket, rank every ski in the full catalog (not just the
+ * quiver) by fit: its coverage region must overlap the bucket, and
+ * "best fit" means closest to the bucket's center, not just marginal
+ * overlap. Waist (mm) and temperament (0-100 points) are normalized by
+ * their axis span before computing distance so neither axis dominates
+ * just because of its raw units. Skis already in the quiver are
+ * excluded explicitly as a safeguard, though a gap bucket having zero
+ * quiver coverage already makes this redundant in practice.
+ */
+function suggestSkisForBucket(waistBucket, stabBucket, quiverNames, limit = 2) {
+  const wCenter = bucketCenter(waistBucket);
+  const sCenter = bucketCenter(stabBucket);
+  const wSpan = WAIST_MAX - WAIST_MIN;
+  const sSpan = STAB_MAX - STAB_MIN;
+
+  return allSkis
+    .filter((ski) => !quiverNames.has(ski.name))
+    .map((ski) => {
+      const region = coverageRegion(ski);
+      const overlaps =
+        rectsOverlap({ xMin: region.xMin, xMax: region.xMax }, waistBucket) &&
+        rectsOverlap({ xMin: region.yMin, xMax: region.yMax }, stabBucket);
+      if (!overlaps) return null;
+      const dx = (ski.waist_width_mm - wCenter) / wSpan;
+      const dy = (region.stab - sCenter) / sSpan;
+      return { ski, distance: Math.sqrt(dx * dx + dy * dy) };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit)
+    .map((c) => c.ski);
+}
+
+/** Plain-language phrasing for a bucket's suggestions, or the honest
+ * fallback when the current catalog doesn't have a good fit yet. */
+function suggestionPhrase(suggestions) {
+  if (suggestions.length === 0) {
+    return "Nothing in the current catalog centers on this zone yet.";
+  }
+  return `Consider: ${suggestions.map((s) => escapeHtml(s.name)).join(", ")}.`;
+}
+
 /**
  * Classify a bucket's ski count into one of three fixed states. These
  * map 1:1 onto the status colors defined in style.css (good/warning/
@@ -398,16 +445,17 @@ function renderDashboard(grid, skis) {
   const gaps = grid.filter((c) => c.skis.length === 0);
   const redundant = grid.filter((c) => c.skis.length >= REDUNDANCY_THRESHOLD);
   const covered = grid.length - gaps.length;
+  const quiverNames = new Set(skis.map((s) => s.name));
 
   resultsEl.innerHTML = [
     renderStatTiles({ covered, gapCount: gaps.length, redundantCount: redundant.length }),
     renderCoverageMapSection(skis),
-    renderHeatmapSection(grid),
-    renderDetailsSection(gaps, redundant),
+    renderHeatmapSection(grid, quiverNames),
+    renderDetailsSection(gaps, redundant, quiverNames),
   ].join("\n");
 
   wireCoverageMap(skis);
-  wireHeatmap(grid);
+  wireHeatmap(grid, quiverNames);
 }
 
 /* ---- Stat tiles (KPI row) ----------------------------------------- */
@@ -705,7 +753,7 @@ function wireCoverageMap(skis) {
 
 /* ---- Heatmap grid (status-coded 3x3) -------------------------------- */
 
-function renderHeatmapSection(grid) {
+function renderHeatmapSection(grid, quiverNames) {
   const rows = [...STAB_BUCKETS].reverse(); // damp/charging at top
 
   let cells = `<div class="heatmap-corner" role="presentation"></div>`;
@@ -722,11 +770,14 @@ function renderHeatmapSection(grid) {
       cellRefs.push(cell);
       const status = cellStatus(cell.skis.length);
       const meta = statusMeta(status);
+      const extra = cell.skis.length
+        ? ` — ${escapeHtml(cell.skis.map((s) => s.name).join(", "))}`
+        : ` — ${suggestionPhrase(suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames))}`;
       cells += `
         <div class="heat-tile" data-status="${status}" data-cell-index="${cellIndex}" tabindex="0"
              aria-label="${escapeHtml(bucketLabel(cell))}: ${cell.skis.length} ski${
         cell.skis.length === 1 ? "" : "s"
-      }, ${meta.label}${cell.skis.length ? ` — ${escapeHtml(cell.skis.map((s) => s.name).join(", "))}` : ""}">
+      }, ${meta.label}${extra}">
           <span class="heat-icon" aria-hidden="true">${meta.icon}</span>
           <span class="heat-count">${cell.skis.length}</span>
           <span class="heat-label">${meta.label}</span>
@@ -744,7 +795,7 @@ function renderHeatmapSection(grid) {
   `;
 }
 
-function heatTooltipHtml(cell) {
+function heatTooltipHtml(cell, quiverNames) {
   const title = document.createElement("div");
   title.className = "tooltip-title";
   title.textContent = bucketLabel(cell);
@@ -755,10 +806,22 @@ function heatTooltipHtml(cell) {
 
   const wrap = document.createElement("div");
   wrap.append(title, detail);
+
+  if (cell.skis.length === 0) {
+    const suggestions = suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames);
+    const suggestion = document.createElement("div");
+    suggestion.className = "tooltip-detail tooltip-suggestion";
+    suggestion.textContent =
+      suggestions.length > 0
+        ? `Consider: ${suggestions.map((s) => s.name).join(", ")}`
+        : "Nothing in the current catalog centers on this zone yet.";
+    wrap.append(suggestion);
+  }
+
   return wrap;
 }
 
-function wireHeatmap(grid) {
+function wireHeatmap(grid, quiverNames) {
   const rows = [...STAB_BUCKETS].reverse();
   const orderedCells = [];
   for (const sb of rows) {
@@ -769,7 +832,7 @@ function wireHeatmap(grid) {
 
   document.querySelectorAll(".heat-tile").forEach((tile) => {
     const cell = orderedCells[Number(tile.dataset.cellIndex)];
-    const show = () => showTooltip(tile, heatTooltipHtml(cell));
+    const show = () => showTooltip(tile, heatTooltipHtml(cell, quiverNames));
     tile.addEventListener("pointerenter", show);
     tile.addEventListener("focus", show);
     tile.addEventListener("pointerleave", hideTooltip);
@@ -779,17 +842,19 @@ function wireHeatmap(grid) {
 
 /* ---- Collapsible plain-language detail ------------------------------ */
 
-function renderDetailsSection(gaps, redundant) {
+function renderDetailsSection(gaps, redundant, quiverNames) {
   const gapItems =
     gaps.length === 0
       ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No gaps — every bucket has at least one ski covering it.</span></li>`
       : gaps
-          .map(
-            (cell) =>
-              `<li class="result-item gap"><span class="status-icon status-critical" aria-hidden="true">✕</span><span>No coverage for <strong>${escapeHtml(
-                bucketLabel(cell)
-              )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}.</span></li>`
-          )
+          .map((cell) => {
+            const suggestions = suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames);
+            return `<li class="result-item gap"><span class="status-icon status-critical" aria-hidden="true">✕</span><span>No coverage for <strong>${escapeHtml(
+              bucketLabel(cell)
+            )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}. <span class="result-suggestion">${suggestionPhrase(
+              suggestions
+            )}</span></span></li>`;
+          })
           .join("");
 
   const redItems =
