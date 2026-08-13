@@ -57,15 +57,15 @@
       "model_year": "2022-2023",
       "reference_length_cm": 186,
       "waist_width_mm": 108,
-      "weight_g": 2120,
-      "turn_radius_m": 19,
+      "weight_g": 2087,
+      "turn_radius_m": 19.7,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-nordica-unleashed-108",
       "verified_date": "2026-08-11",
-      "notes": "Same Terrain Specific Metal concept as Unleashed 98, proportionally more metal underfoot given the wider waist. rocker_percent estimated from profile category."
+      "notes": "Corrected weight_g from 2120 (Nordica's manufacturer-claimed figure) to 2087 (Blister's own measured weight) - the original entry violated the sourcing rule of preferring measured over claimed. Found because the claimed figure happened to exactly match Fischer Ranger 108's weight/metal/rocker, causing the two to render as a single indistinguishable mark on the coverage map - caught via user testing, not caught during original sourcing. Same Terrain Specific Metal concept as Unleashed 98, proportionally more metal underfoot given the wider waist. rocker_percent estimated from profile category."
     },
     {
       "name": "K2 Mindbender 90Ti",

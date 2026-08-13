@@ -83,6 +83,26 @@ the source doesn't report them — don't block an entry on missing them.
 4. Fill in every field above; leave optional numeric rocker fields out
    rather than guessing them.
 5. Set `verified_date` to today.
+6. Check the new entry's `(waist_width_mm, weight_g, metal_content,
+   rocker_percent)` tuple against every other entry - these four fields
+   are the only ones the app's scoring reads, so an exact match on all
+   four means two different skis will render as a single indistinguishable
+   mark on the coverage map. Found once already: a manufacturer-claimed
+   weight got recorded instead of Blister's measured figure for one ski,
+   and it happened to exactly match a different ski's real spec on all
+   four fields. A quick way to check the whole dataset at once:
+   ```
+   python -c "
+   import json
+   d = json.load(open('data/skis.json'))
+   seen = {}
+   for s in d['skis']:
+       key = (s['waist_width_mm'], s['weight_g'], s['metal_content'], s['rocker_percent'])
+       seen.setdefault(key, []).append(s['name'])
+   for k, v in seen.items():
+       if len(v) > 1: print(k, v)
+   "
+   ```
 
 ## Refreshing an existing ski
 
