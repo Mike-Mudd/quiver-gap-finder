@@ -380,25 +380,31 @@ function bucketCenter(bucket) {
  * excluded explicitly as a safeguard, though a gap bucket having zero
  * quiver coverage already makes this redundant in practice.
  */
-function suggestSkisForBucket(waistBucket, stabBucket, quiverNames, limit = 2) {
-  const wCenter = bucketCenter(waistBucket);
-  const sCenter = bucketCenter(stabBucket);
-  const wSpan = WAIST_MAX - WAIST_MIN;
-  const sSpan = STAB_MAX - STAB_MIN;
+/**
+ * How well a ski fits a bucket: null if its coverage region doesn't
+ * overlap the bucket at all, otherwise the normalized distance from the
+ * ski's own position to the bucket's center (waist and temperament are
+ * each divided by their axis span first, so neither dominates just
+ * because of its raw units). Shared by both the per-bucket suggestion
+ * list (bullets/tooltips) and the map's cross-bucket ranking below.
+ */
+function bucketFitDistance(ski, waistBucket, stabBucket) {
+  const region = coverageRegion(ski);
+  const overlaps =
+    rectsOverlap({ xMin: region.xMin, xMax: region.xMax }, waistBucket) &&
+    rectsOverlap({ xMin: region.yMin, xMax: region.yMax }, stabBucket);
+  if (!overlaps) return null;
 
+  const dx = (ski.waist_width_mm - bucketCenter(waistBucket)) / (WAIST_MAX - WAIST_MIN);
+  const dy = (region.stab - bucketCenter(stabBucket)) / (STAB_MAX - STAB_MIN);
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function suggestSkisForBucket(waistBucket, stabBucket, quiverNames, limit = 2) {
   return allSkis
     .filter((ski) => !quiverNames.has(ski.name))
-    .map((ski) => {
-      const region = coverageRegion(ski);
-      const overlaps =
-        rectsOverlap({ xMin: region.xMin, xMax: region.xMax }, waistBucket) &&
-        rectsOverlap({ xMin: region.yMin, xMax: region.yMax }, stabBucket);
-      if (!overlaps) return null;
-      const dx = (ski.waist_width_mm - wCenter) / wSpan;
-      const dy = (region.stab - sCenter) / sSpan;
-      return { ski, distance: Math.sqrt(dx * dx + dy * dy) };
-    })
-    .filter(Boolean)
+    .map((ski) => ({ ski, distance: bucketFitDistance(ski, waistBucket, stabBucket) }))
+    .filter((c) => c.distance !== null)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, limit)
     .map((c) => c.ski);
@@ -419,14 +425,39 @@ function suggestionPhrase(suggestions) {
  * for the suggestions map, since one ski can straddle more than one
  * gap bucket and should only appear once.
  */
-function collectGapSuggestions(gaps, quiverNames) {
-  const seen = new Map();
+/**
+ * Cross-bucket ranking for the suggestions map, distinct from
+ * suggestSkisForBucket's per-bucket top-2: a sparse quiver can have 7-8
+ * gaps, and picking independently for each one produces up to 16
+ * overlapping markers on a single small plot. Instead, rank every
+ * candidate ski by how many *different* gaps it would fill (a ski that
+ * straddles two gap buckets is a better single addition than two skis
+ * that only fill one each), tie-broken by best fit, and cap the total -
+ * fewer, more valuable markers rather than an exhaustive list.
+ */
+function selectTopSuggestionsForMap(gaps, quiverNames, limit = 6) {
+  const scored = new Map(); // name -> { ski, gapsFilled, bestDistance }
+
   for (const cell of gaps) {
-    for (const ski of suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames)) {
-      if (!seen.has(ski.name)) seen.set(ski.name, ski);
+    for (const ski of allSkis) {
+      if (quiverNames.has(ski.name)) continue;
+      const distance = bucketFitDistance(ski, cell.waistBucket, cell.stabBucket);
+      if (distance === null) continue;
+
+      const existing = scored.get(ski.name);
+      if (existing) {
+        existing.gapsFilled += 1;
+        existing.bestDistance = Math.min(existing.bestDistance, distance);
+      } else {
+        scored.set(ski.name, { ski, gapsFilled: 1, bestDistance: distance });
+      }
     }
   }
-  return Array.from(seen.values());
+
+  return Array.from(scored.values())
+    .sort((a, b) => b.gapsFilled - a.gapsFilled || a.bestDistance - b.bestDistance)
+    .slice(0, limit)
+    .map((entry) => entry.ski);
 }
 
 /**
@@ -474,7 +505,7 @@ function renderDashboard(grid, skis) {
   // coverage.
   let gapSuggestions = [];
   if (gaps.length > 0) {
-    gapSuggestions = collectGapSuggestions(gaps, quiverNames);
+    gapSuggestions = selectTopSuggestionsForMap(gaps, quiverNames);
     sections.push(renderSuggestionsMapSection(skis, gapSuggestions));
   }
 
@@ -615,7 +646,7 @@ function renderSkiMarks(entries) {
 
   let svg = "";
 
-  entries.forEach(({ ski, index, muted }) => {
+  entries.forEach(({ ski, index, muted, showRegion = true }) => {
     const region = coverageRegion(ski);
     const rx1 = mapX(region.xMin);
     const rx2 = mapX(region.xMax);
@@ -651,14 +682,22 @@ function renderSkiMarks(entries) {
       }
     }
 
+    // The region box means "here's the area this ski actually covers" -
+    // meaningful for the primary map's owned skis (overlapping boxes are
+    // the redundancy signal), but not for a suggestion candidate, where
+    // only its position matters. Suggestions render as a dot only.
+    const regionSvg = showRegion
+      ? `<rect class="ski-region" x="${rx1.toFixed(1)}" y="${ry1.toFixed(1)}" width="${(rx2 - rx1).toFixed(
+          1
+        )}" height="${(ry2 - ry1).toFixed(1)}" rx="8" />`
+      : "";
+
     const markClass = muted ? "ski-mark ski-mark--muted" : "ski-mark";
     svg += `
       <g class="${markClass}" tabindex="0" role="img" data-ski-index="${index}" aria-label="${escapeHtml(
       skiAriaLabel(ski)
     )}">
-        <rect class="ski-region" x="${rx1.toFixed(1)}" y="${ry1.toFixed(1)}" width="${(rx2 - rx1).toFixed(
-      1
-    )}" height="${(ry2 - ry1).toFixed(1)}" rx="8" />
+        ${regionSvg}
         <circle class="ski-hit" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="15" />
         <circle class="ski-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" />
         ${labelSvg}
@@ -671,7 +710,7 @@ function renderSkiMarks(entries) {
 
 function renderCoverageMapSvg(skis) {
   const chrome = renderMapChrome();
-  const marks = renderSkiMarks(skis.map((ski, index) => ({ ski, index, muted: false })));
+  const marks = renderSkiMarks(skis.map((ski, index) => ({ ski, index, muted: false, showRegion: true })));
   return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${chrome}${marks}</svg>`;
 }
 
@@ -724,8 +763,12 @@ function renderCoverageMapSection(skis) {
 function renderSuggestionsMapSvg(quiverSkis, suggestedSkis) {
   const chrome = renderMapChrome();
   const entries = [
-    ...quiverSkis.map((ski, index) => ({ ski, index, muted: true })),
-    ...suggestedSkis.map((ski, i) => ({ ski, index: quiverSkis.length + i, muted: false })),
+    // Quiver stays boxed (faded) - it's real coverage, kept as context.
+    ...quiverSkis.map((ski, index) => ({ ski, index, muted: true, showRegion: true })),
+    // Suggestions render as a dot only - a candidate's exact position is
+    // what matters, and skipping the box avoids stacking translucent
+    // regions on top of each other when several candidates cluster.
+    ...suggestedSkis.map((ski, i) => ({ ski, index: quiverSkis.length + i, muted: false, showRegion: false })),
   ];
   const marks = renderSkiMarks(entries);
   return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Suggested skis that would fill your quiver's coverage gaps, shown against your current quiver for reference">${chrome}${marks}</svg>`;
@@ -770,8 +813,10 @@ function renderSuggestionsMapSection(quiverSkis, suggestedSkis) {
         <button type="button" class="table-toggle-btn" id="suggestions-table-toggle" aria-pressed="false">View as table</button>
       </div>
       <p class="map-caption">
-        Your current quiver is faded for reference. Highlighted dots are skis from the full
-        catalog that would fill one of your gaps — positioned the same way as the map above.
+        Your current quiver is faded for reference. Colored dots are the
+        ${suggestedSkis.length < 6 ? "" : "top "}${suggestedSkis.length}
+        best-fitting addition${suggestedSkis.length === 1 ? "" : "s"} from the full catalog,
+        prioritizing skis that fill more than one gap at once.
       </p>
       <div class="chart-wrap" id="suggestions-chart-wrap">${renderSuggestionsMapSvg(quiverSkis, suggestedSkis)}</div>
       <div class="chart-table-wrap" id="suggestions-table-wrap" hidden>${renderSuggestionsMapTable(

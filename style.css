@@ -498,15 +498,22 @@ body {
 /* Suggestions map: the quiver is shown as de-emphasized context (the
    "emphasis" color pattern - one set in the accent hue, the rest gray)
    so the highlighted suggestion marks are unambiguously the point. */
+/* --color-muted/--color-border are blue-tinted (this app's whole neutral
+   palette leans blue), so next to a blue accent dot they read as "a
+   paler blue," not "a different, de-emphasized thing." --chart-muted is
+   a genuinely achromatic gray - used here so the two layers are
+   unmistakable by hue alone, not just opacity. */
 .ski-mark--muted .ski-region {
-  fill: var(--color-border);
-  stroke: var(--color-muted);
+  fill: var(--chart-muted);
+  fill-opacity: 0.12;
+  stroke: var(--chart-muted);
   stroke-opacity: 0.4;
 }
 
 .ski-mark--muted .ski-dot {
-  fill: var(--color-muted);
-  opacity: 0.6;
+  fill: var(--chart-muted);
+  opacity: 0.7;
+  r: 4;
 }
 
 .chart-table-wrap {
