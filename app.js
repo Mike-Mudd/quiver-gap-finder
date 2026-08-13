@@ -414,6 +414,22 @@ function suggestionPhrase(suggestions) {
 }
 
 /**
+ * Every gap bucket has its own top-2 suggestions (see
+ * suggestSkisForBucket); this flattens and deduplicates across all gaps
+ * for the suggestions map, since one ski can straddle more than one
+ * gap bucket and should only appear once.
+ */
+function collectGapSuggestions(gaps, quiverNames) {
+  const seen = new Map();
+  for (const cell of gaps) {
+    for (const ski of suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames)) {
+      if (!seen.has(ski.name)) seen.set(ski.name, ski);
+    }
+  }
+  return Array.from(seen.values());
+}
+
+/**
  * Classify a bucket's ski count into one of three fixed states. These
  * map 1:1 onto the status colors defined in style.css (good/warning/
  * critical) — never assigned ad hoc, always via this function.
@@ -447,15 +463,30 @@ function renderDashboard(grid, skis) {
   const covered = grid.length - gaps.length;
   const quiverNames = new Set(skis.map((s) => s.name));
 
-  resultsEl.innerHTML = [
+  const sections = [
     renderStatTiles({ covered, gapCount: gaps.length, redundantCount: redundant.length }),
     renderCoverageMapSection(skis),
     renderHeatmapSection(grid, quiverNames),
-    renderDetailsSection(gaps, redundant, quiverNames),
-  ].join("\n");
+  ];
+
+  // Only rendered when there's actually a gap to suggest something for -
+  // no empty "Suggested additions" card when the quiver's already full
+  // coverage.
+  let gapSuggestions = [];
+  if (gaps.length > 0) {
+    gapSuggestions = collectGapSuggestions(gaps, quiverNames);
+    sections.push(renderSuggestionsMapSection(skis, gapSuggestions));
+  }
+
+  sections.push(renderDetailsSection(gaps, redundant, quiverNames));
+
+  resultsEl.innerHTML = sections.join("\n");
 
   wireCoverageMap(skis);
   wireHeatmap(grid, quiverNames);
+  if (gaps.length > 0) {
+    wireSuggestionsMap(skis, gapSuggestions);
+  }
 }
 
 /* ---- Stat tiles (KPI row) ----------------------------------------- */
@@ -514,7 +545,12 @@ function skiAriaLabel(ski) {
   )} metal, temperament: ${temperamentPhrase(stab)} (${Math.round(stab)} of 100)`;
 }
 
-function renderCoverageMapSvg(skis) {
+/**
+ * The shared, static part of any coverage-space SVG: plot border,
+ * bucket-boundary gridlines, and axis zone labels. Identical across the
+ * primary coverage map and the suggestions map so both read the same way.
+ */
+function renderMapChrome() {
   const plotLeft = MAP_MARGIN.left;
   const plotRight = MAP_MARGIN.left + MAP_PLOT_W;
   const plotTop = MAP_MARGIN.top;
@@ -550,20 +586,36 @@ function renderCoverageMapSvg(skis) {
     )}" text-anchor="start" class="map-axis-label map-axis-label-y">${escapeHtml(label)}</text>`;
   });
 
-  // One mark per ski: a translucent region (opacity stacks where skis
-  // overlap, which is what visually signals redundancy) plus a solid
-  // dot at its exact spec position and a direct name label.
-  // Direct labels are shown only when they don't collide with one already
-  // placed — a quiver with several similar skis clusters tightly, and a
-  // pile of overlapping text is worse than a dot with a hover/focus
-  // tooltip (every ski's full spec is also in the "View as table" twin
-  // and the mark's aria-label, so nothing is gated behind the label).
+  return svg;
+}
+
+/**
+ * One mark per entry: a translucent region (opacity stacks where marks
+ * overlap - the redundancy signal on the primary map) plus a solid dot
+ * at the exact spec position and a direct name label. `muted` entries
+ * (quiver-as-context on the suggestions map) render as de-emphasized
+ * gray with no label - see .ski-mark--muted in style.css - and never
+ * claim label space, so they can't cause collisions for the marks that
+ * matter on that map.
+ *
+ * Direct labels are shown only when they don't collide with one already
+ * placed — a quiver with several similar skis clusters tightly, and a
+ * pile of overlapping text is worse than a dot with a hover/focus
+ * tooltip (every ski's full spec is also in the "View as table" twin
+ * and the mark's aria-label, so nothing is gated behind the label).
+ */
+function renderSkiMarks(entries) {
+  const plotRight = MAP_MARGIN.left + MAP_PLOT_W;
+  const plotTop = MAP_MARGIN.top;
+
   const placedLabelBoxes = [];
   const CHAR_W = 5.6; // px, approx. at 11px font
   const LABEL_H = 13;
   const LABEL_PAD = 4; // extra buffer so near-misses don't render edge-to-edge
 
-  skis.forEach((ski, i) => {
+  let svg = "";
+
+  entries.forEach(({ ski, index, muted }) => {
     const region = coverageRegion(ski);
     const rx1 = mapX(region.xMin);
     const rx2 = mapX(region.xMax);
@@ -572,33 +624,36 @@ function renderCoverageMapSvg(skis) {
     const cx = mapX(ski.waist_width_mm);
     const cy = mapY(region.stab);
 
-    const nearRight = cx > plotRight - 90;
-    const nearTop = cy < plotTop + 18;
-    const labelX = nearRight ? cx - 9 : cx + 9;
-    const labelY = nearTop ? cy + 18 : cy - 9;
-    const anchor = nearRight ? "end" : "start";
-
-    const labelW = ski.name.length * CHAR_W;
-    const box = {
-      left: (anchor === "end" ? labelX - labelW : labelX) - LABEL_PAD,
-      right: (anchor === "end" ? labelX : labelX + labelW) + LABEL_PAD,
-      top: labelY - LABEL_H - LABEL_PAD,
-      bottom: labelY + LABEL_PAD,
-    };
-    const collides = placedLabelBoxes.some(
-      (b) => box.left < b.right && box.right > b.left && box.top < b.bottom && box.bottom > b.top
-    );
-
     let labelSvg = "";
-    if (!collides) {
-      placedLabelBoxes.push(box);
-      labelSvg = `<text class="ski-mark-label" x="${labelX.toFixed(1)}" y="${labelY.toFixed(
-        1
-      )}" text-anchor="${anchor}">${escapeHtml(ski.name)}</text>`;
+    if (!muted) {
+      const nearRight = cx > plotRight - 90;
+      const nearTop = cy < plotTop + 18;
+      const labelX = nearRight ? cx - 9 : cx + 9;
+      const labelY = nearTop ? cy + 18 : cy - 9;
+      const anchor = nearRight ? "end" : "start";
+
+      const labelW = ski.name.length * CHAR_W;
+      const box = {
+        left: (anchor === "end" ? labelX - labelW : labelX) - LABEL_PAD,
+        right: (anchor === "end" ? labelX : labelX + labelW) + LABEL_PAD,
+        top: labelY - LABEL_H - LABEL_PAD,
+        bottom: labelY + LABEL_PAD,
+      };
+      const collides = placedLabelBoxes.some(
+        (b) => box.left < b.right && box.right > b.left && box.top < b.bottom && box.bottom > b.top
+      );
+
+      if (!collides) {
+        placedLabelBoxes.push(box);
+        labelSvg = `<text class="ski-mark-label" x="${labelX.toFixed(1)}" y="${labelY.toFixed(
+          1
+        )}" text-anchor="${anchor}">${escapeHtml(ski.name)}</text>`;
+      }
     }
 
+    const markClass = muted ? "ski-mark ski-mark--muted" : "ski-mark";
     svg += `
-      <g class="ski-mark" tabindex="0" role="img" data-ski-index="${i}" aria-label="${escapeHtml(
+      <g class="${markClass}" tabindex="0" role="img" data-ski-index="${index}" aria-label="${escapeHtml(
       skiAriaLabel(ski)
     )}">
         <rect class="ski-region" x="${rx1.toFixed(1)}" y="${ry1.toFixed(1)}" width="${(rx2 - rx1).toFixed(
@@ -611,7 +666,13 @@ function renderCoverageMapSvg(skis) {
     `;
   });
 
-  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${svg}</svg>`;
+  return svg;
+}
+
+function renderCoverageMapSvg(skis) {
+  const chrome = renderMapChrome();
+  const marks = renderSkiMarks(skis.map((ski, index) => ({ ski, index, muted: false })));
+  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${chrome}${marks}</svg>`;
 }
 
 function renderCoverageMapTable(skis) {
@@ -654,6 +715,68 @@ function renderCoverageMapSection(skis) {
       </p>
       <div class="chart-wrap" id="map-chart-wrap">${renderCoverageMapSvg(skis)}</div>
       <div class="chart-table-wrap" id="map-table-wrap" hidden>${renderCoverageMapTable(skis)}</div>
+    </section>
+  `;
+}
+
+/* ---- Suggestions map (same space, quiver muted + gap-fillers highlighted) */
+
+function renderSuggestionsMapSvg(quiverSkis, suggestedSkis) {
+  const chrome = renderMapChrome();
+  const entries = [
+    ...quiverSkis.map((ski, index) => ({ ski, index, muted: true })),
+    ...suggestedSkis.map((ski, i) => ({ ski, index: quiverSkis.length + i, muted: false })),
+  ];
+  const marks = renderSkiMarks(entries);
+  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Suggested skis that would fill your quiver's coverage gaps, shown against your current quiver for reference">${chrome}${marks}</svg>`;
+}
+
+function renderSuggestionsMapTable(suggestedSkis) {
+  const rows = suggestedSkis
+    .map((ski) => {
+      const region = coverageRegion(ski);
+      const wBucket =
+        WAIST_BUCKETS.find((b) => ski.waist_width_mm >= b.min && ski.waist_width_mm <= b.max) ||
+        WAIST_BUCKETS[WAIST_BUCKETS.length - 1];
+      const sBucket = temperamentBucket(region.stab);
+      return `<tr><td>${escapeHtml(ski.name)}</td><td>${ski.waist_width_mm}</td><td>${renderTemperamentGauge(
+        region.stab
+      )}</td><td>${escapeHtml(wBucket.label)} + ${escapeHtml(sBucket.label)}</td></tr>`;
+    })
+    .join("");
+
+  return `
+    <table class="chart-table">
+      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Temperament</th><th>Fills bucket</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderSuggestionsMapSection(quiverSkis, suggestedSkis) {
+  if (suggestedSkis.length === 0) {
+    return `
+      <section class="panel dashboard-card">
+        <h3>Suggested additions</h3>
+        <p class="map-caption">Nothing in the current catalog fills any of your gaps yet.</p>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="panel dashboard-card">
+      <div class="card-header">
+        <h3>Suggested additions</h3>
+        <button type="button" class="table-toggle-btn" id="suggestions-table-toggle" aria-pressed="false">View as table</button>
+      </div>
+      <p class="map-caption">
+        Your current quiver is faded for reference. Highlighted dots are skis from the full
+        catalog that would fill one of your gaps — positioned the same way as the map above.
+      </p>
+      <div class="chart-wrap" id="suggestions-chart-wrap">${renderSuggestionsMapSvg(quiverSkis, suggestedSkis)}</div>
+      <div class="chart-table-wrap" id="suggestions-table-wrap" hidden>${renderSuggestionsMapTable(
+        suggestedSkis
+      )}</div>
     </section>
   `;
 }
@@ -743,6 +866,34 @@ function wireCoverageMap(skis) {
 
   chartWrap.querySelectorAll(".ski-mark").forEach((mark) => {
     const ski = skis[Number(mark.dataset.skiIndex)];
+    const show = () => showTooltip(mark, skiTooltipHtml(ski));
+    mark.addEventListener("pointerenter", show);
+    mark.addEventListener("focus", show);
+    mark.addEventListener("pointerleave", hideTooltip);
+    mark.addEventListener("blur", hideTooltip);
+  });
+}
+
+function wireSuggestionsMap(quiverSkis, suggestedSkis) {
+  const combined = [...quiverSkis, ...suggestedSkis];
+  const chartWrap = document.getElementById("suggestions-chart-wrap");
+  const tableWrap = document.getElementById("suggestions-table-wrap");
+  const toggleBtn = document.getElementById("suggestions-table-toggle");
+
+  // Section renders without the chart/toggle when there are no
+  // suggestions to show (see renderSuggestionsMapSection).
+  if (!chartWrap || !tableWrap || !toggleBtn) return;
+
+  toggleBtn.addEventListener("click", () => {
+    const showTable = tableWrap.hidden;
+    tableWrap.hidden = !showTable;
+    chartWrap.hidden = showTable;
+    toggleBtn.setAttribute("aria-pressed", String(showTable));
+    toggleBtn.textContent = showTable ? "View as chart" : "View as table";
+  });
+
+  chartWrap.querySelectorAll(".ski-mark").forEach((mark) => {
+    const ski = combined[Number(mark.dataset.skiIndex)];
     const show = () => showTooltip(mark, skiTooltipHtml(ski));
     mark.addEventListener("pointerenter", show);
     mark.addEventListener("focus", show);
