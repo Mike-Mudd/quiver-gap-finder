@@ -125,6 +125,14 @@ async function init() {
     }
   });
 
+  // Chart tooltip is positioned once, in viewport pixels, when it opens
+  // (see positionTooltip) rather than tracked continuously - so once the
+  // page scrolls it's no longer over the dot it describes. Close it on
+  // any scroll rather than trying to keep it pinned. Capture phase so
+  // this also catches scroll on the chart's own horizontal-scroll
+  // container, which doesn't bubble a "scroll" event up to window.
+  window.addEventListener("scroll", hideTooltip, { capture: true, passive: true });
+
   findGapsBtn.addEventListener("click", onFindGaps);
 }
 
