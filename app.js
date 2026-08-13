@@ -131,7 +131,16 @@ async function init() {
   // any scroll rather than trying to keep it pinned. Capture phase so
   // this also catches scroll on the chart's own horizontal-scroll
   // container, which doesn't bubble a "scroll" event up to window.
-  window.addEventListener("scroll", hideTooltip, { capture: true, passive: true });
+  // (See TOOLTIP_SCROLL_GRACE_MS above showTooltip for why this checks
+  // a grace window instead of closing unconditionally.)
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (Date.now() - tooltipShownAt < TOOLTIP_SCROLL_GRACE_MS) return;
+      hideTooltip();
+    },
+    { capture: true, passive: true }
+  );
 
   findGapsBtn.addEventListener("click", onFindGaps);
 }
@@ -1270,11 +1279,24 @@ function renderDetailsSection(gaps, redundant, quiverNames) {
  *  Shared chart tooltip
  * ------------------------------------------------------------------ */
 
+// Tapping a mark also moves focus to it (marks are tabindex="0" for
+// keyboard/screen-reader access - see renderSkiMarks), and mobile
+// browsers automatically scroll a newly-focused element fully into
+// view. That auto-scroll fires a genuine "scroll" event a moment after
+// the tap, which would immediately trip the scroll-to-close listener
+// below and close the tooltip we just opened. Ignore scroll events
+// that land within this window of a show() call - long enough to
+// swallow that automatic nudge, short enough that no real user could
+// deliberately scroll-to-dismiss that fast.
+const TOOLTIP_SCROLL_GRACE_MS = 300;
+let tooltipShownAt = 0;
+
 function showTooltip(targetEl, contentNode) {
   tooltipEl.innerHTML = "";
   tooltipEl.appendChild(contentNode);
   tooltipEl.hidden = false;
   positionTooltip(targetEl);
+  tooltipShownAt = Date.now();
 }
 
 function positionTooltip(targetEl) {
