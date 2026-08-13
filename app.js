@@ -590,19 +590,46 @@ function renderStatTiles({ covered, gapCount, redundantCount }) {
 
 /* ---- Coverage map (SVG scatter + region plot) ---------------------- */
 
-const MAP_W = 640;
-const MAP_H = 380;
-const MAP_MARGIN = { top: 16, right: 16, bottom: 30, left: 16 };
-const MAP_PLOT_W = MAP_W - MAP_MARGIN.left - MAP_MARGIN.right;
-const MAP_PLOT_H = MAP_H - MAP_MARGIN.top - MAP_MARGIN.bottom;
+// Same breakpoint already used for the heatmap's full/short label swap
+// (see style.css) - kept consistent rather than inventing a second one.
+const MAP_COMPACT_BREAKPOINT_PX = 480;
 
-function mapX(waist) {
-  return MAP_MARGIN.left + ((waist - WAIST_MIN) / (WAIST_MAX - WAIST_MIN)) * MAP_PLOT_W;
+/**
+ * Two complete geometry profiles, not one shrunk to fit. A phone-width
+ * container (~240-260px after panel padding) rendering the same 640x380
+ * canvas as desktop scales everything - including text - down to ~35-40%
+ * of size, well below legible (verified: ~5px rendered text height).
+ * Fitting the *content* into a genuinely narrower, taller canvas keeps
+ * text/marks close to their designed physical size instead. Chosen over
+ * a fixed-min-width + horizontal-scroll fix so the whole chart stays
+ * visible without a scroll gesture.
+ *
+ * Read once per render call (not on a live resize listener) - like the
+ * rest of the results panel, this reflects the viewport at the moment
+ * "Find gaps" was clicked, not a continuously-responsive layout.
+ */
+function getMapGeometry() {
+  const compact = window.innerWidth <= MAP_COMPACT_BREAKPOINT_PX;
+  const W = compact ? 240 : 640;
+  const H = compact ? 320 : 380;
+  const MARGIN = compact ? { top: 10, right: 8, bottom: 22, left: 8 } : { top: 16, right: 16, bottom: 30, left: 16 };
+  return {
+    compact,
+    W,
+    H,
+    MARGIN,
+    plotW: W - MARGIN.left - MARGIN.right,
+    plotH: H - MARGIN.top - MARGIN.bottom,
+  };
 }
 
-function mapY(stab) {
+function mapX(waist, geo) {
+  return geo.MARGIN.left + ((waist - WAIST_MIN) / (WAIST_MAX - WAIST_MIN)) * geo.plotW;
+}
+
+function mapY(stab, geo) {
   // Inverted: higher stability score plots nearer the top.
-  return MAP_MARGIN.top + ((STAB_MAX - stab) / (STAB_MAX - STAB_MIN)) * MAP_PLOT_H;
+  return geo.MARGIN.top + ((STAB_MAX - stab) / (STAB_MAX - STAB_MIN)) * geo.plotH;
 }
 
 function skiAriaLabel(ski) {
@@ -618,38 +645,40 @@ function skiAriaLabel(ski) {
  * bucket-boundary gridlines, and axis zone labels. Identical across the
  * primary coverage map and the suggestions map so both read the same way.
  */
-function renderMapChrome() {
-  const plotLeft = MAP_MARGIN.left;
-  const plotRight = MAP_MARGIN.left + MAP_PLOT_W;
-  const plotTop = MAP_MARGIN.top;
-  const plotBottom = MAP_MARGIN.top + MAP_PLOT_H;
+function renderMapChrome(geo) {
+  const plotLeft = geo.MARGIN.left;
+  const plotRight = geo.MARGIN.left + geo.plotW;
+  const plotTop = geo.MARGIN.top;
+  const plotBottom = geo.MARGIN.top + geo.plotH;
 
-  const vx1 = mapX(89.5);
-  const vx2 = mapX(109.5);
-  const hy1 = mapY(33.33);
-  const hy2 = mapY(66.67);
+  const vx1 = mapX(89.5, geo);
+  const vx2 = mapX(109.5, geo);
+  const hy1 = mapY(33.33, geo);
+  const hy2 = mapY(66.67, geo);
 
-  let svg = `<rect x="${plotLeft}" y="${plotTop}" width="${MAP_PLOT_W}" height="${MAP_PLOT_H}" class="map-plot-border" />`;
+  let svg = `<rect x="${plotLeft}" y="${plotTop}" width="${geo.plotW}" height="${geo.plotH}" class="map-plot-border" />`;
   svg += `<line x1="${vx1}" y1="${plotTop}" x2="${vx1}" y2="${plotBottom}" class="map-gridline" />`;
   svg += `<line x1="${vx2}" y1="${plotTop}" x2="${vx2}" y2="${plotBottom}" class="map-gridline" />`;
   svg += `<line x1="${plotLeft}" y1="${hy1}" x2="${plotRight}" y2="${hy1}" class="map-gridline" />`;
   svg += `<line x1="${plotLeft}" y1="${hy2}" x2="${plotRight}" y2="${hy2}" class="map-gridline" />`;
 
-  // X-axis zone labels, centered under each waist bucket.
-  const xLabels = ["Narrow", "All-mountain", "Wide / powder"];
+  // X-axis zone labels, centered under each waist bucket. Compact mode
+  // reuses the same short labels already established for the heatmap
+  // grid (WAIST_BUCKETS[].short) rather than inventing new abbreviations.
+  const xLabels = geo.compact ? WAIST_BUCKETS.map((b) => b.short) : ["Narrow", "All-mountain", "Wide / powder"];
   const xCenters = [(WAIST_MIN + 89) / 2, (90 + 109) / 2, (110 + WAIST_MAX) / 2];
   xLabels.forEach((label, i) => {
-    const x = mapX(xCenters[i]);
-    svg += `<text x="${x.toFixed(1)}" y="${MAP_H - 10}" text-anchor="middle" class="map-axis-label">${escapeHtml(
+    const x = mapX(xCenters[i], geo);
+    svg += `<text x="${x.toFixed(1)}" y="${geo.H - (geo.compact ? 7 : 10)}" text-anchor="middle" class="map-axis-label">${escapeHtml(
       label
     )}</text>`;
   });
 
   // Y-axis zone labels, top-left of each stability band (damp at top).
-  const yLabels = ["Damp / charging", "Balanced", "Playful / light"];
+  const yLabels = geo.compact ? ["Damp", "Balanced", "Playful"] : ["Damp / charging", "Balanced", "Playful / light"];
   const bandTopY = [plotTop, hy2, hy1];
   yLabels.forEach((label, i) => {
-    svg += `<text x="${plotLeft + 8}" y="${(bandTopY[i] + 16).toFixed(
+    svg += `<text x="${(plotLeft + (geo.compact ? 6 : 8)).toFixed(1)}" y="${(bandTopY[i] + (geo.compact ? 13 : 16)).toFixed(
       1
     )}" text-anchor="start" class="map-axis-label map-axis-label-y">${escapeHtml(label)}</text>`;
   });
@@ -673,9 +702,14 @@ function renderMapChrome() {
  * so quiver and suggestion labels compete for space fairly on the
  * suggestions map.
  */
-function renderSkiMarks(entries) {
-  const plotRight = MAP_MARGIN.left + MAP_PLOT_W;
-  const plotTop = MAP_MARGIN.top;
+function renderSkiMarks(entries, geo) {
+  const plotRight = geo.MARGIN.left + geo.plotW;
+  const plotTop = geo.MARGIN.top;
+  // Same proportions as the original fixed 90px/18px thresholds
+  // (relative to the normal-geometry plot size), generalized so they
+  // scale sensibly in compact geometry too.
+  const rightEdgeZone = geo.plotW * 0.148;
+  const topEdgeZone = geo.plotH * 0.054;
 
   const placedLabelBoxes = [];
   const CHAR_W = 5.6; // px, approx. at 11px font
@@ -686,15 +720,15 @@ function renderSkiMarks(entries) {
 
   entries.forEach(({ ski, index, variant = "quiver" }) => {
     const region = coverageRegion(ski);
-    const rx1 = mapX(region.xMin);
-    const rx2 = mapX(region.xMax);
-    const ry1 = mapY(region.yMax);
-    const ry2 = mapY(region.yMin);
-    const cx = mapX(ski.waist_width_mm);
-    const cy = mapY(region.stab);
+    const rx1 = mapX(region.xMin, geo);
+    const rx2 = mapX(region.xMax, geo);
+    const ry1 = mapY(region.yMax, geo);
+    const ry2 = mapY(region.yMin, geo);
+    const cx = mapX(ski.waist_width_mm, geo);
+    const cy = mapY(region.stab, geo);
 
-    const nearRight = cx > plotRight - 90;
-    const nearTop = cy < plotTop + 18;
+    const nearRight = cx > plotRight - rightEdgeZone;
+    const nearTop = cy < plotTop + topEdgeZone;
     const labelX = nearRight ? cx - 9 : cx + 9;
     const labelY = nearTop ? cy + 18 : cy - 9;
     const anchor = nearRight ? "end" : "start";
@@ -737,9 +771,13 @@ function renderSkiMarks(entries) {
 }
 
 function renderCoverageMapSvg(skis) {
-  const chrome = renderMapChrome();
-  const marks = renderSkiMarks(skis.map((ski, index) => ({ ski, index })));
-  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${chrome}${marks}</svg>`;
+  const geo = getMapGeometry();
+  const chrome = renderMapChrome(geo);
+  const marks = renderSkiMarks(
+    skis.map((ski, index) => ({ ski, index })),
+    geo
+  );
+  return `<svg viewBox="0 0 ${geo.W} ${geo.H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${chrome}${marks}</svg>`;
 }
 
 function renderCoverageMapTable(skis) {
@@ -789,7 +827,8 @@ function renderCoverageMapSection(skis) {
 /* ---- Suggestions map (same space, quiver muted + gap-fillers highlighted) */
 
 function renderSuggestionsMapSvg(quiverSkis, suggestedSkis) {
-  const chrome = renderMapChrome();
+  const geo = getMapGeometry();
+  const chrome = renderMapChrome(geo);
   const entries = [
     // Quiver: identical blue styling to the primary map - same color on
     // both maps, full-strength, not de-emphasized.
@@ -799,8 +838,8 @@ function renderSuggestionsMapSvg(quiverSkis, suggestedSkis) {
     // coverage footprint is worth showing, not just its position.
     ...suggestedSkis.map((ski, i) => ({ ski, index: quiverSkis.length + i, variant: "suggestion" })),
   ];
-  const marks = renderSkiMarks(entries);
-  return `<svg viewBox="0 0 ${MAP_W} ${MAP_H}" class="coverage-map" role="img" aria-label="Suggested skis that would fill your quiver's coverage gaps, shown against your current quiver for reference">${chrome}${marks}</svg>`;
+  const marks = renderSkiMarks(entries, geo);
+  return `<svg viewBox="0 0 ${geo.W} ${geo.H}" class="coverage-map" role="img" aria-label="Suggested skis that would fill your quiver's coverage gaps, shown against your current quiver for reference">${chrome}${marks}</svg>`;
 }
 
 function renderSuggestionsMapTable(suggestedSkis, coverageBySkiName) {
