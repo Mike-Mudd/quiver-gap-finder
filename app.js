@@ -539,7 +539,7 @@ function renderDashboard(grid, skis) {
   const sections = [
     renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions),
     renderCoverageMapSection(skis),
-    renderConditionCardsSection(grid),
+    renderConditionCardsSection(grid, skis),
   ];
 
   // Only rendered when there's actually a gap to suggest something for -
@@ -1019,8 +1019,6 @@ function wireSuggestionsMap(quiverSkis, suggestedSkis) {
  * "high-speed carving on firm, hard snow") read as near-duplicates at a
  * glance, and 9 cards was too many for a quick-glance read. These 3 map
  * onto vocabulary skiers already use for "what kind of day is this."
- * "Park" was considered but dropped - the app doesn't collect any
- * park/twin-tip-relevant spec, so there's no real data behind it yet.
  */
 const CONDITION_GROUPS = [
   { waistKey: "narrow", title: "Groomers" },
@@ -1029,13 +1027,57 @@ const CONDITION_GROUPS = [
 ];
 
 /**
+ * The Park card, unlike the 3 above, isn't derived from the grid at all
+ * - tail_shape is orthogonal to waist/temperament (see data/SOURCING.md),
+ * so this reads the quiver's raw ski list directly instead of a bucket.
+ * 3 states instead of the other cards' plain yes/no, because tail_shape
+ * itself is 3-valued: a `modified_twin` genuinely has some switch
+ * capability without being a park ski, and collapsing that into a
+ * binary would misrepresent it either way (see the tail_shape research
+ * pass - 40% of the dataset is `modified_twin`, only 4% is a true
+ * `twin_tip`, so "any non-directional ski counts" would call nearly
+ * half the dataset "park-covered," which overstates it just as much as
+ * requiring a true twin_tip would understate it for a partial ski).
+ */
+function renderParkCard(quiverSkis) {
+  const twinTips = quiverSkis.filter((s) => s.tail_shape === "twin_tip");
+  const modifiedTwins = quiverSkis.filter((s) => s.tail_shape === "modified_twin");
+
+  let status, detail;
+  if (twinTips.length > 0) {
+    status = "good";
+    detail = `Covered by ${escapeHtml(twinTips.map((s) => s.name).join(", "))}`;
+  } else if (modifiedTwins.length > 0) {
+    status = "warning";
+    detail = `Partial — ${escapeHtml(
+      modifiedTwins.map((s) => s.name).join(", ")
+    )} can handle some switch riding, but nothing built specifically for park.`;
+  } else {
+    status = "critical";
+    detail = `Nothing in your quiver yet.`;
+  }
+
+  const meta = statusMeta(status);
+  return `
+    <div class="condition-card" data-status="${status}">
+      <span class="condition-icon" aria-hidden="true">${meta.icon}</span>
+      <div class="condition-body">
+        <p class="condition-desc">Park</p>
+        <p class="condition-detail">${detail}</p>
+      </div>
+    </div>
+  `;
+}
+
+/**
  * Framed the way a skier actually thinks about it - "what do I grab
  * today" - instead of an abstract axis grid. Deliberately just a yes/no
- * per condition, no recommendations on the card itself - the Suggested
- * additions section below already covers "what should I add," and
- * mixing that in here made the quick-glance read too busy.
+ * per condition (Park excepted - see renderParkCard), no recommendations
+ * on the card itself - the Suggested additions section already covers
+ * "what should I add," and mixing that in here made the quick-glance
+ * read too busy.
  */
-function renderConditionCardsSection(grid) {
+function renderConditionCardsSection(grid, quiverSkis) {
   const cards = CONDITION_GROUPS.map((group) => {
     const cells = grid.filter((c) => c.waistBucket.key === group.waistKey);
     const skiNames = [...new Set(cells.flatMap((c) => c.skis.map((s) => s.name)))];
@@ -1058,7 +1100,7 @@ function renderConditionCardsSection(grid) {
     <section class="panel dashboard-card">
       <h3>What's your quiver built for?</h3>
       <p class="map-caption">The most common ski days, and which of your skis (if any) covers each.</p>
-      <div class="condition-cards">${cards}</div>
+      <div class="condition-cards">${cards}${renderParkCard(quiverSkis)}</div>
     </section>
   `;
 }
