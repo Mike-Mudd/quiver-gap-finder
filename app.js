@@ -346,8 +346,8 @@ function buildGrid(skis) {
 }
 
 /* ------------------------------------------------------------------ *
- *  Results rendering — dashboard: stat tiles, a coverage map, a
- *  status-coded heatmap grid, and the plain-language bullets tucked
+ *  Results rendering — dashboard: a TL;DR summary, a coverage map,
+ *  status-coded condition cards, and the plain-language bullets tucked
  *  into a collapsible detail section.
  * ------------------------------------------------------------------ */
 
@@ -545,7 +545,7 @@ function renderDashboard(grid, skis) {
   const sections = [
     renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions),
     renderCoverageMapSection(skis),
-    renderHeatmapSection(grid, quiverNames),
+    renderConditionCardsSection(grid, quiverNames),
   ];
 
   // Only rendered when there's actually a gap to suggest something for -
@@ -562,7 +562,6 @@ function renderDashboard(grid, skis) {
   resultsEl.innerHTML = sections.join("\n");
 
   wireCoverageMap(skis);
-  wireHeatmap(grid, quiverNames);
   if (gaps.length > 0) {
     wireSuggestionsMap(skis, gapSuggestions);
   }
@@ -570,7 +569,7 @@ function renderDashboard(grid, skis) {
 
 /* ---- Coverage map (SVG scatter + region plot) ---------------------- */
 
-// Same breakpoint already used for the heatmap's full/short label swap
+// Same breakpoint the condition cards collapse to a single column at
 // (see style.css) - kept consistent rather than inventing a second one.
 const MAP_COMPACT_BREAKPOINT_PX = 480;
 
@@ -657,8 +656,8 @@ function renderMapChrome(geo) {
   svg += `<line x1="${plotLeft}" y1="${hy2}" x2="${plotRight}" y2="${hy2}" class="map-gridline" />`;
 
   // X-axis zone labels, centered under each waist bucket. Compact mode
-  // reuses the same short labels already established for the heatmap
-  // grid (WAIST_BUCKETS[].short) rather than inventing new abbreviations.
+  // reuses the same short labels already defined on WAIST_BUCKETS
+  // (WAIST_BUCKETS[].short) rather than inventing new abbreviations.
   const xLabels = geo.compact ? WAIST_BUCKETS.map((b) => b.short) : ["Narrow", "All-mountain", "Wide / powder"];
   const xCenters = [(WAIST_MIN + 89) / 2, (90 + 109) / 2, (110 + WAIST_MAX) / 2];
   xLabels.forEach((label, i) => {
@@ -1017,93 +1016,49 @@ function wireSuggestionsMap(quiverSkis, suggestedSkis) {
   });
 }
 
-/* ---- Heatmap grid (status-coded 3x3) -------------------------------- */
+/* ---- Condition cards (prototype replacement for the coverage grid) - */
 
-function renderHeatmapSection(grid, quiverNames) {
-  const rows = [...STAB_BUCKETS].reverse(); // damp/charging at top
-
-  let cells = `<div class="heatmap-corner" role="presentation"></div>`;
-  for (const wb of WAIST_BUCKETS) {
-    cells += `<div class="heatmap-colhead">${escapeHtml(wb.short)}</div>`;
-  }
-
-  let cellIndex = 0;
-  const cellRefs = [];
-  for (const sb of rows) {
-    cells += `<div class="heatmap-rowhead">${escapeHtml(sb.short)}</div>`;
-    for (const wb of WAIST_BUCKETS) {
-      const cell = grid.find((c) => c.stabBucket.key === sb.key && c.waistBucket.key === wb.key);
-      cellRefs.push(cell);
+/**
+ * Same 9 buckets as the coverage map, but framed the way a skier
+ * actually thinks about it - "what do I grab today" - instead of an
+ * abstract waist x temperament axis grid. Reuses BUCKET_DESCRIPTIONS
+ * (already-written plain-language day descriptions) as the card
+ * headline, and the same status classification used elsewhere
+ * (cellStatus/statusMeta) for the good/warning/critical color coding.
+ * Detail text is always visible on the card itself, not hidden behind
+ * hover/tooltip - the coverage grid this replaces relied on a tooltip
+ * only because its tiles were too small to hold text.
+ */
+function renderConditionCardsSection(grid, quiverNames) {
+  const cards = grid
+    .map((cell) => {
       const status = cellStatus(cell.skis.length);
       const meta = statusMeta(status);
-      const extra = cell.skis.length
-        ? ` — ${escapeHtml(cell.skis.map((s) => s.name).join(", "))}`
-        : ` — ${suggestionPhrase(suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames))}`;
-      cells += `
-        <div class="heat-tile" data-status="${status}" data-cell-index="${cellIndex}" tabindex="0"
-             aria-label="${escapeHtml(bucketLabel(cell))}: ${cell.skis.length} ski${
-        cell.skis.length === 1 ? "" : "s"
-      }, ${meta.label}${extra}">
-          <span class="heat-icon" aria-hidden="true">${meta.icon}</span>
-          <span class="heat-count">${cell.skis.length}</span>
-          <span class="heat-label">${meta.label}</span>
+      const desc = capitalize(bucketDescription(cell));
+      const detail =
+        cell.skis.length > 0
+          ? `Covered by ${escapeHtml(cell.skis.map((s) => s.name).join(", "))}`
+          : suggestionPhrase(suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames));
+
+      return `
+        <div class="condition-card" data-status="${status}">
+          <span class="condition-icon" aria-hidden="true">${meta.icon}</span>
+          <div class="condition-body">
+            <p class="condition-desc">${escapeHtml(desc)}</p>
+            <p class="condition-detail">${detail}</p>
+          </div>
         </div>
       `;
-      cellIndex++;
-    }
-  }
+    })
+    .join("");
 
   return `
     <section class="panel dashboard-card">
-      <h3>Coverage grid</h3>
-      <div class="heatmap" data-cell-count="${cellRefs.length}">${cells}</div>
+      <h3>What's your quiver built for?</h3>
+      <p class="map-caption">Nine common ski days, and which of your skis (if any) is built for each.</p>
+      <div class="condition-cards">${cards}</div>
     </section>
   `;
-}
-
-function heatTooltipHtml(cell, quiverNames) {
-  const title = document.createElement("div");
-  title.className = "tooltip-title";
-  title.textContent = bucketLabel(cell);
-
-  const detail = document.createElement("div");
-  detail.className = "tooltip-detail";
-  detail.textContent = cell.skis.length ? cell.skis.map((s) => s.name).join(", ") : "No skis cover this zone";
-
-  const wrap = document.createElement("div");
-  wrap.append(title, detail);
-
-  if (cell.skis.length === 0) {
-    const suggestions = suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames);
-    const suggestion = document.createElement("div");
-    suggestion.className = "tooltip-detail tooltip-suggestion";
-    suggestion.textContent =
-      suggestions.length > 0
-        ? `Consider: ${suggestions.map((s) => s.name).join(", ")}`
-        : "Nothing in the current catalog centers on this zone yet.";
-    wrap.append(suggestion);
-  }
-
-  return wrap;
-}
-
-function wireHeatmap(grid, quiverNames) {
-  const rows = [...STAB_BUCKETS].reverse();
-  const orderedCells = [];
-  for (const sb of rows) {
-    for (const wb of WAIST_BUCKETS) {
-      orderedCells.push(grid.find((c) => c.stabBucket.key === sb.key && c.waistBucket.key === wb.key));
-    }
-  }
-
-  document.querySelectorAll(".heat-tile").forEach((tile) => {
-    const cell = orderedCells[Number(tile.dataset.cellIndex)];
-    const show = () => showTooltip(tile, heatTooltipHtml(cell, quiverNames));
-    tile.addEventListener("pointerenter", show);
-    tile.addEventListener("focus", show);
-    tile.addEventListener("pointerleave", hideTooltip);
-    tile.addEventListener("blur", hideTooltip);
-  });
 }
 
 /* ---- Quiver summary (plain-language TL;DR paragraph) --------------- */
@@ -1297,4 +1252,8 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
