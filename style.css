@@ -32,6 +32,14 @@
   --chart-gridline: #e1e0d9;
   --chart-muted: #898781;
 
+  /* Suggestions-map accent: same red hex as --status-critical (already
+     contrast-checked) so it's visually consistent with the rest of the
+     app's red, but named separately since here it means "suggestion,"
+     not "bad" - reusing the status token directly would blur that. */
+  --chart-suggestion: #d03b3b;
+  --chart-suggestion-fill: rgba(208, 59, 59, 0.14);
+  --chart-suggestion-stroke: rgba(208, 59, 59, 0.4);
+
   /* .chart-tooltip inverts colors (dark bg / light text in light mode,
      flipped in dark mode) — this divider must flip with it, not just
      assume a dark background. */
@@ -62,6 +70,10 @@
     --chart-accent-stroke: rgba(57, 135, 229, 0.55);
     --chart-gridline: #2c2c2a;
     --chart-muted: #898781;
+
+    --chart-suggestion: #e66767;
+    --chart-suggestion-fill: rgba(230, 103, 103, 0.22);
+    --chart-suggestion-stroke: rgba(230, 103, 103, 0.55);
 
     /* Tooltip is inverted relative to page mode - in dark mode its
        background is light, so the divider needs to be dark here. */
@@ -495,25 +507,17 @@ body {
   fill: none;
 }
 
-/* Suggestions map: the quiver is shown as de-emphasized context (the
-   "emphasis" color pattern - one set in the accent hue, the rest gray)
-   so the highlighted suggestion marks are unambiguously the point. */
-/* --color-muted/--color-border are blue-tinted (this app's whole neutral
-   palette leans blue), so next to a blue accent dot they read as "a
-   paler blue," not "a different, de-emphasized thing." --chart-muted is
-   a genuinely achromatic gray - used here so the two layers are
-   unmistakable by hue alone, not just opacity. */
-.ski-mark--muted .ski-region {
-  fill: var(--chart-muted);
-  fill-opacity: 0.12;
-  stroke: var(--chart-muted);
-  stroke-opacity: 0.4;
+/* Suggestions map: quiver stays full-strength blue (identical to the
+   primary map, via the default .ski-region/.ski-dot rules above) -
+   suggestions get their own red variant so the two are distinguishable
+   by hue alone, not opacity. */
+.ski-mark--suggestion .ski-region {
+  fill: var(--chart-suggestion-fill);
+  stroke: var(--chart-suggestion-stroke);
 }
 
-.ski-mark--muted .ski-dot {
-  fill: var(--chart-muted);
-  opacity: 0.7;
-  r: 4;
+.ski-mark--suggestion .ski-dot {
+  fill: var(--chart-suggestion);
 }
 
 .chart-table-wrap {
