@@ -20,6 +20,7 @@ catch.
 | `turn_radius_m` | At the reference length — this is the field most likely to be wrong if pulled from a generic spec blurb instead of a length-specific table; it can vary 3m+ across a model's length range. |
 | `rocker_profile` | One of the 5 categorical values below — not a free-form guess. See "Classifying rocker profile." |
 | `metal_content` | `"full"` = full sheet(s) of metal (titanal, etc.) running the length of the ski. `"partial"` = metal used only in specific zones — underfoot only, or a binding-area reinforcement plate (e.g. Head's "Ti" binding reinforcement on otherwise-graphene skis). `"none"` = no metal anywhere in the layup. Don't infer this from marketing buzzwords ("Graphene," "Carbon") — those are often paired with a small metal reinforcement piece that the marketing copy doesn't lead with; check the actual core/construction description. |
+| `tail_shape` | One of 3 categorical values — `"directional"` / `"modified_twin"` / `"twin_tip"`. See "Classifying tail shape." Whether a ski can be skied switch is orthogonal to waist width and stability (a twin-tip can be light or heavy, narrow or wide, rockered or not) — the app deliberately does *not* fold this into the coverage-space grid/map; it drives a separate, independent "Park" signal instead. |
 | `source` | Short name of the primary source used (e.g. `"Blister Review"`, `"Manufacturer spec page"`). |
 | `source_url` | URL of that source, when it's a stable, linkable page. |
 | `verified_date` | The date (ISO `YYYY-MM-DD`) this entry was last checked against a source. Lets a future pass find and refresh stale entries instead of re-deriving the whole dataset. |
@@ -72,6 +73,29 @@ is `camber_tip_tail_rocker`; zero or negative (flat/reversed)
 camber-underfoot with splay is `flat_tip_tail_rocker` or `full_rocker`
 depending on degree. These numeric fields are optional and omitted when
 the source doesn't report them — don't block an entry on missing them.
+
+## Classifying tail shape
+
+Use one of three values, matching terminology sources already use rather
+than inventing new labels:
+
+| `tail_shape` value | Shape | Notes |
+|---|---|---|
+| `directional` | Tail is flat, minimally rockered, or tapered — built to ski forward only | Most all-mountain/frontside/touring skis land here |
+| `modified_twin` | Tail has real, measurable rocker/upturn, but is asymmetric vs. the tip (narrower tail width, shallower rocker, or a rearward mount point) — some switch capability, but not a park ski | Common on "freeride with playful DNA" skis — about 40% of this dataset as of the initial backfill |
+| `twin_tip` | Tip and tail are symmetrically rockered (comparable splay, near-center mount) — genuinely park-capable | Rare outside dedicated park/freestyle lines — only 2 of 50 skis in this dataset as of the initial backfill |
+
+A source's stated mount point (distance from true center, e.g. "-9.5cm")
+and measured tip/tail splay (mm) are the most reliable signals: a
+near-center mount (within ~3cm) with comparable tip/tail splay is
+`twin_tip`; a clearly rearward mount (>8cm) with much shallower or no
+tail rocker is `directional`; real but asymmetric tail rocker in between
+is `modified_twin`. Brand-line naming is a strong hint (Dynastar's
+M-Free vs. M-Pro; Fischer's twin-tip "FR" sub-line vs. directional "Ti")
+but always verify per-model — some brands sell both shapes under similar
+naming, and shape changes across redesigns (K2's Mindbender Ti line
+moved from a more twin-ish shape to a more directional one in its
+2022-23 redesign).
 
 ## Adding a new ski
 

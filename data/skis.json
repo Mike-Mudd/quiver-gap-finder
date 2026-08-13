@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-08-11",
+  "last_updated": "2026-08-12",
   "sourcing_methodology": "See SOURCING.md for field definitions and the source-priority process used to fill every entry below.",
   "skis": [
     {
@@ -14,9 +14,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2024-2025-nordica-enforcer-94",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "2 sheets titanal, Pulse Core elastomer layer. rocker_percent estimated from profile category (no published tip/camber/tail % breakdown). Blister's measured waist (95mm) rounded to the catalog nominal 94mm to match the model name."
     },
     {
@@ -30,9 +31,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-nordica-enforcer-104-free",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "2-layer titanal, same construction family as Enforcer 94 but more tip/tail rocker. rocker_percent estimated from profile category."
     },
     {
@@ -46,9 +48,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2023-nordica-unleashed-98",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Single layer 'Terrain Specific Metal' - thinner at center, extends near edge-to-edge at tips/tails: partial, not a full flat sheet. rocker_percent estimated from profile category."
     },
     {
@@ -62,9 +65,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-nordica-unleashed-108",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Corrected weight_g from 2120 (Nordica's manufacturer-claimed figure) to 2087 (Blister's own measured weight) - the original entry violated the sourcing rule of preferring measured over claimed. Found because the claimed figure happened to exactly match Fischer Ranger 108's weight/metal/rocker, causing the two to render as a single indistinguishable mark on the coverage map - caught via user testing, not caught during original sourcing. Same Terrain Specific Metal concept as Unleashed 98, proportionally more metal underfoot given the wider waist. rocker_percent estimated from profile category."
     },
     {
@@ -78,9 +82,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "modified_twin",
       "source": "Blister Review / SkiEssentials",
       "source_url": "https://blisterreview.com/tag/k2-mindbender",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Ti Y-Beam construction. rocker_percent estimated from profile category."
     },
     {
@@ -94,9 +99,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-k2-mindbender-99ti",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Titanal Y-Beam runs edge-to-edge underfoot. Measured tip/camber/tail splay 64mm / ~4mm / 20mm. rocker_percent estimated from profile category."
     },
     {
@@ -110,9 +116,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-k2-mindbender-108ti",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Titanal Y-Beam construction. Measured tip/camber/tail splay 64mm / 4mm / 19.5mm. rocker_percent estimated from profile category. Blister's measured waist (107.4mm) rounded to the catalog nominal 108mm to match the model name."
     },
     {
@@ -126,9 +133,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "none",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-k2-mindbender-116c",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "'C' = carbon build, no titanal (vs the 'Ti' Mindbenders). 'Powder rocker' with deeper tip rocker than the Ti models; rocker_percent nudged above the category default for that reason."
     },
     {
@@ -142,9 +150,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 35,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-blizzard-bonafide-97",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "2 full sheets titanal (TrueBlend construction). Mostly full camber with all-mountain tip rocker + slight tail rocker - nudged below category default. rocker_percent estimated."
     },
     {
@@ -158,9 +167,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 30,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-blizzard-brahma-88",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "2 full sheets titanal + carbon fiber tips. v3 has 'much shallower rocker lines' than prior versions - nudged below category default. rocker_percent estimated."
     },
     {
@@ -174,9 +184,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-blizzard-rustler-9",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "2 pieces titanal full length + separate titanal plate underfoot. Measured camber underfoot 3mm. rocker_percent estimated from profile category."
     },
     {
@@ -190,9 +201,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-blizzard-rustler-11",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Rustler 9's review states the 9 'uses more metal than the 10 or 11' - the 11 is FluxForm woodcore, no titanal sheet. Weight is the closest available length (186cm, 2070-2085g); confidence lower than most entries. rocker_percent estimated from profile category."
     },
     {
@@ -207,9 +219,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-blizzard-sheeva-9",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Women's version of Rustler 9; FluxForm W.S.D. with 2 titanal plates full length. Corrected reference_length_cm from an earlier 174cm reading to 162cm on closer re-check of the same source figure (1765g) - only 3cm off the 165cm women's-line target, well within tolerance. rocker_percent estimated from profile category."
     },
     {
@@ -223,9 +236,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-volkl-m6-mantra",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Tailored Titanal Frame: one full-length layer below the core plus length-tuned segmented pieces above - has a genuine full sheet, unlike Kendo/Secret's frame-only design. rocker_percent estimated from profile category."
     },
     {
@@ -239,9 +253,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 35,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-volkl-katana-108",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Full titanal sheet on the base + partial segmented sheet on top. 3D radius sidecut: 19m underfoot / 39m & 34m at tip & tail - turn_radius_m records the underfoot number. Mostly camber with low-rise tip/tail rocker, nudged below category default."
     },
     {
@@ -255,9 +270,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review / evo",
       "source_url": "https://www.evo.com/reviews/ski/volkl-kendo-88",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "0.7mm 'Titanal Frame' explicitly described as perimeter/sidewall reinforcement 'rather than the heavy, full width design of past years' - partial, not full. Weight varies 1900-2200g across sources/years; used the most recent figure. rocker_percent estimated from profile category."
     },
     {
@@ -272,9 +288,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "evo / Freeride",
       "source_url": "https://www.evo.com/outlet/skis/volkl-secret-92-womens",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Women's line; 163cm is only 2cm off the 165cm women's-line target (see data/SOURCING.md), well within tolerance - no fix needed. Same 0.7mm 'Titanal Frame' (partial, not full-width) as Kendo 88. rocker_percent estimated from profile category."
     },
     {
@@ -288,9 +305,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 35,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2024-2025-atomic-bent-100",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Published tip/camber/tail split 20/65/15% - rocker_percent = 20+15. No metal; 11mm camber underfoot."
     },
     {
@@ -304,9 +322,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 50,
       "metal_content": "none",
+      "tail_shape": "twin_tip",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-atomic-bent-110",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Published tip/camber/tail split 25/50/25% - rocker_percent = 25+25. Measured tip/tail splay 62mm/58mm, camber underfoot 8mm. Weight is Atomic's stated pair weight (3500g) halved - flagged lower confidence than a directly measured per-ski figure."
     },
     {
@@ -320,9 +339,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 25,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2018-2019-atomic-vantage-97-ti/2",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "'Titanium Tank Mesh' is an explicit mesh, not a full sheet - partial. Published tip/camber/tail split 15/75/10% - rocker_percent = 15+10."
     },
     {
@@ -336,9 +356,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 30,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-atomic-maverick-95-ti",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "2 full sheets of thin (0.4mm) titanal. Published tip/camber/tail split 20/70/10% - rocker_percent = 20+10."
     },
     {
@@ -352,9 +373,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review / SkiEssentials",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-salomon-qst-98",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Carbon/flax construction, no titanal sheet (QST line's defining trait vs. the metal Stance line). rocker_percent estimated from profile category - deeper rocker than the QST 99 it replaced."
     },
     {
@@ -368,9 +390,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-salomon-qst-106",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Carbon/flax construction; source describes it as 'mainly titanal-free' aside from an incidental binding-area plate, treated as none consistent with the QST line's no-metal positioning. rocker_percent estimated from profile category."
     },
     {
@@ -384,9 +407,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 55,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-salomon-qst-blank",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Full poplar wood core, no metal. Measured camber underfoot 5.5mm (small but positive, keeping it camber_tip_tail_rocker rather than flat/full-rocker). Described as deeper-rockered than the QST 106 but not as deep as the QST 118 - rocker_percent nudged above category default. Weight varies significantly by model year (2070-2265g); used the 2025 figure."
     },
     {
@@ -400,9 +424,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 29,
       "metal_content": "full",
+      "tail_shape": "directional",
       "source": "Blister Review / SkiEssentials",
       "source_url": "https://www.skiessentials.com/Chairlift-Chat/2024-salomon-stance-96-ski-review",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Full sheet titanal under the core plus a second titanal layer, and carbon/flax CFX inserts at tip/tail. Published split: 17% tip rocker / 12% tail rocker / rest camber - rocker_percent = 17+12."
     },
     {
@@ -416,9 +441,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "evo / SkiEssentials",
       "source_url": "https://www.evo.com/skis/rossignol-sender-94",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "'Titanal Beam' runs underfoot only (localized, not a full sheet) - partial, corrected from an earlier 'full' assumption. Published Free Rocker split 25% tip / 60% camber / 15% tail - rocker_percent = 25+15."
     },
     {
@@ -432,9 +458,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-rossignol-sender-104-ti",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Source explicitly states 'titanal (partial layer)' - corrected from an earlier 'full' assumption. Published Free Rocker split 25% tip / 60% camber / 15% tail - rocker_percent = 25+15. Measured camber underfoot 6.5mm."
     },
     {
@@ -448,9 +475,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 38,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-head-kore-93",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Corrected from 'none' - core is karuba/poplar + graphene + a titanal binding-area reinforcement plate + carbon/fiberglass, not metal-free despite the 'Graphene' marketing. Measured tip/tail splay 60mm/21mm, camber underfoot 5mm. Blister's measured waist (94.6mm) rounded to the catalog nominal 93mm to match the model name - the largest measured/nominal gap in the dataset."
     },
     {
@@ -464,9 +492,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-head-kore-105",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Same construction family as Kore 93: graphene + titanal binding-area reinforcement, not metal-free. Source weight figure (3750 at 180cm) read as a per-pair number for consistency with the rest of the Kore line; halved here."
     },
     {
@@ -480,9 +509,10 @@
       "rocker_profile": "flat_tip_tail_rocker",
       "rocker_percent": 65,
       "metal_content": "none",
+      "tail_shape": "directional",
       "source": "Blister Review / skimo.co",
       "source_url": "https://skimo.co/dps-pagoda-tour-100",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Aerospace-grade foam core, no metal. Dramatically tapered, deep tip rocker with a less radical tail - freeride/backcountry 'RP' design philosophy, flatter than typical all-mountain skis. rocker_percent estimated from profile category."
     },
     {
@@ -496,9 +526,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2018-2019-line-sick-day-94",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Aspenlite (100% aspen) core + Carbon Magic Fingers, no metal laminate. turn_radius_m not published for this length - estimated from comparable ~94mm all-mountain skis in the dataset, lower confidence than most entries. rocker_percent estimated from profile category."
     },
     {
@@ -512,9 +543,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2017-2018-line-sick-day-104",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Same Aspenlite/Carbon Magic Fingers construction as Sick Day 94, no metal. rocker_percent estimated from profile category."
     },
     {
@@ -528,9 +560,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2018-2019-elan-ripstick-96",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Poplar/paulownia core + carbon/fiberglass, no titanal mentioned. Elan's 'Amphibio' asymmetric tip/tail rocker (longer camber line on inside edges) - modeled here as the standard camber_tip_tail_rocker category since the app doesn't have an asymmetric-rocker axis. turn_radius_m sourced at 175cm, closest available to the 181cm weight figure. rocker_percent estimated from profile category."
     },
     {
@@ -544,9 +577,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 30,
       "metal_content": "none",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2018-2019-elan-ripstick-106",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Same Amphibio/TNT Technology family as Ripstick 96, no metal. weight_g corrected to Blister's individually-measured 180cm pair (1863g/1852g, averaged) - a closer match to the dataset's 180cm target than the 188cm figure used previously. turn_radius_m not published at 180cm - estimated from the Ripstick 96 and comparable ~106mm skis, lower confidence. rocker_percent: shallower tip/tail rocker lines than most ~106mm skis, nudged below category default."
     },
     {
@@ -560,9 +594,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 30,
       "metal_content": "full",
+      "tail_shape": "twin_tip",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-armada-arv-96-ti",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "The 'Ti' variant (vs. the metal-free ARV 96) - full titanal laminate. Mellow tip/tail rocker with 6-7mm of camber underfoot - rocker_percent nudged below category default. turn_radius_m sourced at 177cm, close to the 184cm weight figure."
     },
     {
@@ -576,9 +611,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-armada-tracer-108",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Titanal reinforcement underfoot and sidewall only (not a full sheet) - partial. Freeride-oriented, deeper rocker than a typical all-mountain ski at this width - rocker_percent nudged above category default."
     },
     {
@@ -592,9 +628,10 @@
       "rocker_profile": "camber_tip_rocker",
       "rocker_percent": 22,
       "metal_content": "none",
+      "tail_shape": "directional",
       "source": "Blister Review / evo",
       "source_url": "https://www.evo.com/outlet/skis/faction-agent-100-2016",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Faction has since renamed this line to 'Agent 1' - kept the 'Agent 100' naming here since it's what's documented/searchable historically; a future refresh should check whether 'Agent 1' specs differ meaningfully. Paulownia/carbon core, no metal. Camber with tip rocker and a flat (not rockered) tail - camber_tip_rocker, not camber_tip_tail_rocker. weight_g and turn_radius_m are estimated (interpolated from the women's Agent 100W figure and comparable skis) - lower confidence than most entries."
     },
     {
@@ -608,9 +645,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2017-2018-faction-prodigy-2-0",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Full poplar/beech core, no metal. turn_radius_m sourced from a newer (2026-2027) model year at 171cm, closest available reference. rocker_percent estimated from profile category."
     },
     {
@@ -624,9 +662,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2024-2025-black-crows-corvus",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Current version dropped from 2 full titanal sheets to 1 titanal plate - described as a 'plate' rather than an edge-to-edge sheet, so classified partial; some ambiguity here since the source doesn't fully specify coverage. weight_g interpolated between the 176cm (3700g/pair) and 183cm (3900g/pair) figures, halved."
     },
     {
@@ -640,9 +679,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 25,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-black-crows-camox",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Poplar core + fiberglass, no titanal - confirmed metal-free. Shallow rocker lines with close to 10mm of camber underfoot (more than most skis in the dataset) - rocker_percent nudged well below category default."
     },
     {
@@ -656,9 +696,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-fischer-ranger-96",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Titanal split in front of/behind the binding area (not a full sheet) - partial, confirmed by source. turn_radius_m not published for this length - estimated from comparable ~96mm skis, lower confidence. rocker_percent estimated from profile category."
     },
     {
@@ -672,9 +713,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-fischer-ranger-108",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Same split/partial titanal construction as the Ranger 96, proportionally less coverage on the wider ski. Deep tip rocker, shallower tail rocker line."
     },
     {
@@ -688,9 +730,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 35,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-dynastar-m-pro-99",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Wider metal sheet behind the binding, narrower strip in front, tapering toward tip/tail - partial. Moderately deep tip rocker, fairly subtle tail rocker - rocker_percent nudged below category default."
     },
     {
@@ -704,9 +747,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-dynastar-m-pro-108",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "12cm off the dataset's 180cm target - flagged, not fixed. Searched for a second measured point to interpolate toward 180cm; the only additional weight data found (2200-2350g @182-192cm) was for the 'M-Pro 108 Ti' / 'Ti F-Team' variant, a different (more metal) construction than the partial-titanal standard M-Pro 108 sourced here, so it wasn't used - interpolating across two different metal layups would be worse than not interpolating. Beech/PU core + partial titanal layer (confirmed by source), fiberglass laminate. Measured camber underfoot 6mm, tip/tail splay 68mm/26mm. weight_g remains an estimate (scaled from M-Pro 99) - lower confidence than most entries; revisit if Blister publishes a 180cm-range measurement for the standard M-Pro 108."
     },
     {
@@ -720,9 +764,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 50,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2019-2020-moment-wildcat-108",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Paulownia/ash core, no metal mentioned - consistent with Moment's typical construction. Source's weight figure (3.9kg) read as a per-pair number given how implausible 3.9kg/ski would be; halved here. Tip/tail rocker lines described as unusually deep for the width - rocker_percent nudged above category default. turn_radius_m estimated from comparable ~108mm skis, lower confidence."
     },
     {
@@ -736,9 +781,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 35,
       "metal_content": "none",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2018-2019-liberty-origin96",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Bamboo/carbon construction, no metal. Tip rocker + solid cambered midsection + low-rise rockered tail - rocker_percent nudged below category default for the low-rise tail."
     },
     {
@@ -753,9 +799,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
+      "tail_shape": "directional",
       "source": "Blister Review / evo",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-nordica-santa-ana-88",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Women's line (Enforcer/Unleashed's counterpart); 164cm is only 1cm off the 165cm women's-line target (see data/SOURCING.md), well within tolerance - no fix needed. Same 'Terrain-Specific Metal' partial titanal concept as the Unleashed line - narrower Santa Ana models carry proportionally more metal coverage. rocker_percent estimated from profile category."
     },
     {
@@ -770,9 +817,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-salomon-qst-lumen-99",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "9cm off the dataset's 165cm women's-line target - flagged, not fixed. A second weight figure (1570g) turned up during re-sourcing but without a clear associated length, so it wasn't trustworthy enough to use for interpolation; kept the clean, confidently-sourced 174cm/1740g point instead. Sold down to 153cm, so a closer-to-165cm measurement likely exists - revisit if found. Same no-metal carbon/poplar construction philosophy as the men's QST 98/106/Blank. rocker_percent estimated from profile category."
     },
     {
@@ -786,9 +834,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
+      "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-blizzard-zero-g-105",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Touring-oriented; full paulownia core + Carbon Drive layup, no metal. Fills a light/playful gap next to DPS Pagoda Tour 100 at a wider waist. rocker_percent estimated from profile category."
     },
     {
@@ -802,9 +851,10 @@
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "partial",
+      "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-k2-reckoner-102",
-      "verified_date": "2026-08-11",
+      "verified_date": "2026-08-12",
       "notes": "Carbon/Titanal hybrid construction (not a traditional full sheet) - partial. Notable camber underfoot, but pretty deep rocker lines for its width - rocker_percent nudged above category default. K2's freestyle-leaning all-mountain line, distinct from the Mindbender family."
     }
   ]
