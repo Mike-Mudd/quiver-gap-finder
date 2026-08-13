@@ -166,15 +166,15 @@ thing everywhere on the page.
 
 ## Data
 
-`data/skis.json` holds 50 popular all-mountain/freeride ski models across
-18 brands,
+`data/skis.json` holds 61 popular all-mountain, freeride, and
+frontside/carving ski models across 20 brands,
 sourced (not estimated) from Blister Review's measured data, manufacturer
 spec pages, and retail spec tables. The file is a versioned envelope:
 
 ```json
 {
   "schema_version": 2,
-  "last_updated": "2026-08-11",
+  "last_updated": "2026-08-13",
   "skis": [ { "name": "...", "waist_width_mm": 95, ... }, ... ]
 }
 ```
@@ -193,12 +193,13 @@ Each ski entry:
 | `rocker_profile`       | one of 5 categorical shapes (`full_camber` → `full_rocker`) — see below |
 | `rocker_percent`       | tip% + tail% rocker coverage, 0–100, when a source publishes the exact split; otherwise a per-category default |
 | `metal_content`        | `none` / `partial` (binding-area reinforcement or a tapered/segmented layer) / `full` (a complete sheet the length of the ski) |
+| `tail_shape`            | `directional` / `modified_twin` / `twin_tip` — switch-skiability, orthogonal to the waist/stability coverage map; drives the separate "Park" condition card instead |
 | `source`, `source_url` | where the entry came from                                       |
 | `verified_date`        | when it was last checked against a source                       |
 | `notes`                | anything a future editor should know (ambiguous figures, corrections made, etc.) |
 
 **Why this schema, not just numbers:** the dataset is meant to keep
-growing over time (30 → 50 skis and 9 → 18 brands as of this writing).
+growing over time (30 → 50 → 61 skis and 9 → 18 → 20 brands as of this writing).
 `reference_length_cm`, `model_year`,
 `source`/`source_url`, and `verified_date` exist so a future pass can
 tell *which* number is being compared to *what*, and refresh stale

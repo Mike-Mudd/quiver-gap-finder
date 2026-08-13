@@ -16,9 +16,9 @@ const WAIST_RADIUS = 7; // mm
 const STAB_RADIUS = 12; // stability points (0-100 scale)
 
 // Weight range used to normalize stability score. Spans the lightest
-// (DPS Pagoda Tour 100) to heaviest (Volkl Katana 108) skis in the
+// (Blizzard Zero G 105) to heaviest (Volkl Katana 108) skis in the
 // sourced dataset — see data/SOURCING.md.
-const WEIGHT_MIN = 1550;
+const WEIGHT_MIN = 1500;
 const WEIGHT_MAX = 2360;
 
 // Contribution of metal content to the stability score (0-1 scale).
