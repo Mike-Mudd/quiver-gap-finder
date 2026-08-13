@@ -547,7 +547,7 @@ body {
 
 .condition-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.7rem;
   margin-top: 0.5rem;
 }
@@ -558,7 +558,7 @@ body {
   gap: 0.6rem;
   border-radius: 8px;
   border-left: 3px solid transparent;
-  padding: 0.7rem 0.8rem;
+  padding: 0.85rem 0.9rem;
 }
 
 .condition-card[data-status="good"] {
@@ -600,7 +600,7 @@ body {
 
 .condition-desc {
   margin: 0 0 0.2rem;
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-text);
   line-height: 1.3;

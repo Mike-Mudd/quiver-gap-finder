@@ -497,16 +497,10 @@ function selectTopSuggestionsForMap(gaps, quiverNames) {
 }
 
 /**
- * Classify a bucket's ski count into one of three fixed states. These
- * map 1:1 onto the status colors defined in style.css (good/warning/
- * critical) — never assigned ad hoc, always via this function.
+ * Fixed icon/label per status. These map 1:1 onto the status colors
+ * defined in style.css (good/warning/critical) — never assigned ad hoc,
+ * always via this function.
  */
-function cellStatus(count) {
-  if (count === 0) return "critical"; // gap
-  if (count >= REDUNDANCY_THRESHOLD) return "warning"; // redundant
-  return "good"; // covered
-}
-
 function statusMeta(status) {
   switch (status) {
     case "critical":
@@ -545,7 +539,7 @@ function renderDashboard(grid, skis) {
   const sections = [
     renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions),
     renderCoverageMapSection(skis),
-    renderConditionCardsSection(grid, quiverNames),
+    renderConditionCardsSection(grid),
   ];
 
   // Only rendered when there's actually a gap to suggest something for -
@@ -1019,43 +1013,51 @@ function wireSuggestionsMap(quiverSkis, suggestedSkis) {
 /* ---- Condition cards (prototype replacement for the coverage grid) - */
 
 /**
- * Same 9 buckets as the coverage map, but framed the way a skier
- * actually thinks about it - "what do I grab today" - instead of an
- * abstract waist x temperament axis grid. Reuses BUCKET_DESCRIPTIONS
- * (already-written plain-language day descriptions) as the card
- * headline, and the same status classification used elsewhere
- * (cellStatus/statusMeta) for the good/warning/critical color coding.
- * Detail text is always visible on the card itself, not hidden behind
- * hover/tooltip - the coverage grid this replaces relied on a tooltip
- * only because its tiles were too small to hold text.
+ * Collapsed from the original 9 waist x temperament cells down to just
+ * the 3 width bands - the temperament-level split ("quick, playful
+ * groomer days" vs "all-day groomer cruising with a bit of pop" vs
+ * "high-speed carving on firm, hard snow") read as near-duplicates at a
+ * glance, and 9 cards was too many for a quick-glance read. These 3 map
+ * onto vocabulary skiers already use for "what kind of day is this."
+ * "Park" was considered but dropped - the app doesn't collect any
+ * park/twin-tip-relevant spec, so there's no real data behind it yet.
  */
-function renderConditionCardsSection(grid, quiverNames) {
-  const cards = grid
-    .map((cell) => {
-      const status = cellStatus(cell.skis.length);
-      const meta = statusMeta(status);
-      const desc = capitalize(bucketDescription(cell));
-      const detail =
-        cell.skis.length > 0
-          ? `Covered by ${escapeHtml(cell.skis.map((s) => s.name).join(", "))}`
-          : suggestionPhrase(suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames));
+const CONDITION_GROUPS = [
+  { waistKey: "narrow", title: "Groomers" },
+  { waistKey: "allmtn", title: "All-Mountain" },
+  { waistKey: "wide", title: "Powder" },
+];
 
-      return `
-        <div class="condition-card" data-status="${status}">
-          <span class="condition-icon" aria-hidden="true">${meta.icon}</span>
-          <div class="condition-body">
-            <p class="condition-desc">${escapeHtml(desc)}</p>
-            <p class="condition-detail">${detail}</p>
-          </div>
+/**
+ * Framed the way a skier actually thinks about it - "what do I grab
+ * today" - instead of an abstract axis grid. Deliberately just a yes/no
+ * per condition, no recommendations on the card itself - the Suggested
+ * additions section below already covers "what should I add," and
+ * mixing that in here made the quick-glance read too busy.
+ */
+function renderConditionCardsSection(grid) {
+  const cards = CONDITION_GROUPS.map((group) => {
+    const cells = grid.filter((c) => c.waistBucket.key === group.waistKey);
+    const skiNames = [...new Set(cells.flatMap((c) => c.skis.map((s) => s.name)))];
+    const status = skiNames.length > 0 ? "good" : "critical";
+    const meta = statusMeta(status);
+    const detail = skiNames.length > 0 ? `Covered by ${escapeHtml(skiNames.join(", "))}` : `Nothing in your quiver yet.`;
+
+    return `
+      <div class="condition-card" data-status="${status}">
+        <span class="condition-icon" aria-hidden="true">${meta.icon}</span>
+        <div class="condition-body">
+          <p class="condition-desc">${escapeHtml(group.title)}</p>
+          <p class="condition-detail">${detail}</p>
         </div>
-      `;
-    })
-    .join("");
+      </div>
+    `;
+  }).join("");
 
   return `
     <section class="panel dashboard-card">
       <h3>What's your quiver built for?</h3>
-      <p class="map-caption">Nine common ski days, and which of your skis (if any) is built for each.</p>
+      <p class="map-caption">The most common ski days, and which of your skis (if any) covers each.</p>
       <div class="condition-cards">${cards}</div>
     </section>
   `;
@@ -1252,8 +1254,4 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }
