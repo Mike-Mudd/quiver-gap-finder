@@ -430,14 +430,6 @@ body {
 .ski-mark {
   cursor: pointer;
   outline: none;
-  /* Without this, iOS Safari flashes its default translucent gray tap
-     highlight over the whole mark on every tap (nothing here opts out
-     of it), right as the tooltip appears - reads as a jarring flicker/
-     jump on open. touch-action also drops the ~300ms tap delay/double-
-     tap-zoom detection some mobile browsers still do on plain tappable
-     elements, which can visibly delay or jostle that same appearance. */
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
 
 .ski-mark:hover .ski-dot,
