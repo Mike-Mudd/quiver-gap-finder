@@ -641,6 +641,20 @@ function skiAriaLabel(ski) {
 }
 
 /**
+ * On-map label text only: drops the brand prefix ("Nordica Enforcer 94"
+ * -> "Enforcer 94") to shrink the label's footprint in the coverage
+ * map's fixed plot area, especially on the compact mobile geometry.
+ * The full name is still used everywhere else - tooltip, aria-label,
+ * table view - this is purely about what's drawn next to the dot.
+ */
+function shortSkiLabel(ski) {
+  if (ski.brand && ski.name.startsWith(ski.brand + " ")) {
+    return ski.name.slice(ski.brand.length + 1);
+  }
+  return ski.name;
+}
+
+/**
  * The shared, static part of any coverage-space SVG: plot border,
  * bucket-boundary gridlines, and axis zone labels. Identical across the
  * primary coverage map and the suggestions map so both read the same way.
@@ -733,7 +747,8 @@ function renderSkiMarks(entries, geo) {
     const labelY = nearTop ? cy + 18 : cy - 9;
     const anchor = nearRight ? "end" : "start";
 
-    const labelW = ski.name.length * CHAR_W;
+    const shortLabel = shortSkiLabel(ski);
+    const labelW = shortLabel.length * CHAR_W;
     const box = {
       left: (anchor === "end" ? labelX - labelW : labelX) - LABEL_PAD,
       right: (anchor === "end" ? labelX : labelX + labelW) + LABEL_PAD,
@@ -749,7 +764,7 @@ function renderSkiMarks(entries, geo) {
       placedLabelBoxes.push(box);
       labelSvg = `<text class="ski-mark-label" x="${labelX.toFixed(1)}" y="${labelY.toFixed(
         1
-      )}" text-anchor="${anchor}">${escapeHtml(ski.name)}</text>`;
+      )}" text-anchor="${anchor}">${escapeHtml(shortLabel)}</text>`;
     }
 
     const markClass = variant === "suggestion" ? "ski-mark ski-mark--suggestion" : "ski-mark";
@@ -814,9 +829,8 @@ function renderCoverageMapSection(skis) {
         <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
       </div>
       <p class="map-caption">
-        Each dot is a ski's exact spec. The shaded box around it is the terrain/temperament
-        range it covers — darker overlap means more than one ski covers that zone. Hover or
-        focus a dot for its name and specs when labels are too close to show.
+        Each dot is a ski. The shaded box is the terrain/temperament range it covers —
+        darker overlap means more coverage. Tap a dot for details.
       </p>
       <div class="chart-wrap" id="map-chart-wrap">${renderCoverageMapSvg(skis)}</div>
       <div class="chart-table-wrap" id="map-table-wrap" hidden>${renderCoverageMapTable(skis)}</div>
@@ -890,9 +904,8 @@ function renderSuggestionsMapSection(quiverSkis, suggestedSkis, uncoveredCount, 
         <button type="button" class="table-toggle-btn" id="suggestions-table-toggle" aria-pressed="false">View as table</button>
       </div>
       <p class="map-caption">
-        Your quiver is shown in blue, same as the map above. Red is the smallest set of skis
-        from the full catalog (${suggestedSkis.length}) that together cover as much of your
-        gap as possible, chosen to overlap each other as little as possible.${uncoveredNote}
+        Blue is your quiver, same as above. Red (${suggestedSkis.length}) is the smallest
+        set of catalog skis that covers your gaps with the least overlap.${uncoveredNote}
       </p>
       <div class="chart-wrap" id="suggestions-chart-wrap">${renderSuggestionsMapSvg(quiverSkis, suggestedSkis)}</div>
       <div class="chart-table-wrap" id="suggestions-table-wrap" hidden>${renderSuggestionsMapTable(
