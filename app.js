@@ -527,14 +527,12 @@ function metalLabel(metal) {
 function renderDashboard(grid, skis) {
   const gaps = grid.filter((c) => c.skis.length === 0);
   const redundant = grid.filter((c) => c.skis.length >= REDUNDANCY_THRESHOLD);
-  const covered = grid.length - gaps.length;
   const quiverNames = new Set(skis.map((s) => s.name));
 
-  const sections = [
-    renderStatTiles({ covered, gapCount: gaps.length, redundantCount: redundant.length }),
-    renderCoverageMapSection(skis),
-    renderHeatmapSection(grid, quiverNames),
-  ];
+  // Coverage details: was a 3-tile KPI row (Coverage / Coverage gaps /
+  // Redundant zones) here, removed pending a replacement - see
+  // renderDashboard's caller for context.
+  const sections = [renderCoverageMapSection(skis), renderHeatmapSection(grid, quiverNames)];
 
   // Only rendered when there's actually a gap to suggest something for -
   // no empty "Suggested additions" card when the quiver's already full
@@ -555,37 +553,6 @@ function renderDashboard(grid, skis) {
   if (gaps.length > 0) {
     wireSuggestionsMap(skis, gapSuggestions);
   }
-}
-
-/* ---- Stat tiles (KPI row) ----------------------------------------- */
-
-function renderStatTiles({ covered, gapCount, redundantCount }) {
-  const gapStatus = gapCount === 0 ? "good" : "critical";
-  const gapBadge = gapCount === 0 ? { icon: "✓", text: "fully covered" } : { icon: "✕", text: "needs attention" };
-
-  const redStatus = redundantCount === 0 ? "good" : "warning";
-  const redBadge =
-    redundantCount === 0 ? { icon: "✓", text: "well spread out" } : { icon: "▲", text: "overlapping skis" };
-
-  return `
-    <div class="stat-row">
-      <div class="stat-tile" data-status="neutral">
-        <div class="stat-label">Coverage</div>
-        <div class="stat-value">${covered}<span class="stat-value-total"> / 9</span></div>
-        <div class="stat-badge">buckets covered</div>
-      </div>
-      <div class="stat-tile" data-status="${gapStatus}">
-        <div class="stat-label">Coverage gaps</div>
-        <div class="stat-value">${gapCount}</div>
-        <div class="stat-badge"><span class="stat-icon" aria-hidden="true">${gapBadge.icon}</span>${gapBadge.text}</div>
-      </div>
-      <div class="stat-tile" data-status="${redStatus}">
-        <div class="stat-label">Redundant zones</div>
-        <div class="stat-value">${redundantCount}</div>
-        <div class="stat-badge"><span class="stat-icon" aria-hidden="true">${redBadge.icon}</span>${redBadge.text}</div>
-      </div>
-    </div>
-  `;
 }
 
 /* ---- Coverage map (SVG scatter + region plot) ---------------------- */
