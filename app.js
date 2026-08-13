@@ -1262,41 +1262,11 @@ function renderDetailsSection(gaps, redundant, quiverNames) {
  *  Shared chart tooltip
  * ------------------------------------------------------------------ */
 
-// The tooltip is positioned once, in viewport pixels, when it opens
-// (see positionTooltip) rather than tracked continuously, so once its
-// anchor mark scrolls away it's no longer over the dot it describes.
-// Close it when that happens, using IntersectionObserver rather than a
-// plain "scroll" listener: watching for the anchor to actually leave
-// the viewport (crossing 0% visible) is immune to the false positive a
-// scroll-event listener has here. Tapping a mark also moves focus to
-// it (marks are tabindex="0" for keyboard/screen-reader access - see
-// renderSkiMarks), and mobile browsers respond by auto-scrolling the
-// newly-focused element fully into view - a genuine scroll, fired a
-// moment (sometimes an animated few hundred ms) after the tap, that a
-// scroll listener can't distinguish from the user scrolling away
-// (tried that first; a fixed grace-period timeout couldn't reliably
-// outlast the auto-scroll on real devices). That auto-scroll can never
-// trigger a false close here, because by definition it moves the
-// target toward fully visible, never across the "no longer
-// intersecting" threshold this actually watches for. It also natively
-// accounts for the chart's own horizontal-scroll container clipping
-// the anchor, so no separate handling is needed for that case either.
-let tooltipObserver = null;
-
 function showTooltip(targetEl, contentNode) {
   tooltipEl.innerHTML = "";
   tooltipEl.appendChild(contentNode);
   tooltipEl.hidden = false;
   positionTooltip(targetEl);
-
-  if (tooltipObserver) tooltipObserver.disconnect();
-  tooltipObserver = new IntersectionObserver(
-    (entries) => {
-      if (!entries[0].isIntersecting) hideTooltip();
-    },
-    { threshold: 0 }
-  );
-  tooltipObserver.observe(targetEl);
 }
 
 function positionTooltip(targetEl) {
@@ -1313,10 +1283,6 @@ function positionTooltip(targetEl) {
 
 function hideTooltip() {
   tooltipEl.hidden = true;
-  if (tooltipObserver) {
-    tooltipObserver.disconnect();
-    tooltipObserver = null;
-  }
 }
 
 /* ------------------------------------------------------------------ *
