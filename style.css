@@ -308,6 +308,25 @@ body {
 }
 
 /* ------------------------------------------------------------------ *
+ * Quiver summary (TL;DR paragraph, first thing in the results panel)
+ * ------------------------------------------------------------------ */
+
+.quiver-summary {
+  border-left: 3px solid var(--color-accent);
+}
+
+.quiver-summary-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.quiver-summary-text strong {
+  color: var(--color-accent);
+}
+
+/* ------------------------------------------------------------------ *
  * Dashboard cards (coverage map / heatmap)
  * ------------------------------------------------------------------ */
 

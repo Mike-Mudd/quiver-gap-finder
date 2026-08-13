@@ -529,19 +529,32 @@ function renderDashboard(grid, skis) {
   const redundant = grid.filter((c) => c.skis.length >= REDUNDANCY_THRESHOLD);
   const quiverNames = new Set(skis.map((s) => s.name));
 
+  // Computed up front (not just when the suggestions map renders) so the
+  // TL;DR summary's "add this ski" line always names the same pick the
+  // suggestions map and its table show below - one gap-filling computation,
+  // reused everywhere it's mentioned.
+  let gapSuggestions = [];
+  let suggestionResult = null;
+  if (gaps.length > 0) {
+    suggestionResult = selectTopSuggestionsForMap(gaps, quiverNames);
+    gapSuggestions = suggestionResult.suggestions;
+  }
+
   // Coverage details: was a 3-tile KPI row (Coverage / Coverage gaps /
-  // Redundant zones) here, removed pending a replacement - see
-  // renderDashboard's caller for context.
-  const sections = [renderCoverageMapSection(skis), renderHeatmapSection(grid, quiverNames)];
+  // Redundant zones) here, replaced with the TL;DR summary paragraph below.
+  const sections = [
+    renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions),
+    renderCoverageMapSection(skis),
+    renderHeatmapSection(grid, quiverNames),
+  ];
 
   // Only rendered when there's actually a gap to suggest something for -
   // no empty "Suggested additions" card when the quiver's already full
   // coverage.
-  let gapSuggestions = [];
   if (gaps.length > 0) {
-    const result = selectTopSuggestionsForMap(gaps, quiverNames);
-    gapSuggestions = result.suggestions;
-    sections.push(renderSuggestionsMapSection(skis, gapSuggestions, result.uncoveredCount, result.coverageBySkiName));
+    sections.push(
+      renderSuggestionsMapSection(skis, gapSuggestions, suggestionResult.uncoveredCount, suggestionResult.coverageBySkiName)
+    );
   }
 
   sections.push(renderDetailsSection(gaps, redundant, quiverNames));
@@ -1091,6 +1104,115 @@ function wireHeatmap(grid, quiverNames) {
     tile.addEventListener("pointerleave", hideTooltip);
     tile.addEventListener("blur", hideTooltip);
   });
+}
+
+/* ---- Quiver summary (plain-language TL;DR paragraph) --------------- */
+
+/**
+ * The 3x3 grid sliced into "bands": 3 rows (fixed temperament, varying
+ * width) and 3 columns (fixed width, varying temperament). A band that's
+ * fully covered or fully empty describes as one clean span ("nothing
+ * playful, at any width") instead of listing three buckets one by one -
+ * used by both the strength and weakness halves of the summary below.
+ */
+function gridBands(grid) {
+  const rows = STAB_BUCKETS.map((stabBucket) => ({
+    axis: "stab",
+    bucket: stabBucket,
+    cells: WAIST_BUCKETS.map((wb) => grid.find((c) => c.stabBucket.key === stabBucket.key && c.waistBucket.key === wb.key)),
+  }));
+  const columns = WAIST_BUCKETS.map((waistBucket) => ({
+    axis: "waist",
+    bucket: waistBucket,
+    cells: STAB_BUCKETS.map((sb) => grid.find((c) => c.waistBucket.key === waistBucket.key && c.stabBucket.key === sb.key)),
+  }));
+  return [...rows, ...columns];
+}
+
+function bandTotalSkis(band) {
+  return band.cells.reduce((sum, c) => sum + c.skis.length, 0);
+}
+
+/** Picks the fully-covered band (every cell has >=1 ski) with the most total skis. */
+function bestCoveredBand(grid) {
+  const candidates = gridBands(grid).filter((band) => band.cells.every((c) => c.skis.length > 0));
+  if (candidates.length === 0) return null;
+  return candidates.sort((a, b) => bandTotalSkis(b) - bandTotalSkis(a))[0];
+}
+
+/** Picks the fully-empty band (every cell has 0 skis), preferring the widest gap. */
+function worstEmptyBand(grid) {
+  const candidates = gridBands(grid).filter((band) => band.cells.every((c) => c.skis.length === 0));
+  if (candidates.length === 0) return null;
+  return candidates[0];
+}
+
+/** "everything from <first cell's description> to <last cell's description>" */
+function describeCoveredBand(band) {
+  const first = escapeHtml(bucketDescription(band.cells[0]));
+  const last = escapeHtml(bucketDescription(band.cells[band.cells.length - 1]));
+  return `everything from ${first} to ${last}`;
+}
+
+/** e.g. "nothing playful / light, at any width" or "nothing at all in wide / powder terrain" */
+function describeEmptyBand(band) {
+  const label = escapeHtml(band.bucket.label);
+  if (band.axis === "stab") {
+    return `nothing ${label}, at any width`;
+  }
+  return `nothing at all in ${label} terrain`;
+}
+
+function strengthSentence(grid) {
+  const band = bestCoveredBand(grid);
+  if (band) {
+    return `Your quiver covers ${describeCoveredBand(band)}.`;
+  }
+  // No fully-covered row or column - fall back to the single deepest cell.
+  const best = [...grid].sort((a, b) => b.skis.length - a.skis.length)[0];
+  if (!best || best.skis.length === 0) return null;
+  return `Your quiver is built for ${escapeHtml(bucketDescription(best))}.`;
+}
+
+function weaknessSentence(grid, gaps) {
+  if (gaps.length === 0) return null;
+  const band = worstEmptyBand(grid);
+  if (band) {
+    return `There's ${describeEmptyBand(band)}.`;
+  }
+  // Gaps are scattered rather than a clean band - name up to 2.
+  const named = gaps.slice(0, 2).map((cell) => escapeHtml(bucketDescription(cell)));
+  const phrase = named.length === 2 ? `${named[0]} or ${named[1]}` : named[0];
+  const more = gaps.length > named.length ? `, among a few other gaps` : "";
+  return `You're not covered for ${phrase}${more}.`;
+}
+
+function actionSentence(gapSuggestions) {
+  if (!gapSuggestions || gapSuggestions.length === 0) return null;
+  return `If you're adding one ski, the <strong>${escapeHtml(gapSuggestions[0].name)}</strong> would close the most ground.`;
+}
+
+function renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions) {
+  const sentences = [strengthSentence(grid)];
+
+  if (gaps.length === 0) {
+    sentences.push(
+      redundant.length > 0
+        ? `There are no real gaps, though a few skis overlap in coverage — worth a look if you're trying to trim down, not fill in.`
+        : `There are no real gaps — every terrain and temperament combination has at least one ski built for it.`
+    );
+  } else {
+    sentences.push(weaknessSentence(grid, gaps));
+    sentences.push(actionSentence(gapSuggestions));
+  }
+
+  const text = sentences.filter(Boolean).join(" ");
+
+  return `
+    <section class="panel dashboard-card quiver-summary">
+      <p class="quiver-summary-text">${text}</p>
+    </section>
+  `;
 }
 
 /* ---- Collapsible plain-language detail ------------------------------ */
