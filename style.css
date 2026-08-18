@@ -379,6 +379,26 @@ body {
   width: 100%;
 }
 
+/* "What if I added this" search, under the coverage map's chart/table -
+   reuses .search-wrap/.search-results/.quiver-chip/.quiver-list as-is
+   (same look as the main quiver picker) rather than defining new styles
+   for what's functionally the same widget in a second spot. */
+.candidate-picker {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.candidate-picker h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.candidate-picker .quiver-list {
+  margin-top: 0.75rem;
+}
+
 .coverage-map {
   width: 100%;
   height: auto;

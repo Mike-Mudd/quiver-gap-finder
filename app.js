@@ -82,6 +82,14 @@ const BUCKET_DESCRIPTIONS = {
 let allSkis = [];
 let quiver = []; // array of ski objects, max MAX_QUIVER_SIZE
 
+// User-picked "what if I added this" comparison skis for the coverage
+// map - independent of the quiver and of the algorithm's own
+// gap-suggestions (see renderDashboard/renderCandidatePicker). Reset
+// whenever "Find gaps" runs fresh (see onFindGaps), but NOT when a
+// candidate is added/removed - that re-render path is renderResults().
+let candidateSkis = [];
+const MAX_CANDIDATES = 3;
+
 /* ------------------------------------------------------------------ *
  *  DOM references
  * ------------------------------------------------------------------ */
@@ -122,6 +130,8 @@ async function init() {
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".search-wrap")) {
       hideSearchResults();
+      const candidateResultsEl = document.getElementById("candidate-search-results");
+      if (candidateResultsEl) candidateResultsEl.hidden = true;
     }
   });
 
@@ -353,6 +363,18 @@ function buildGrid(skis) {
 
 function onFindGaps() {
   if (quiver.length === 0) return;
+  // A fresh run: any previous "what if I added this" comparison no
+  // longer applies once the quiver/gaps it was being compared against
+  // have changed underneath it.
+  candidateSkis = [];
+  renderResults();
+}
+
+/** Re-renders the results panel from the current quiver + candidateSkis
+ * state, without resetting either - used both by the "Find gaps" button
+ * (via onFindGaps, which resets candidateSkis first) and by the
+ * candidate-picker's add/remove actions (which shouldn't reset it). */
+function renderResults() {
   const grid = buildGrid(quiver);
   renderDashboard(grid, quiver);
 }
@@ -523,10 +545,13 @@ function renderDashboard(grid, skis) {
   const redundant = grid.filter((c) => c.skis.length >= REDUNDANCY_THRESHOLD);
   const quiverNames = new Set(skis.map((s) => s.name));
 
-  // Computed up front (not just when the suggestions map renders) so the
-  // TL;DR summary's "add this ski" line always names the same pick the
-  // suggestions map and its table show below - one gap-filling computation,
-  // reused everywhere it's mentioned.
+  // Computed up front (not just when the map needs it) so the TL;DR
+  // summary's "add this ski" line always names the same pick the map
+  // shows below - one gap-filling computation, reused everywhere it's
+  // mentioned. Always the algorithm's pick, regardless of whether the
+  // user is currently comparing something else on the map (see below) -
+  // the summary answers "what does the data recommend," the map's
+  // candidate picker answers "let me check something specific."
   let gapSuggestions = [];
   let suggestionResult = null;
   if (gaps.length > 0) {
@@ -534,31 +559,29 @@ function renderDashboard(grid, skis) {
     gapSuggestions = suggestionResult.suggestions;
   }
 
+  // The coverage map is the app's most-used visual (tester feedback), so
+  // it now doubles as the answer to "what should I add": quiver (blue)
+  // plus either the algorithm's own top pick(s) or a user-picked "what
+  // if I added this" comparison (red), on the same chart - instead of a
+  // plain map first and a separate, near-duplicate "suggestions" chart
+  // further down. A user comparison always overrides the auto-suggestion
+  // display when present; both read from the same rendering path.
+  const usingCandidates = candidateSkis.length > 0;
+  const comparisonSkis = usingCandidates ? candidateSkis : gapSuggestions;
+
   // Coverage details: was a 3-tile KPI row (Coverage / Coverage gaps /
   // Redundant zones) here, replaced with the TL;DR summary paragraph below.
   const sections = [
     renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions),
-    renderCoverageMapSection(skis),
+    renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggestionResult),
     renderConditionCardsSection(grid, skis),
   ];
-
-  // Only rendered when there's actually a gap to suggest something for -
-  // no empty "Suggested additions" card when the quiver's already full
-  // coverage.
-  if (gaps.length > 0) {
-    sections.push(
-      renderSuggestionsMapSection(skis, gapSuggestions, suggestionResult.uncoveredCount, suggestionResult.coverageBySkiName)
-    );
-  }
 
   sections.push(renderDetailsSection(gaps, redundant, quiverNames));
 
   resultsEl.innerHTML = sections.join("\n");
 
-  wireCoverageMap(skis);
-  if (gaps.length > 0) {
-    wireSuggestionsMap(skis, gapSuggestions);
-  }
+  wireCoverageMap(skis, comparisonSkis);
 }
 
 /* ---- Coverage map (SVG scatter + region plot) ---------------------- */
@@ -768,7 +791,11 @@ function renderCoverageMapSvg(skis) {
   return `<svg viewBox="0 0 ${geo.W} ${geo.H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${chrome}${marks}</svg>`;
 }
 
-function renderCoverageMapTable(skis) {
+/** comparisonNames marks rows that belong to the map's red overlay
+ * (auto-suggestion or user-picked candidate) with a small badge, since a
+ * merged quiver+comparison table would otherwise read as one undifferentiated
+ * list - see renderCoverageMapSection. */
+function renderCoverageMapTable(skis, comparisonNames = new Set()) {
   const rows = skis
     .map((ski) => {
       const region = coverageRegion(ski);
@@ -776,7 +803,10 @@ function renderCoverageMapTable(skis) {
         WAIST_BUCKETS.find((b) => ski.waist_width_mm >= b.min && ski.waist_width_mm <= b.max) ||
         WAIST_BUCKETS[WAIST_BUCKETS.length - 1];
       const sBucket = temperamentBucket(region.stab);
-      return `<tr><td>${escapeHtml(ski.name)}</td><td>${escapeHtml(
+      const nameCell = comparisonNames.has(ski.name)
+        ? `${escapeHtml(ski.name)} <span class="count-badge">comparing</span>`
+        : escapeHtml(ski.name);
+      return `<tr><td>${nameCell}</td><td>${escapeHtml(
         ski.model_year || "—"
       )}</td><td>${ski.waist_width_mm}</td><td>${escapeHtml(
         rockerProfileLabel(ski.rocker_profile)
@@ -794,98 +824,112 @@ function renderCoverageMapTable(skis) {
   `;
 }
 
-function renderCoverageMapSection(skis) {
+function renderSuggestionsMapSvg(quiverSkis, comparisonSkis) {
+  const geo = getMapGeometry();
+  const chrome = renderMapChrome(geo);
+  const entries = [
+    // Quiver: identical blue styling regardless of what's being compared.
+    ...quiverSkis.map((ski, index) => ({ ski, index, variant: "quiver" })),
+    // Comparison set: red, boxed too - whether it's the algorithm's
+    // deliberately-chosen pick(s) (see selectTopSuggestionsForMap) or a
+    // ski the user picked themselves, its coverage footprint is worth
+    // showing, not just its position.
+    ...comparisonSkis.map((ski, i) => ({ ski, index: quiverSkis.length + i, variant: "suggestion" })),
+  ];
+  const marks = renderSkiMarks(entries, geo);
+  return `<svg viewBox="0 0 ${geo.W} ${geo.H}" class="coverage-map" role="img" aria-label="Your quiver's coverage, with a comparison ski shown for reference">${chrome}${marks}</svg>`;
+}
+
+/**
+ * The single coverage-map section: always the plain quiver-only map,
+ * except when there's something to compare it against, in which case
+ * the same chart doubles as the answer to "what should I add" - quiver
+ * (blue) plus either the algorithm's auto-suggestion(s) or a user-picked
+ * candidate (red). comparisonSkis is empty for the plain case;
+ * usingCandidates distinguishes "user picked this" from "the algorithm
+ * picked this" for caption wording; suggestionResult (only present for
+ * the auto-suggestion case) supplies the uncovered-gap count.
+ */
+function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggestionResult) {
+  const hasComparison = comparisonSkis.length > 0;
+
+  let caption;
+  if (usingCandidates) {
+    caption = `Blue is your quiver. Red is what you're comparing — tap either for details.`;
+  } else if (hasComparison) {
+    const uncoveredCount = suggestionResult ? suggestionResult.uncoveredCount : 0;
+    const uncoveredNote =
+      uncoveredCount > 0
+        ? ` ${uncoveredCount} gap${
+            uncoveredCount === 1 ? "" : "s"
+          } couldn't be matched to anything in the current catalog — the dataset likely needs to grow to cover ${
+            uncoveredCount === 1 ? "it" : "them"
+          }.`
+        : "";
+    caption = `Blue is your quiver. Red (${comparisonSkis.length}) is the smallest set of
+        catalog skis that covers your gaps with the least overlap.${uncoveredNote}`;
+  } else {
+    caption = `Each dot is a ski. The shaded box is the terrain/temperament range it covers —
+        darker overlap means more coverage. Tap a dot for details.`;
+  }
+
+  const svg = hasComparison ? renderSuggestionsMapSvg(skis, comparisonSkis) : renderCoverageMapSvg(skis);
+  const comparisonNames = new Set(comparisonSkis.map((s) => s.name));
+  const table = renderCoverageMapTable([...skis, ...comparisonSkis], comparisonNames);
+
   return `
     <section class="panel dashboard-card">
       <div class="card-header">
         <h3>Coverage map</h3>
         <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
       </div>
-      <p class="map-caption">
-        Each dot is a ski. The shaded box is the terrain/temperament range it covers —
-        darker overlap means more coverage. Tap a dot for details.
-      </p>
-      <div class="chart-wrap" id="map-chart-wrap">${renderCoverageMapSvg(skis)}</div>
-      <div class="chart-table-wrap" id="map-table-wrap" hidden>${renderCoverageMapTable(skis)}</div>
+      <p class="map-caption">${caption}</p>
+      <div class="chart-wrap" id="map-chart-wrap">${svg}</div>
+      <div class="chart-table-wrap" id="map-table-wrap" hidden>${table}</div>
+      ${renderCandidatePicker()}
     </section>
   `;
 }
 
-/* ---- Suggestions map (same space, quiver muted + gap-fillers highlighted) */
-
-function renderSuggestionsMapSvg(quiverSkis, suggestedSkis) {
-  const geo = getMapGeometry();
-  const chrome = renderMapChrome(geo);
-  const entries = [
-    // Quiver: identical blue styling to the primary map - same color on
-    // both maps, full-strength, not de-emphasized.
-    ...quiverSkis.map((ski, index) => ({ ski, index, variant: "quiver" })),
-    // Suggestions: red, boxed too - each suggestion is a deliberately
-    // chosen, high-value pick (see selectTopSuggestionsForMap), so its
-    // coverage footprint is worth showing, not just its position.
-    ...suggestedSkis.map((ski, i) => ({ ski, index: quiverSkis.length + i, variant: "suggestion" })),
-  ];
-  const marks = renderSkiMarks(entries, geo);
-  return `<svg viewBox="0 0 ${geo.W} ${geo.H}" class="coverage-map" role="img" aria-label="Suggested skis that would fill your quiver's coverage gaps, shown against your current quiver for reference">${chrome}${marks}</svg>`;
-}
-
-function renderSuggestionsMapTable(suggestedSkis, coverageBySkiName) {
-  const rows = suggestedSkis
-    .map((ski) => {
-      const region = coverageRegion(ski);
-      // What it was actually picked for (may span >1 gap), not just its
-      // own home bucket - see selectTopSuggestionsForMap.
-      const filledCells = coverageBySkiName.get(ski.name) || [];
-      const filledText = filledCells.map((cell) => bucketLabel(cell)).join("; ");
-      return `<tr><td>${escapeHtml(ski.name)}</td><td>${ski.waist_width_mm}</td><td>${renderTemperamentGauge(
-        region.stab
-      )}</td><td>${escapeHtml(filledText)}</td></tr>`;
-    })
+/** Search box for "what if I added this" - independent of the auto
+ * -suggestion above, and available regardless of whether there's a gap
+ * (someone might want to check a specific ski even at full coverage). */
+function renderCandidatePicker() {
+  const atMax = candidateSkis.length >= MAX_CANDIDATES;
+  const chips = candidateSkis
+    .map(
+      (ski) => `
+      <li class="quiver-chip">
+        <span>${escapeHtml(ski.name)}</span>
+        <button type="button" data-remove-candidate="${escapeHtml(
+          ski.name
+        )}" aria-label="Remove ${escapeHtml(ski.name)} from comparison">×</button>
+      </li>
+    `
+    )
     .join("");
 
   return `
-    <table class="chart-table">
-      <thead><tr><th>Ski</th><th>Waist (mm)</th><th>Temperament</th><th>Fills gap(s)</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
-}
-
-function renderSuggestionsMapSection(quiverSkis, suggestedSkis, uncoveredCount, coverageBySkiName) {
-  if (suggestedSkis.length === 0) {
-    return `
-      <section class="panel dashboard-card">
-        <h3>Suggested additions</h3>
-        <p class="map-caption">Nothing in the current catalog fills any of your gaps yet.</p>
-      </section>
-    `;
-  }
-
-  const uncoveredNote =
-    uncoveredCount > 0
-      ? ` ${uncoveredCount} gap${
-          uncoveredCount === 1 ? "" : "s"
-        } couldn't be matched to anything in the current catalog — the dataset likely needs to grow to cover ${
-          uncoveredCount === 1 ? "it" : "them"
-        }.`
-      : "";
-
-  return `
-    <section class="panel dashboard-card">
-      <div class="card-header">
-        <h3>Suggested additions</h3>
-        <button type="button" class="table-toggle-btn" id="suggestions-table-toggle" aria-pressed="false">View as table</button>
-      </div>
+    <div class="candidate-picker">
+      <h4>Comparing something specific?</h4>
       <p class="map-caption">
-        Blue is your quiver, same as above. Red (${suggestedSkis.length}) is the smallest
-        set of catalog skis that covers your gaps with the least overlap.${uncoveredNote}
+        Search any ski to see exactly where it'd land on your map${
+          candidateSkis.length > 0 ? " — replaces the suggested pick above" : ""
+        }.
       </p>
-      <div class="chart-wrap" id="suggestions-chart-wrap">${renderSuggestionsMapSvg(quiverSkis, suggestedSkis)}</div>
-      <div class="chart-table-wrap" id="suggestions-table-wrap" hidden>${renderSuggestionsMapTable(
-        suggestedSkis,
-        coverageBySkiName
-      )}</div>
-    </section>
+      <div class="search-wrap">
+        <label for="candidate-search" class="visually-hidden">Search a ski to compare</label>
+        <input
+          type="text"
+          id="candidate-search"
+          placeholder="${atMax ? `Remove one to compare another (max ${MAX_CANDIDATES})` : "Search skis by name…"}"
+          autocomplete="off"
+          ${atMax ? "disabled" : ""}
+        />
+        <ul id="candidate-search-results" class="search-results" role="listbox" hidden></ul>
+      </div>
+      ${chips ? `<ul class="quiver-list">${chips}</ul>` : ""}
+    </div>
   `;
 }
 
@@ -959,38 +1003,11 @@ function rockerProfileLabel(profile) {
   return labels[profile] || "Unknown profile";
 }
 
-function wireCoverageMap(skis) {
+function wireCoverageMap(skis, comparisonSkis = []) {
+  const combined = [...skis, ...comparisonSkis];
   const chartWrap = document.getElementById("map-chart-wrap");
   const tableWrap = document.getElementById("map-table-wrap");
   const toggleBtn = document.getElementById("map-table-toggle");
-
-  toggleBtn.addEventListener("click", () => {
-    const showTable = tableWrap.hidden;
-    tableWrap.hidden = !showTable;
-    chartWrap.hidden = showTable;
-    toggleBtn.setAttribute("aria-pressed", String(showTable));
-    toggleBtn.textContent = showTable ? "View as chart" : "View as table";
-  });
-
-  chartWrap.querySelectorAll(".ski-mark").forEach((mark) => {
-    const ski = skis[Number(mark.dataset.skiIndex)];
-    const show = () => showTooltip(mark, skiTooltipHtml(ski));
-    mark.addEventListener("pointerenter", show);
-    mark.addEventListener("focus", show);
-    mark.addEventListener("pointerleave", hideTooltip);
-    mark.addEventListener("blur", hideTooltip);
-  });
-}
-
-function wireSuggestionsMap(quiverSkis, suggestedSkis) {
-  const combined = [...quiverSkis, ...suggestedSkis];
-  const chartWrap = document.getElementById("suggestions-chart-wrap");
-  const tableWrap = document.getElementById("suggestions-table-wrap");
-  const toggleBtn = document.getElementById("suggestions-table-toggle");
-
-  // Section renders without the chart/toggle when there are no
-  // suggestions to show (see renderSuggestionsMapSection).
-  if (!chartWrap || !tableWrap || !toggleBtn) return;
 
   toggleBtn.addEventListener("click", () => {
     const showTable = tableWrap.hidden;
@@ -1008,6 +1025,61 @@ function wireSuggestionsMap(quiverSkis, suggestedSkis) {
     mark.addEventListener("pointerleave", hideTooltip);
     mark.addEventListener("blur", hideTooltip);
   });
+
+  const candidateSearchInput = document.getElementById("candidate-search");
+  if (candidateSearchInput) {
+    candidateSearchInput.addEventListener("input", onCandidateSearchInput);
+    candidateSearchInput.addEventListener("focus", onCandidateSearchInput);
+  }
+
+  document.querySelectorAll("[data-remove-candidate]").forEach((btn) => {
+    btn.addEventListener("click", () => removeCandidate(btn.dataset.removeCandidate));
+  });
+}
+
+function onCandidateSearchInput() {
+  const searchEl = document.getElementById("candidate-search");
+  const candidateResultsEl = document.getElementById("candidate-search-results");
+  if (!searchEl || !candidateResultsEl) return;
+
+  const query = searchEl.value.trim().toLowerCase();
+  const excludedNames = new Set([...quiver.map((s) => s.name), ...candidateSkis.map((s) => s.name)]);
+  const matches = allSkis.filter((s) => s.name.toLowerCase().includes(query) && !excludedNames.has(s.name)).slice(0, 8);
+
+  candidateResultsEl.innerHTML = "";
+
+  if (matches.length === 0) {
+    candidateResultsEl.innerHTML = `<li class="no-match">No skis match "${escapeHtml(searchEl.value)}"</li>`;
+    candidateResultsEl.hidden = false;
+    return;
+  }
+
+  for (const ski of matches) {
+    const li = document.createElement("li");
+    li.setAttribute("role", "option");
+    li.innerHTML = `
+      <span>${escapeHtml(ski.name)}</span>
+      <span class="ski-spec">${ski.waist_width_mm}mm</span>
+    `;
+    li.addEventListener("click", () => {
+      addCandidate(ski);
+    });
+    candidateResultsEl.appendChild(li);
+  }
+
+  candidateResultsEl.hidden = false;
+}
+
+function addCandidate(ski) {
+  if (candidateSkis.length >= MAX_CANDIDATES) return;
+  if (candidateSkis.some((s) => s.name === ski.name)) return;
+  candidateSkis.push(ski);
+  renderResults();
+}
+
+function removeCandidate(name) {
+  candidateSkis = candidateSkis.filter((s) => s.name !== name);
+  renderResults();
 }
 
 /* ---- Condition cards (prototype replacement for the coverage grid) - */
