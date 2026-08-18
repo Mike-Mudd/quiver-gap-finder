@@ -116,7 +116,7 @@
       "model_year": "2022-2023",
       "reference_length_cm": 184,
       "waist_width_mm": 99,
-      "weight_g": 2311,
+      "weight_g": 2103,
       "turn_radius_m": 19.6,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
@@ -124,8 +124,8 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-k2-mindbender-99ti",
-      "verified_date": "2026-08-12",
-      "notes": "Titanal Y-Beam runs edge-to-edge underfoot. Measured tip/camber/tail splay 64mm / ~4mm / 20mm. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-16",
+      "notes": "Titanal Y-Beam runs edge-to-edge underfoot. Measured tip/camber/tail splay 64mm / ~4mm / 20mm. rocker_percent estimated from profile category. Corrected 2026-08-16: weight_g was 2311g, which independent re-checking traces to a DIFFERENT, older (2019/20-2021/22) generation's weight appearing in a comparison table inside an unrelated Blister review (the Volkl M6 Mantra review) - not this entry's actual cited 2022-2023 review. That review's own measured weight at 184cm is 2085 & 2120g (avg 2103g, independently re-confirmed via a fresh search). No length_options added yet - weight isn't reliably published at the other four lengths, only 184cm."
     },
     {
       "name": "K2 Mindbender 108Ti",
@@ -165,9 +165,9 @@
       "name": "Blizzard Bonafide 97",
       "brand": "Blizzard",
       "model_year": "2020-2021",
-      "reference_length_cm": 180,
+      "reference_length_cm": 177,
       "waist_width_mm": 97,
-      "weight_g": 2150,
+      "weight_g": 2282,
       "turn_radius_m": 17,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 35,
@@ -175,8 +175,8 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-blizzard-bonafide-97",
-      "verified_date": "2026-08-12",
-      "notes": "2 full sheets titanal (TrueBlend construction). Mostly full camber with all-mountain tip rocker + slight tail rocker - nudged below category default. rocker_percent estimated."
+      "verified_date": "2026-08-16",
+      "notes": "2 full sheets titanal (TrueBlend construction). Mostly full camber with all-mountain tip rocker + slight tail rocker - nudged below category default. rocker_percent estimated. Corrected 2026-08-16: reference_length_cm was recorded as 180cm, a length this ski was never actually sold in (real run is 165/171/177/183/189cm) - moved to 177cm, the length the cited Blister review actually measured. weight_g corrected from 2150g to 2282g to match that same review's stated measured weight at 177cm (independently re-confirmed). No length_options added yet - weight isn't reliably published at the other four lengths."
     },
     {
       "name": "Blizzard Brahma 88",
@@ -209,8 +209,30 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-blizzard-rustler-9",
-      "verified_date": "2026-08-12",
-      "notes": "2 pieces titanal full length + separate titanal plate underfoot. Measured camber underfoot 3mm. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-16",
+      "notes": "2 pieces titanal full length + separate titanal plate underfoot. Measured camber underfoot 3mm. rocker_percent estimated from profile category. length_options (2026-08-16): weight from skis.com, turn radius cross-checked evo.com + blizzard-tecnica.com (identical). 162cm omitted - no weight figure found for it. Reference row (180cm) confirmed against a 2024-model-year SkiEssentials review matching this entry's model_year, not the ~60-80g-lighter current retail generation.",
+      "length_options": [
+        {
+          "length_cm": 168,
+          "weight_g": 1690,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 174,
+          "weight_g": 1780,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1940,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 1980,
+          "turn_radius_m": 18
+        }
+      ]
     },
     {
       "name": "Blizzard Rustler 11",
@@ -261,8 +283,25 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-volkl-m6-mantra",
-      "verified_date": "2026-08-12",
-      "notes": "Tailored Titanal Frame: one full-length layer below the core plus length-tuned segmented pieces above - has a genuine full sheet, unlike Kendo/Secret's frame-only design. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-16",
+      "notes": "Tailored Titanal Frame: one full-length layer below the core plus length-tuned segmented pieces above - has a genuine full sheet, unlike Kendo/Secret's frame-only design. rocker_percent estimated from profile category. length_options (2026-08-16): evo.com + skis.com, cross-checked against the cited Blister review (matches model_year exactly; measured 2043 & 2089g at 177cm, avg ~2066g, close to recorded 2060g). 163cm and 191cm omitted - no weight figure found for either.",
+      "length_options": [
+        {
+          "length_cm": 170,
+          "weight_g": 1932,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 177,
+          "weight_g": 2060,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 184,
+          "weight_g": 2150,
+          "turn_radius_m": 19
+        }
+      ]
     },
     {
       "name": "Volkl Katana 108",
@@ -295,8 +334,30 @@
       "tail_shape": "directional",
       "source": "Blister Review / evo",
       "source_url": "https://www.evo.com/reviews/ski/volkl-kendo-88",
-      "verified_date": "2026-08-12",
-      "notes": "0.7mm 'Titanal Frame' explicitly described as perimeter/sidewall reinforcement 'rather than the heavy, full width design of past years' - partial, not full. Weight varies 1900-2200g across sources/years; used the most recent figure. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-16",
+      "notes": "0.7mm 'Titanal Frame' explicitly described as perimeter/sidewall reinforcement 'rather than the heavy, full width design of past years' - partial, not full. Weight varies 1900-2200g across sources/years; used the most recent figure. rocker_percent estimated from profile category. length_options (2026-08-16): weight via skibartlett.com (states \"1900g @ 177cm\" - exact match to this entry's existing reference weight), radius cross-checked evo.com + skis.com.",
+      "length_options": [
+        {
+          "length_cm": 163,
+          "weight_g": 1720,
+          "turn_radius_m": 13
+        },
+        {
+          "length_cm": 170,
+          "weight_g": 1810,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 177,
+          "weight_g": 1900,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 184,
+          "weight_g": 2000,
+          "turn_radius_m": 17
+        }
+      ]
     },
     {
       "name": "Volkl Secret 92",
@@ -408,15 +469,42 @@
       "reference_length_cm": 181,
       "waist_width_mm": 106,
       "weight_g": 1980,
-      "turn_radius_m": 18,
+      "turn_radius_m": 19,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "none",
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-salomon-qst-106",
-      "verified_date": "2026-08-12",
-      "notes": "Carbon/flax construction; source describes it as 'mainly titanal-free' aside from an incidental binding-area plate, treated as none consistent with the QST line's no-metal positioning. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-16",
+      "notes": "Carbon/flax construction; source describes it as 'mainly titanal-free' aside from an incidental binding-area plate, treated as none consistent with the QST line's no-metal positioning. rocker_percent estimated from profile category. Corrected 2026-08-16: turn_radius_m was 18m; every source checked (the cited 2022-2023 Blister review itself, plus SkiEssentials and skis.com) states 19-19.5m at 181cm, independently re-confirmed - used 19m, the cited review's own stated figure. length_options: weight/radius from skis.com, cross-checked evo.com + SkiEssentials 2025.",
+      "length_options": [
+        {
+          "length_cm": 157,
+          "weight_g": 1500,
+          "turn_radius_m": 16.5
+        },
+        {
+          "length_cm": 165,
+          "weight_g": 1650,
+          "turn_radius_m": 17.5
+        },
+        {
+          "length_cm": 173,
+          "weight_g": 1800,
+          "turn_radius_m": 18.5
+        },
+        {
+          "length_cm": 181,
+          "weight_g": 1980,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 189,
+          "weight_g": 2190,
+          "turn_radius_m": 20.5
+        }
+      ]
     },
     {
       "name": "Salomon QST Blank",
@@ -442,15 +530,37 @@
       "reference_length_cm": 182,
       "waist_width_mm": 96,
       "weight_g": 1920,
-      "turn_radius_m": 16,
+      "turn_radius_m": 20,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 29,
       "metal_content": "full",
       "tail_shape": "directional",
       "source": "Blister Review / SkiEssentials",
       "source_url": "https://www.skiessentials.com/Chairlift-Chat/2024-salomon-stance-96-ski-review",
-      "verified_date": "2026-08-12",
-      "notes": "Full sheet titanal under the core plus a second titanal layer, and carbon/flax CFX inserts at tip/tail. Published split: 17% tip rocker / 12% tail rocker / rest camber - rocker_percent = 17+12."
+      "verified_date": "2026-08-16",
+      "notes": "Full sheet titanal under the core plus a second titanal layer, and carbon/flax CFX inserts at tip/tail. Published split: 17% tip rocker / 12% tail rocker / rest camber - rocker_percent = 17+12. Corrected 2026-08-16: turn_radius_m was 16m; evo.com, skis.com, and snow-online.com all agree on 20m at 182cm (independently re-confirmed), consistent across both the old and refreshed constructions. weight_g (1920g) was already correct - evo.com confirms 1928g at 182cm, essentially identical. length_options built from the same sources.",
+      "length_options": [
+        {
+          "length_cm": 168,
+          "weight_g": 1760,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 176,
+          "weight_g": 1820,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 182,
+          "weight_g": 1920,
+          "turn_radius_m": 20
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 1985,
+          "turn_radius_m": 20
+        }
+      ]
     },
     {
       "name": "Rossignol Sender 94 Ti",
@@ -813,19 +923,41 @@
       "name": "Nordica Santa Ana 88",
       "brand": "Nordica",
       "model_year": "2023-2024",
-      "reference_length_cm": 164,
+      "reference_length_cm": 165,
       "womens_specific": true,
       "waist_width_mm": 88,
-      "weight_g": 1610,
-      "turn_radius_m": 13,
+      "weight_g": 1670,
+      "turn_radius_m": 15,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
       "tail_shape": "directional",
       "source": "Blister Review / evo",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-nordica-santa-ana-88",
-      "verified_date": "2026-08-12",
-      "notes": "Women's line (Enforcer/Unleashed's counterpart); 164cm is only 1cm off the 165cm women's-line target (see data/SOURCING.md), well within tolerance - no fix needed. Same 'Terrain-Specific Metal' partial titanal concept as the Unleashed line - narrower Santa Ana models carry proportionally more metal coverage. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-16",
+      "notes": "Women's line (Enforcer/Unleashed's counterpart); 164cm is only 1cm off the 165cm women's-line target (see data/SOURCING.md), well within tolerance - no fix needed. Same 'Terrain-Specific Metal' partial titanal concept as the Unleashed line - narrower Santa Ana models carry proportionally more metal coverage. rocker_percent estimated from profile category. Corrected 2026-08-16: reference_length_cm was 164cm, a length this ski isn't actually sold in (real run is 151/158/165/172cm only) - moved to 165cm. turn_radius_m was 13m, which is actually the 151cm length's radius, not 165cm's (15m, independently re-confirmed) - looks like a row mix-up in the original entry. weight_g adjusted from 1610g to 1670g to match the real 165cm figure.",
+      "length_options": [
+        {
+          "length_cm": 151,
+          "weight_g": 1540,
+          "turn_radius_m": 13
+        },
+        {
+          "length_cm": 158,
+          "weight_g": 1650,
+          "turn_radius_m": 14
+        },
+        {
+          "length_cm": 165,
+          "weight_g": 1670,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 172,
+          "weight_g": 1840,
+          "turn_radius_m": 15.5
+        }
+      ]
     },
     {
       "name": "Salomon QST Lumen 99",
