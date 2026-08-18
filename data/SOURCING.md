@@ -6,6 +6,16 @@ consistent as it grows past 30 — a hand-wavy estimate for ski #40 makes
 every comparison involving it wrong in a way nothing else in the app can
 catch.
 
+**As of 2026-08-15, source priority changed for *new* data going
+forward** (new skis, and the new `length_options` field on existing
+skis) — manufacturer spec pages are now the primary source, not
+Blister-first. See "Source priority" below for the full reasoning.
+Nothing about *already-recorded* entries changes: every existing field
+keeps whatever source is already on file against it (often
+Blister-measured), and this document's field-by-field rules below still
+describe how those entries were built. This is a going-forward change
+to how new numbers get added, not a retroactive re-sourcing pass.
+
 ## Field-by-field rules
 
 | Field | Rule |
@@ -16,8 +26,9 @@ catch.
 | `reference_length_cm` | The specific length the below numbers were measured at. Weight and turn radius both scale with length — a number without a length attached isn't comparable to anything. **Target 180cm** for unisex/men's-marketed lines, **165cm for women's-specific lines** (see `womens_specific` below) — a flat 180cm target for women's models means extrapolating past sizes some of those skis aren't even sold in, which is worse than the inconsistency this rule exists to fix. ~±6cm from the target is acceptable without extra work. Beyond that, look for a second real measured length from the *same* model/variant and linearly interpolate toward the target — never extrapolate beyond the two real points, and never interpolate across two different metal/construction variants (e.g. a standard build and a "Ti" build) even if they share a name. If no second point exists, keep the closest real one and say so plainly in `notes` rather than forcing a number that isn't real. |
 | `womens_specific` | Boolean, **only present when `true`** (omit entirely for unisex/men's-marketed lines — absence means false). Marks which entries use the 165cm reference-length target instead of 180cm, so the choice is self-documenting rather than tribal knowledge. |
 | `waist_width_mm` | The manufacturer's stated/nominal waist width — i.e. the number in the model name (a "Kore 93" is `93`), not a third-party measured figure. Reviewers like Blister measure the actual underfoot width themselves, and it's often 1-2mm off the catalog number; that's the *right* number for weight (manufacturer claims run optimistic) but the *wrong* one here, since the model name is how a user identifies and searches for the ski — showing a "93" as `95` reads as a bug, not precision. If a source only gives a measured figure, use it, but round to match the name when they're within ~2mm of each other. |
-| `weight_g` | **Per ski, not per pair.** Prefer a source that physically weighs the ski (Blister Review does) over manufacturer-claimed weight, which runs optimistic/rounded. |
+| `weight_g` | **Per ski, not per pair.** At the reference length. For *existing* entries this preferred a source that physically weighs the ski (Blister Review does) over manufacturer-claimed weight, which runs optimistic/rounded — that preference stands for this one reference-length figure specifically (see `length_options` below for why the rest of the size run doesn't get the same treatment). |
 | `turn_radius_m` | At the reference length — this is the field most likely to be wrong if pulled from a generic spec blurb instead of a length-specific table; it can vary 3m+ across a model's length range. |
+| `length_options` | Optional. Array of `{length_cm, weight_g, turn_radius_m}`, one entry per length the model currently ships in, sourced manufacturer-first (see "Source priority"). Lets the app show how a ski's weight/turn radius — and therefore its stability score and map position — actually shift across its size run, instead of treating every length as identical to the reference length. Include one row that exactly matches this entry's own `reference_length_cm`/`weight_g`/`turn_radius_m` — keep that row's values as whatever's already recorded at the top level (don't overwrite it with a manufacturer number just because the rest of the array is manufacturer-sourced; see "Recording length options"). Omit the whole field for a ski that hasn't been backfilled yet — the app falls back to the single reference-length spec, exactly like before this field existed. |
 | `rocker_profile` | One of the 5 categorical values below — not a free-form guess. See "Classifying rocker profile." |
 | `metal_content` | `"full"` = full sheet(s) of metal (titanal, etc.) running the length of the ski. `"partial"` = metal used only in specific zones — underfoot only, or a binding-area reinforcement plate (e.g. Head's "Ti" binding reinforcement on otherwise-graphene skis). `"none"` = no metal anywhere in the layup. Don't infer this from marketing buzzwords ("Graphene," "Carbon") — those are often paired with a small metal reinforcement piece that the marketing copy doesn't lead with; check the actual core/construction description. |
 | `tail_shape` | One of 3 categorical values — `"directional"` / `"modified_twin"` / `"twin_tip"`. See "Classifying tail shape." Whether a ski can be skied switch is orthogonal to waist width and stability (a twin-tip can be light or heavy, narrow or wide, rockered or not) — the app deliberately does *not* fold this into the coverage-space grid/map; it drives a separate, independent "Park" signal instead. |
@@ -28,28 +39,50 @@ catch.
 
 ## Source priority
 
-1. **Blister Review** (blisterreview.com) — first choice. They physically
-   weigh every ski and describe rocker/camber profile in consistent,
-   brand-agnostic language across every model, which is exactly what the
-   categorical `rocker_profile` field needs. Covers nearly every ski in
-   this dataset's price/popularity tier.
-2. **Manufacturer's own spec/geometry page** — authoritative for
-   `waist_width_mm`, `turn_radius_m`, and the official rocker profile
-   name. Treat manufacturer-claimed `weight_g` with more skepticism than
-   Blister's measured figure.
-3. **Retail spec tables** (evo.com, skimo.co, skiessentials.com) — good
-   fallback when Blister hasn't reviewed a specific model, or to
-   cross-check a manufacturer number.
+**For new data added from 2026-08-15 onward** (new skis, and
+`length_options` on existing ones):
+
+1. **Manufacturer's own spec/geometry page** — first choice. A ski's own
+   product page almost always publishes its *entire* size run — every
+   length it ships in, with weight and turn radius for each — in one
+   table. That's authoritative for `waist_width_mm` and the official
+   rocker profile name regardless, and for `length_options` specifically
+   it's not just the cheapest source to collect (one page instead of a
+   Blister-then-manufacturer decision per length), it's often the *only*
+   source that covers every length: Blister only physically weighs 1-2
+   sizes per ski they review, so requiring their numbers would leave
+   real gaps in the size run no matter what order sources are checked in.
+2. **Blister Review** (blisterreview.com) — still the best cross-check
+   when available, and still the right source for anything a
+   manufacturer page doesn't state plainly (rocker/camber description in
+   consistent, brand-agnostic language, tip/tail splay measurements).
+   No longer required before falling back to a manufacturer page, though.
+3. **Retail spec tables** (evo.com, skimo.co, skiessentials.com) — fallback
+   when a manufacturer's own page is missing or incomplete.
 4. **realskiers.com** or a second independent reviewer — tie-breaker when
    two sources disagree materially.
+
+*Why the switch:* the previous order put Blister first because their
+weight is physically measured and manufacturer-claimed weight runs a
+bit optimistic/rounded — that's still true, which is why each existing
+entry's own reference-length figures aren't being redone. But this is a
+*comparative* tool, not a spec-sheet reference: a small, roughly
+consistent optimism bias across a whole size run distorts the relative
+differences between lengths (what the app actually uses) far less than
+mixing measured and claimed numbers within the same ski would. Combined
+with the cost/coverage advantage above, manufacturer-first is the more
+practical default for everything added going forward. Most users also
+won't distinguish "independently measured" from "manufacturer-claimed"
+the way an enthusiast reviewer would — the number printed on the ski's
+own spec page is already what they expect to see.
 
 **Practical note on fetching:** Blister Review and evo.com both return
 HTTP 403 to direct automated fetches (bot protection) as of this writing.
 `WebSearch` queries against those domains still surface accurate figures
 via indexed snippets, so prefer search queries like `"<ski name> Blister
 Review weight rocker camber specs"` over fetching the URL directly for
-those two domains. Retail spec-table sites (skimo.co, etc.) generally
-allow direct fetches.
+those two domains. Retail spec-table sites (skimo.co, etc.) and most
+manufacturer sites generally allow direct fetches.
 
 ## Classifying rocker profile
 
@@ -97,13 +130,35 @@ naming, and shape changes across redesigns (K2's Mindbender Ti line
 moved from a more twin-ish shape to a more directional one in its
 2022-23 redesign).
 
+## Recording length options (per-length weight/turn radius)
+
+1. Open the ski's own page on the manufacturer's website (not a
+   retailer) and find its size chart — every brand publishes one,
+   usually under "specs" or "tech specs," listing every length the ski
+   ships in.
+2. Record every length listed, with that length's weight and turn
+   radius exactly as published — no interpolation, no estimating a
+   length the manufacturer doesn't list.
+3. One of those rows should match the entry's existing
+   `reference_length_cm` exactly. Don't overwrite that row's
+   `weight_g`/`turn_radius_m` with the manufacturer's number even if it
+   differs from what's already recorded — the existing top-level fields
+   keep whatever source they already have (often Blister-measured); this
+   array exists to add the *other* lengths, not to re-litigate the one
+   already sourced.
+4. Set `verified_date` as usual.
+
 ## Adding a new ski
 
-1. Search `"<name> Blister Review weight rocker camber specs"`.
+1. Search `"<name> official specs size chart"` (manufacturer page first,
+   per the current source priority) — or `"<name> Blister Review weight
+   rocker camber specs"` if a manufacturer page doesn't cover something
+   (rocker/camber description, tip/tail splay).
 2. If metal content or rocker profile is ambiguous from that result, run
    one follow-up search specifically for construction/core details.
 3. Cross-check `waist_width_mm` and `turn_radius_m` against a second
-   source if Blister didn't state them plainly for the reference length.
+   source if the manufacturer page didn't state them plainly for the
+   reference length.
 4. Fill in every field above; leave optional numeric rocker fields out
    rather than guessing them.
 5. Set `verified_date` to today.
