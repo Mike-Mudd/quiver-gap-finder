@@ -84,6 +84,23 @@ Review weight rocker camber specs"` over fetching the URL directly for
 those two domains. Retail spec-table sites (skimo.co, etc.) and most
 manufacturer sites generally allow direct fetches.
 
+**Practical note on JS-rendered size tables:** most manufacturer and
+retail pages render their full per-length spec table client-side from a
+length-selector dropdown — a text-only fetch (`WebFetch`/`WebSearch`)
+only sees whichever single length happened to be the default, or
+nothing at all, even when the page allows direct fetches otherwise.
+Confirmed working sources with a full static table readable without
+clicking anything: **evo.com** (turn radius per length) and **skis.com**
+(weight and turn radius per length) - check these first for
+`length_options`. When a source needed for something else is
+JS-gated, use an actual rendered browser (navigate to the page, read
+its text) instead of a text-fetch tool - the same table that's
+invisible to `WebFetch` is usually just sitting there in the rendered
+page. **This applies to a delegated research pass (a background agent)
+just as much as it does here** - say so explicitly in that pass's
+instructions, since an agent won't know to try a browser tool as a
+fallback unless told to.
+
 ## Classifying rocker profile
 
 Use one of these five values — the same taxonomy manufacturers and
@@ -132,21 +149,60 @@ moved from a more twin-ish shape to a more directional one in its
 
 ## Recording length options (per-length weight/turn radius)
 
-1. Open the ski's own page on the manufacturer's website (not a
-   retailer) and find its size chart — every brand publishes one,
-   usually under "specs" or "tech specs," listing every length the ski
-   ships in.
+1. Check evo.com and skis.com first (see "Practical note on JS-rendered
+   size tables" above) — both have reliably exposed a full, static
+   per-length table for every ski tried so far. Fall back to the
+   manufacturer's own page, or another retailer, only if neither has
+   the model.
 2. Record every length listed, with that length's weight and turn
    radius exactly as published — no interpolation, no estimating a
-   length the manufacturer doesn't list.
-3. One of those rows should match the entry's existing
-   `reference_length_cm` exactly. Don't overwrite that row's
-   `weight_g`/`turn_radius_m` with the manufacturer's number even if it
-   differs from what's already recorded — the existing top-level fields
-   keep whatever source they already have (often Blister-measured); this
-   array exists to add the *other* lengths, not to re-litigate the one
-   already sourced.
-4. Set `verified_date` as usual.
+   length the source doesn't list.
+3. **Cross-check at least one non-reference length against a second,
+   independent source** before trusting the table — don't record a
+   whole size run off a single source. This is a step down from
+   Blister-measured data already (see "Source priority"); a single
+   unverified source compounds that.
+4. **Sanity-check the weight column against a per-pair mislabel.**
+   Some sites label a per-pair figure as if it were per-ski without
+   saying so — caught once already: a "Ski Weight" column turned out to
+   be per-pair because halving it landed exactly on an already-known
+   per-ski figure. If a sourced weight is roughly double what's
+   plausible for a ski that size (rough gut-check: compare against
+   similar skis already in the dataset), treat it as probably per-pair,
+   halve it, and say so in `notes` - or find a source that states the
+   unit unambiguously.
+5. One row should match the entry's existing `reference_length_cm`
+   exactly. Don't overwrite that row's `weight_g`/`turn_radius_m` with
+   the new source's number even if it differs slightly - the existing
+   top-level fields keep whatever source they already have (often
+   Blister-measured); this array exists to add the *other* lengths, not
+   to re-litigate the one already sourced.
+6. **If that row doesn't match** (not just a rounding difference, but a
+   real disagreement), treat it as a red flag on the *entire* table, not
+   just that one row - it usually means the source is describing a
+   different model year or variant than the one already recorded. Don't
+   use the rest of the array without resolving why it disagrees; note
+   the discrepancy plainly rather than silently trusting the other rows.
+7. Run the monotonicity check below - within one ski, weight and turn
+   radius should both increase as length increases. A break in that
+   pattern almost always means a transcription error (wrong row, mixed-
+   up lengths), not a real property of the ski.
+   ```
+   python -c "
+   import json
+   d = json.load(open('data/skis.json'))
+   for s in d['skis']:
+       opts = s.get('length_options')
+       if not opts or len(opts) < 2: continue
+       ordered = sorted(opts, key=lambda o: o['length_cm'])
+       for a, b in zip(ordered, ordered[1:]):
+           if b['weight_g'] <= a['weight_g']:
+               print(s['name'], 'weight not increasing:', a, b)
+           if b['turn_radius_m'] < a['turn_radius_m']:
+               print(s['name'], 'turn radius decreasing:', a, b)
+   "
+   ```
+8. Set `verified_date` as usual.
 
 ## Adding a new ski
 
@@ -205,3 +261,30 @@ a solid measured source yet:
    measured data is more trustworthy than the newer, unmeasured data.
 4. If nothing changed, just bump `verified_date` so the entry doesn't
    look untouched forever.
+
+## Scaling up: batching new entries
+
+Growing the catalog by dozens or hundreds of skis at once carries a
+different risk than backfilling `length_options` onto an *existing*
+entry: a new ski has no already-recorded reference figure to sanity-
+check a fresh source against, so nothing catches a mislabeled or
+mis-scaled number the way the reference-length row does for
+`length_options`. Manage that with pacing, not just per-ski care:
+
+1. **Work in batches, not one continuous pass.** Start smaller (10-15
+   skis) for the first batch or two under a newly-changed process, to
+   confirm it actually holds up before committing to a larger size;
+   ~25-30 per batch is reasonable once it has.
+2. **Run both automated checks against the whole file after every
+   batch**, not just on the skis just added - the duplicate-tuple check
+   under "Adding a new ski" and the monotonicity check under "Recording
+   length options." Both are cheap, catch a real class of transcription
+   error automatically, and scale with the dataset for free.
+3. **Spot-check a sample against the original source, not the whole
+   batch.** A systemic problem (a units mix-up, a misread column, a
+   research pass consistently getting one field wrong) shows up
+   repeatedly and a handful of checks per batch will catch it just as
+   reliably as reviewing all 25-30 would - and unlike a full review,
+   spot-checking a small sample is something that stays rigorous
+   instead of quietly becoming a skim after a few rounds.
+4. Only start the next batch once the current one's checks are clean.
