@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-08-13",
+  "last_updated": "2026-08-16",
   "sourcing_methodology": "See SOURCING.md for field definitions and the source-priority process used to fill every entry below.",
   "skis": [
     {
@@ -17,8 +17,30 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2024-2025-nordica-enforcer-94",
-      "verified_date": "2026-08-12",
-      "notes": "2 sheets titanal, Pulse Core elastomer layer. rocker_percent estimated from profile category (no published tip/camber/tail % breakdown). Blister's measured waist (95mm) rounded to the catalog nominal 94mm to match the model name."
+      "verified_date": "2026-08-16",
+      "notes": "2 sheets titanal, Pulse Core elastomer layer. rocker_percent estimated from profile category (no published tip/camber/tail % breakdown). Blister's measured waist (95mm) rounded to the catalog nominal 94mm to match the model name. length_options (2026-08-16): full size-run weight/turn-radius sourced from skis.com's per-length table (2026 model year), turn radius cross-confirmed against an independent evo.com table (identical values). skis.com's weight column is per-pair - halved to per-ski; the 179cm result (2090g) matches this entry's existing Blister-measured weight_g exactly, and turn radius (17.5m) matches too, confirming geometry/weight are consistent between the 2024-2025 and 2026 model years and validating the halving.",
+      "length_options": [
+        {
+          "length_cm": 167,
+          "weight_g": 1840,
+          "turn_radius_m": 16.5
+        },
+        {
+          "length_cm": 173,
+          "weight_g": 1960,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 179,
+          "weight_g": 2090,
+          "turn_radius_m": 17.5
+        },
+        {
+          "length_cm": 185,
+          "weight_g": 2160,
+          "turn_radius_m": 18
+        }
+      ]
     },
     {
       "name": "Nordica Enforcer 104 Free",

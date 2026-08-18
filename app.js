@@ -194,13 +194,44 @@ function hideSearchResults() {
 function addToQuiver(ski) {
   if (quiver.length >= MAX_QUIVER_SIZE) return;
   if (quiver.some((s) => s.name === ski.name)) return;
-  quiver.push(ski);
+  // A shallow copy, not the shared allSkis reference - each quiver slot
+  // tracks its own selected_length_cm independently (see effectiveSpecs),
+  // defaulting to the ski's reference length.
+  quiver.push({ ...ski, selected_length_cm: ski.reference_length_cm });
   renderQuiver();
 }
 
 function removeFromQuiver(name) {
   quiver = quiver.filter((s) => s.name !== name);
   renderQuiver();
+}
+
+/** <select> of a ski's available lengths (see length_options in
+ * data/SOURCING.md) - quietly absent rather than showing a picker with
+ * nothing to pick, for the (currently most) skis that haven't been
+ * backfilled with any yet. */
+function lengthPickerHtml(ski) {
+  if (!ski.length_options || ski.length_options.length === 0) return "";
+  const options = ski.length_options
+    .map(
+      (o) =>
+        `<option value="${o.length_cm}" ${
+          o.length_cm === ski.selected_length_cm ? "selected" : ""
+        }>${o.length_cm}cm</option>`
+    )
+    .join("");
+  return `<select class="length-picker" data-length-for="${escapeHtml(
+    ski.name
+  )}" aria-label="Length for ${escapeHtml(ski.name)}">${options}</select>`;
+}
+
+/** Re-renders results in place if they're already showing (e.g. after
+ * changing a length picker), without forcing results open if "Find
+ * gaps" hasn't been clicked yet. */
+function refreshResultsIfShown() {
+  if (resultsEl.querySelector(".dashboard-card")) {
+    renderResults();
+  }
 }
 
 function renderQuiver() {
@@ -215,9 +246,17 @@ function renderQuiver() {
       li.className = "quiver-chip";
       li.innerHTML = `
         <span>${escapeHtml(ski.name)}</span>
+        ${lengthPickerHtml(ski)}
         <button type="button" aria-label="Remove ${escapeHtml(ski.name)}">✕</button>
       `;
       li.querySelector("button").addEventListener("click", () => removeFromQuiver(ski.name));
+      const picker = li.querySelector(".length-picker");
+      if (picker) {
+        picker.addEventListener("change", () => {
+          ski.selected_length_cm = Number(picker.value);
+          refreshResultsIfShown();
+        });
+      }
       quiverListEl.appendChild(li);
     }
   }
@@ -243,15 +282,36 @@ function rockerPercent(ski) {
 }
 
 /**
+ * A ski's weight/turn radius at its currently *selected* length
+ * (ski.selected_length_cm, set when it's added to the quiver or as a
+ * candidate — see addToQuiver/addCandidate), looked up from its
+ * length_options table (see data/SOURCING.md). Falls back to the ski's
+ * own reference-length spec when it has no length_options yet (most of
+ * the dataset, until backfilled) or when the selected length isn't in
+ * that array — same numbers the app always showed before this existed.
+ */
+function effectiveSpecs(ski) {
+  const lengthCm = ski.selected_length_cm ?? ski.reference_length_cm;
+  const match = ski.length_options?.find((o) => o.length_cm === lengthCm);
+  return {
+    length_cm: lengthCm,
+    weight_g: match ? match.weight_g : ski.weight_g,
+    turn_radius_m: match ? match.turn_radius_m : ski.turn_radius_m,
+  };
+}
+
+/**
  * Derive a 0-100 "stability score" from weight, metal content, and
  * rocker. Heavier + more metal => higher base score => damper/more
  * charging-oriented. Rocker then independently pulls the score back
  * toward "playful," regardless of weight/metal — a heavy, full-metal,
  * heavily-rockered powder ski still skis loose, not damp; a full-camber
- * ski gets no pull at all.
+ * ski gets no pull at all. Weight is the *selected-length* weight (see
+ * effectiveSpecs) — a shorter or longer version of the same ski can
+ * genuinely land in a different bucket.
  */
 function stabilityScore(ski) {
-  const weightNorm = clamp((ski.weight_g - WEIGHT_MIN) / (WEIGHT_MAX - WEIGHT_MIN), 0, 1);
+  const weightNorm = clamp((effectiveSpecs(ski).weight_g - WEIGHT_MIN) / (WEIGHT_MAX - WEIGHT_MIN), 0, 1);
   const metalNorm = METAL_SCORE[ski.metal_content] ?? 0;
   const base = weightNorm * WEIGHT_FACTOR * 100 + metalNorm * METAL_FACTOR * 100;
   const rockerPull = (rockerPercent(ski) / 100) * ROCKER_PULL_MAX;
@@ -630,10 +690,13 @@ function mapY(stab, geo) {
 
 function skiAriaLabel(ski) {
   const stab = stabilityScore(ski);
+  const specs = effectiveSpecs(ski);
   const yearPart = ski.model_year ? `${ski.model_year} model, ` : "";
-  return `${ski.name}: ${yearPart}${ski.waist_width_mm}mm waist, ${ski.weight_g} grams, ${metalLabel(
-    ski.metal_content
-  )} metal, temperament: ${temperamentPhrase(stab)} (${Math.round(stab)} of 100)`;
+  return `${ski.name}: ${yearPart}${specs.length_cm}cm, ${ski.waist_width_mm}mm waist, ${
+    specs.weight_g
+  } grams, ${metalLabel(ski.metal_content)} metal, temperament: ${temperamentPhrase(stab)} (${Math.round(
+    stab
+  )} of 100)`;
 }
 
 /**
@@ -901,6 +964,7 @@ function renderCandidatePicker() {
       (ski) => `
       <li class="quiver-chip">
         <span>${escapeHtml(ski.name)}</span>
+        ${lengthPickerHtml(ski)}
         <button type="button" data-remove-candidate="${escapeHtml(
           ski.name
         )}" aria-label="Remove ${escapeHtml(ski.name)} from comparison">×</button>
@@ -941,10 +1005,17 @@ function skiTooltipHtml(ski) {
   // Specs (weight, radius, etc.) drift year to year — sourced model_year
   // is shown so a tester can spot-check it against the exact ski they
   // own and flag a mismatch, without the app having to support picking
-  // a specific year (see data/SOURCING.md).
+  // a specific year (see data/SOURCING.md). Length is shown alongside it
+  // now too - weight/turn radius/temperament below are all *for this
+  // length* (see effectiveSpecs), so it's worth being explicit about
+  // which one is being described, especially once a length picker makes
+  // it possible to change.
+  const specs = effectiveSpecs(ski);
   const year = document.createElement("div");
   year.className = "tooltip-year";
-  year.textContent = ski.model_year ? `${ski.model_year} model` : "Model year unknown";
+  year.textContent = ski.model_year
+    ? `${ski.model_year} model · ${specs.length_cm}cm`
+    : `Model year unknown · ${specs.length_cm}cm`;
 
   // One fact per row, in a label/value grid — not run-on text joined by
   // "·" separators, which gets ragged the moment a value is long enough
@@ -953,7 +1024,8 @@ function skiTooltipHtml(ski) {
   specGrid.className = "tooltip-spec-grid";
   specGrid.append(
     specRow("Waist", `${ski.waist_width_mm}mm`),
-    specRow("Weight", `${ski.weight_g}g`),
+    specRow("Weight", `${specs.weight_g}g`),
+    specRow("Turn radius", specs.turn_radius_m ? `${specs.turn_radius_m}m` : "—"),
     specRow("Metal", metalContentLabel(ski.metal_content)),
     specRow("Rocker", `${rockerProfileLabel(ski.rocker_profile)} (${rockerPercent(ski)}%)`)
   );
@@ -1035,6 +1107,15 @@ function wireCoverageMap(skis, comparisonSkis = []) {
   document.querySelectorAll("[data-remove-candidate]").forEach((btn) => {
     btn.addEventListener("click", () => removeCandidate(btn.dataset.removeCandidate));
   });
+
+  document.querySelectorAll(".candidate-picker .length-picker").forEach((picker) => {
+    const candidate = candidateSkis.find((s) => s.name === picker.dataset.lengthFor);
+    if (!candidate) return;
+    picker.addEventListener("change", () => {
+      candidate.selected_length_cm = Number(picker.value);
+      renderResults();
+    });
+  });
 }
 
 function onCandidateSearchInput() {
@@ -1073,7 +1154,9 @@ function onCandidateSearchInput() {
 function addCandidate(ski) {
   if (candidateSkis.length >= MAX_CANDIDATES) return;
   if (candidateSkis.some((s) => s.name === ski.name)) return;
-  candidateSkis.push(ski);
+  // Shallow copy, same reasoning as addToQuiver - its own
+  // selected_length_cm, independent of any other copy of this ski.
+  candidateSkis.push({ ...ski, selected_length_cm: ski.reference_length_cm });
   renderResults();
 }
 

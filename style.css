@@ -254,6 +254,16 @@ body {
   font-size: 0.9rem;
 }
 
+.quiver-chip .length-picker {
+  border: 1px solid var(--color-border);
+  background: var(--color-panel);
+  color: var(--color-text);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  padding: 0.15rem 0.4rem;
+  flex-shrink: 0;
+}
+
 .quiver-chip button {
   border: none;
   background: var(--color-border);
