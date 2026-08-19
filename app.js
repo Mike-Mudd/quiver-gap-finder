@@ -1550,8 +1550,33 @@ const TOOLTIP_MOVE_CLOSE_PX = 60;
 let tooltipAnchorEl = null;
 let tooltipAnchorRect = null;
 
+// Root-caused via a real device's ?debug=1 event log (see git history):
+// a single tap on iOS genuinely opens, closes, and reopens the tooltip,
+// not a rendering glitch. Touch has no real "hover," so pointerleave
+// fires the moment the finger lifts (hideTooltip), closing it - then
+// ~30-40ms later, iOS's synthesized compatibility mouse sequence for
+// the same tap fires a mousedown that shifts focus onto the mark
+// (focus -> showTooltip), reopening it. Both transitions are real and
+// intentional on their own (pointerleave/blur genuinely should close
+// it; focus genuinely should open it) - the bug is only that they
+// happen back-to-back inside one physical tap, closing and reopening
+// fast enough to read as a flash.
+//
+// Fix: don't act on hideTooltip() immediately - wait a beat, and
+// cancel the pending hide if a showTooltip() (for anything) follows
+// before it fires. The close-then-reopen still happens internally
+// exactly as before; tooltipEl.hidden just never actually flips to
+// true in between, so there's nothing to see. 100ms is comfortably
+// longer than the ~30-40ms gap measured in the real device log.
+const TOOLTIP_HIDE_DELAY_MS = 100;
+let tooltipHideTimer = null;
+
 function showTooltip(targetEl, contentNode) {
   debugLog(`showTooltip() - was hidden=${tooltipEl.hidden}`); // debug
+  if (tooltipHideTimer) {
+    clearTimeout(tooltipHideTimer);
+    tooltipHideTimer = null;
+  }
   tooltipEl.innerHTML = "";
   tooltipEl.appendChild(contentNode);
   tooltipEl.hidden = false;
@@ -1592,10 +1617,15 @@ function positionTooltip(targetEl) {
 }
 
 function hideTooltip() {
-  debugLog(`hideTooltip() - was hidden=${tooltipEl.hidden}`); // debug
-  tooltipEl.hidden = true;
-  tooltipAnchorEl = null;
-  tooltipAnchorRect = null;
+  debugLog(`hideTooltip() called (currently hidden=${tooltipEl.hidden}) - deferring ${TOOLTIP_HIDE_DELAY_MS}ms`); // debug
+  if (tooltipHideTimer) clearTimeout(tooltipHideTimer);
+  tooltipHideTimer = setTimeout(() => {
+    debugLog("hideTooltip() timer fired - actually hiding now"); // debug
+    tooltipEl.hidden = true;
+    tooltipAnchorEl = null;
+    tooltipAnchorRect = null;
+    tooltipHideTimer = null;
+  }, TOOLTIP_HIDE_DELAY_MS);
 }
 
 /* ------------------------------------------------------------------ *
