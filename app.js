@@ -1617,8 +1617,19 @@ function positionTooltip(targetEl) {
 }
 
 function hideTooltip() {
+  // Only the FIRST call starts the countdown - repeat calls while one's
+  // already pending (e.g. one per scroll tick during an active scroll
+  // gesture) must not keep pushing it back, or it never gets a clear
+  // 100ms to actually fire until scrolling stops entirely. Found via a
+  // real device log: dy was already 296+ (way past the 60px close
+  // threshold) on every one of several consecutive scroll ticks, each
+  // resetting the timer instead of counting down. Only showTooltip()
+  // should be able to cancel a pending hide now.
+  if (tooltipHideTimer) {
+    debugLog(`hideTooltip() called (already pending, ignored)`); // debug
+    return;
+  }
   debugLog(`hideTooltip() called (currently hidden=${tooltipEl.hidden}) - deferring ${TOOLTIP_HIDE_DELAY_MS}ms`); // debug
-  if (tooltipHideTimer) clearTimeout(tooltipHideTimer);
   tooltipHideTimer = setTimeout(() => {
     debugLog("hideTooltip() timer fired - actually hiding now"); // debug
     tooltipEl.hidden = true;
