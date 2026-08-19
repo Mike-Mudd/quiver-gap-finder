@@ -385,15 +385,6 @@ body {
   color: var(--color-muted);
 }
 
-/* Small, separate from .map-caption on purpose - a quick axis legend,
-   not another sentence of prose to read. Sits right above the chart so
-   it's the last thing seen before the axes themselves. */
-.map-axis-key {
-  margin: 0 0 0.6rem;
-  font-size: 0.72rem;
-  color: var(--color-muted);
-  font-style: italic;
-}
 
 .chart-wrap {
   width: 100%;
@@ -444,6 +435,12 @@ body {
 
 .map-axis-label-y {
   font-size: 10.5px;
+}
+
+.map-axis-range {
+  fill: var(--chart-muted);
+  font-size: 9px;
+  opacity: 0.7;
 }
 
 .ski-region {

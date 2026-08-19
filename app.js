@@ -668,7 +668,10 @@ function getMapGeometry() {
   const compact = window.innerWidth <= MAP_COMPACT_BREAKPOINT_PX;
   const W = compact ? 240 : 640;
   const H = compact ? 320 : 380;
-  const MARGIN = compact ? { top: 10, right: 8, bottom: 22, left: 8 } : { top: 16, right: 16, bottom: 30, left: 16 };
+  // bottom is taller than it needs to be for a single label line - see
+  // renderMapChrome, which draws the mm range as a second line under
+  // each X-axis bucket name.
+  const MARGIN = compact ? { top: 10, right: 8, bottom: 34, left: 8 } : { top: 16, right: 16, bottom: 42, left: 16 };
   return {
     compact,
     W,
@@ -735,16 +738,25 @@ function renderMapChrome(geo) {
   svg += `<line x1="${plotLeft}" y1="${hy1}" x2="${plotRight}" y2="${hy1}" class="map-gridline" />`;
   svg += `<line x1="${plotLeft}" y1="${hy2}" x2="${plotRight}" y2="${hy2}" class="map-gridline" />`;
 
-  // X-axis zone labels, centered under each waist bucket. Compact mode
+  // X-axis zone labels, centered under each waist bucket, with the
+  // actual mm range as a second line underneath - lets someone match
+  // their own ski's known waist width straight to a zone without
+  // already knowing what "narrow" is supposed to mean. Compact mode
   // reuses the same short labels already defined on WAIST_BUCKETS
   // (WAIST_BUCKETS[].short) rather than inventing new abbreviations.
   const xLabels = geo.compact ? WAIST_BUCKETS.map((b) => b.short) : ["Narrow", "All-mountain", "Wide / powder"];
   const xCenters = [(WAIST_MIN + 89) / 2, (90 + 109) / 2, (110 + WAIST_MAX) / 2];
+  const xLabelY = plotBottom + (geo.compact ? 12 : 14);
+  const xRangeY = plotBottom + (geo.compact ? 23 : 27);
   xLabels.forEach((label, i) => {
     const x = mapX(xCenters[i], geo);
-    svg += `<text x="${x.toFixed(1)}" y="${geo.H - (geo.compact ? 7 : 10)}" text-anchor="middle" class="map-axis-label">${escapeHtml(
+    const bucket = WAIST_BUCKETS[i];
+    svg += `<text x="${x.toFixed(1)}" y="${xLabelY.toFixed(1)}" text-anchor="middle" class="map-axis-label">${escapeHtml(
       label
     )}</text>`;
+    svg += `<text x="${x.toFixed(1)}" y="${xRangeY.toFixed(
+      1
+    )}" text-anchor="middle" class="map-axis-range">${escapeHtml(`${bucket.min}–${bucket.max}mm`)}</text>`;
   });
 
   // Y-axis zone labels, top-left of each stability band (damp at top).
@@ -947,9 +959,6 @@ function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggest
         <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
       </div>
       <p class="map-caption">${caption}</p>
-      <p class="map-axis-key">
-        Left–right = ski width, narrow to wide. Bottom–top = ride feel, playful/light to damp/stable at speed.
-      </p>
       <div class="chart-wrap" id="map-chart-wrap">${svg}</div>
       <div class="chart-table-wrap" id="map-table-wrap" hidden>${table}</div>
       ${renderCandidatePicker()}
