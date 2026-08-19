@@ -135,6 +135,12 @@ async function init() {
     }
   });
 
+  // Capture phase so this also catches scroll on the chart's own
+  // horizontal-scroll container, which doesn't bubble a "scroll" event
+  // up to window - see checkTooltipAnchorMoved for the rest of the
+  // reasoning.
+  window.addEventListener("scroll", checkTooltipAnchorMoved, { capture: true, passive: true });
+
   findGapsBtn.addEventListener("click", onFindGaps);
 }
 
@@ -1449,11 +1455,53 @@ function renderDetailsSection(gaps, redundant, quiverNames) {
  *  Shared chart tooltip
  * ------------------------------------------------------------------ */
 
+// The tooltip is positioned once, in viewport pixels, when it opens
+// (see positionTooltip) rather than tracked continuously, so once its
+// anchor mark has visually moved from where it was when the tooltip
+// opened, the box is no longer over the dot it describes. Close it once
+// that movement passes a small, fixed, position-independent threshold -
+// tracking the anchor's own getBoundingClientRect() rather than
+// intersection-with-viewport handles page scroll and the chart's own
+// horizontal-scroll container the same way, with one comparison.
+//
+// Two other approaches were tried and rejected first:
+// - A plain always-on "scroll" listener closed on ANY scroll, including
+//   a few px of incidental scroll a mobile browser can produce by
+//   auto-scrolling a newly-focused element into view on tap - a false
+//   positive.
+// - Closing only once the anchor's intersection with the viewport
+//   dropped below a threshold (even a generous 50%) turned out to still
+//   require nearly as much scrolling as waiting for it to disappear
+//   entirely, for any anchor that started mid-screen - intersection
+//   can't change at all until the viewport edge reaches the anchor, so
+//   the threshold barely mattered; most of the "large scroll" feeling
+//   came from the anchor's distance from the edge, not the threshold.
+//
+// Measuring the anchor's own movement fixes both: incidental nudges are
+// a few px, comfortably under the threshold, while closing no longer
+// depends on where the anchor happened to be on screen.
+const TOOLTIP_MOVE_CLOSE_PX = 60;
+let tooltipAnchorEl = null;
+let tooltipAnchorRect = null;
+
 function showTooltip(targetEl, contentNode) {
   tooltipEl.innerHTML = "";
   tooltipEl.appendChild(contentNode);
   tooltipEl.hidden = false;
   positionTooltip(targetEl);
+  tooltipAnchorEl = targetEl;
+  tooltipAnchorRect = targetEl.getBoundingClientRect();
+}
+
+/** Wired once, on window, capture phase (see init()) - catches page
+ * scroll and the chart's own horizontal-scroll container alike, since
+ * "scroll" doesn't bubble but capture-phase listeners still see it. */
+function checkTooltipAnchorMoved() {
+  if (tooltipEl.hidden || !tooltipAnchorEl) return;
+  const current = tooltipAnchorEl.getBoundingClientRect();
+  const dx = Math.abs(current.left - tooltipAnchorRect.left);
+  const dy = Math.abs(current.top - tooltipAnchorRect.top);
+  if (dx > TOOLTIP_MOVE_CLOSE_PX || dy > TOOLTIP_MOVE_CLOSE_PX) hideTooltip();
 }
 
 function positionTooltip(targetEl) {
@@ -1470,6 +1518,8 @@ function positionTooltip(targetEl) {
 
 function hideTooltip() {
   tooltipEl.hidden = true;
+  tooltipAnchorEl = null;
+  tooltipAnchorRect = null;
 }
 
 /* ------------------------------------------------------------------ *
