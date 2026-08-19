@@ -153,7 +153,13 @@ body {
   position: relative;
 }
 
-#ski-search {
+/* Shared by both search inputs in the app - the main quiver-builder
+   search (#ski-search) and the "Comparing something specific?" search
+   under the coverage map (#candidate-search). Was scoped to #ski-search
+   only despite a comment elsewhere claiming both looked the same - the
+   second input was silently falling back to the browser's unstyled
+   default the whole time. */
+.search-input {
   width: 100%;
   padding: 0.65rem 0.85rem;
   font-size: 1rem;
@@ -163,9 +169,14 @@ body {
   color: var(--color-text);
 }
 
-#ski-search:focus {
+.search-input:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
+}
+
+.search-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .search-results {

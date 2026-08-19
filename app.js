@@ -1016,6 +1016,7 @@ function renderCandidatePicker() {
         <input
           type="text"
           id="candidate-search"
+          class="search-input"
           placeholder="${atMax ? `Remove one to compare another (max ${MAX_CANDIDATES})` : "Search skis by name…"}"
           autocomplete="off"
           ${atMax ? "disabled" : ""}
