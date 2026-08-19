@@ -56,8 +56,35 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-nordica-enforcer-104-free",
-      "verified_date": "2026-08-12",
-      "notes": "2-layer titanal, same construction family as Enforcer 94 but more tip/tail rocker. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "2-layer titanal, same construction family as Enforcer 94 but more tip/tail rocker. rocker_percent estimated from profile category. length_options (2026-08-17): radius real (evo.com), reference row matches exactly. Weight only real at 179cm - 165, 172, 186, 191cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 165,
+          "weight_g": 1831,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 172,
+          "weight_g": 1948,
+          "turn_radius_m": 16.5
+        },
+        {
+          "length_cm": 179,
+          "weight_g": 2065,
+          "turn_radius_m": 17.5
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 2182,
+          "turn_radius_m": 18.5
+        },
+        {
+          "length_cm": 191,
+          "weight_g": 2266,
+          "turn_radius_m": 19.5
+        }
+      ]
     },
     {
       "name": "Nordica Unleashed 98",
@@ -66,15 +93,37 @@
       "reference_length_cm": 180,
       "waist_width_mm": 98,
       "weight_g": 1870,
-      "turn_radius_m": 16,
+      "turn_radius_m": 18.1,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2023-nordica-unleashed-98",
-      "verified_date": "2026-08-12",
-      "notes": "Single layer 'Terrain Specific Metal' - thinner at center, extends near edge-to-edge at tips/tails: partial, not a full flat sheet. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Single layer 'Terrain Specific Metal' - thinner at center, extends near edge-to-edge at tips/tails: partial, not a full flat sheet. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was 16m; evo.com's full per-length table and the cited Blister review's own stated radius progression both agree on ~18.1m at 180cm. length_options: radius real at all 4 lengths; weight only confirmed at the 180cm reference (couldn't independently confirm a clean per-pair weight figure elsewhere) - 168, 174, 186cm estimated via the SOURCING.md scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 168,
+          "weight_g": 1688,
+          "turn_radius_m": 16.7
+        },
+        {
+          "length_cm": 174,
+          "weight_g": 1779,
+          "turn_radius_m": 17.4
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1870,
+          "turn_radius_m": 18.1
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 1961,
+          "turn_radius_m": 20.5
+        }
+      ]
     },
     {
       "name": "Nordica Unleashed 108",
@@ -90,8 +139,30 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-nordica-unleashed-108",
-      "verified_date": "2026-08-12",
-      "notes": "Corrected weight_g from 2120 (Nordica's manufacturer-claimed figure) to 2087 (Blister's own measured weight) - the original entry violated the sourcing rule of preferring measured over claimed. Found because the claimed figure happened to exactly match Fischer Ranger 108's weight/metal/rocker, causing the two to render as a single indistinguishable mark on the coverage map - caught via user testing, not caught during original sourcing. Same Terrain Specific Metal concept as Unleashed 98, proportionally more metal underfoot given the wider waist. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Corrected weight_g from 2120 (Nordica's manufacturer-claimed figure) to 2087 (Blister's own measured weight) - the original entry violated the sourcing rule of preferring measured over claimed. Found because the claimed figure happened to exactly match Fischer Ranger 108's weight/metal/rocker, causing the two to render as a single indistinguishable mark on the coverage map - caught via user testing, not caught during original sourcing. Same Terrain Specific Metal concept as Unleashed 98, proportionally more metal underfoot given the wider waist. rocker_percent estimated from profile category. length_options (2026-08-17): radius real (evo.com), reference row matches exactly. Weight only real at 186cm - 174, 180, 191cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 174,
+          "weight_g": 1884,
+          "turn_radius_m": 18.3
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1986,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 2087,
+          "turn_radius_m": 19.7
+        },
+        {
+          "length_cm": 191,
+          "weight_g": 2172,
+          "turn_radius_m": 20.5
+        }
+      ]
     },
     {
       "name": "K2 Mindbender 90Ti",
@@ -100,15 +171,15 @@
       "reference_length_cm": 177,
       "waist_width_mm": 90,
       "weight_g": 1924,
-      "turn_radius_m": 15,
+      "turn_radius_m": 17.9,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
       "tail_shape": "modified_twin",
       "source": "Blister Review / SkiEssentials",
       "source_url": "https://blisterreview.com/tag/k2-mindbender",
-      "verified_date": "2026-08-12",
-      "notes": "Ti Y-Beam construction. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Ti Y-Beam construction. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was 15m; evo.com's 2021 listing gives 17.9m at 177cm, with weight (1924g) matching this entry's existing reference exactly, confirming the same generation. No length_options added - only one length (177cm) has any published data at all."
     },
     {
       "name": "K2 Mindbender 99Ti",
@@ -158,8 +229,30 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-k2-mindbender-108ti",
-      "verified_date": "2026-08-12",
-      "notes": "Titanal Y-Beam construction. Measured tip/camber/tail splay 64mm / 4mm / 19.5mm. rocker_percent estimated from profile category. Blister's measured waist (107.4mm) rounded to the catalog nominal 108mm to match the model name."
+      "verified_date": "2026-08-17",
+      "notes": "Titanal Y-Beam construction. Measured tip/camber/tail splay 64mm / 4mm / 19.5mm. rocker_percent estimated from profile category. Blister's measured waist (107.4mm) rounded to the catalog nominal 108mm to match the model name. length_options (2026-08-17): radius real (evo.com, consistent across 3 model years), reference row matches exactly (22.8m). Weight only real at 186cm - 172, 179, 193cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 172,
+          "weight_g": 1968,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 179,
+          "weight_g": 2094,
+          "turn_radius_m": 20.9
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 2220,
+          "turn_radius_m": 22.8
+        },
+        {
+          "length_cm": 193,
+          "weight_g": 2346,
+          "turn_radius_m": 24.9
+        }
+      ]
     },
     {
       "name": "K2 Mindbender 116C",
@@ -175,8 +268,8 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-k2-mindbender-116c",
-      "verified_date": "2026-08-12",
-      "notes": "'C' = carbon build, no titanal (vs the 'Ti' Mindbenders). 'Powder rocker' with deeper tip rocker than the Ti models; rocker_percent nudged above the category default for that reason."
+      "verified_date": "2026-08-17",
+      "notes": "'C' = carbon build, no titanal (vs the 'Ti' Mindbenders). 'Powder rocker' with deeper tip rocker than the Ti models; rocker_percent nudged above the category default for that reason. Checked 2026-08-17: only one length (186cm, the existing reference) has any published turn radius/weight data anywhere checked - matches closely (22.9m vs 22.9m, 2019-2051g vs 2062g). No correction needed, no length_options added."
     },
     {
       "name": "Blizzard Bonafide 97",
@@ -226,7 +319,7 @@
       "name": "Blizzard Brahma 88",
       "brand": "Blizzard",
       "model_year": "2020-2021",
-      "reference_length_cm": 180,
+      "reference_length_cm": 177,
       "waist_width_mm": 88,
       "weight_g": 1999,
       "turn_radius_m": 16,
@@ -236,8 +329,35 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-blizzard-brahma-88",
-      "verified_date": "2026-08-12",
-      "notes": "2 full sheets titanal + carbon fiber tips. v3 has 'much shallower rocker lines' than prior versions - nudged below category default. rocker_percent estimated."
+      "verified_date": "2026-08-17",
+      "notes": "2 full sheets titanal + carbon fiber tips. v3 has 'much shallower rocker lines' than prior versions - nudged below category default. rocker_percent estimated. Corrected 2026-08-17: reference_length_cm was 180cm, a length the cited generation (TrueBlend Flipcore redesign, per the cited 2020-2021 Blister review) was never sold in - real run is 165/171/177/183/189cm (independently re-confirmed). Moved to 177cm; turn_radius_m (16m) and weight_g (1999g, close to Blister's measured 1990/2036g avg) both already matched the real 177cm figures, so neither needed to change, just the length label. length_options: radius real at all 5 lengths; weight only real at 177cm - 165, 171, 183, 189cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 165,
+          "weight_g": 1805,
+          "turn_radius_m": 14
+        },
+        {
+          "length_cm": 171,
+          "weight_g": 1902,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 177,
+          "weight_g": 1999,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 183,
+          "weight_g": 2096,
+          "turn_radius_m": 17.5
+        },
+        {
+          "length_cm": 189,
+          "weight_g": 2193,
+          "turn_radius_m": 19
+        }
+      ]
     },
     {
       "name": "Blizzard Rustler 9",
@@ -282,18 +402,45 @@
       "name": "Blizzard Rustler 11",
       "brand": "Blizzard",
       "model_year": "2023-2024",
-      "reference_length_cm": 180,
+      "reference_length_cm": 186,
       "waist_width_mm": 114,
       "weight_g": 2085,
-      "turn_radius_m": 19,
+      "turn_radius_m": 20.5,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "none",
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-blizzard-rustler-11",
-      "verified_date": "2026-08-12",
-      "notes": "Rustler 9's review states the 9 'uses more metal than the 10 or 11' - the 11 is FluxForm woodcore, no titanal sheet. Weight is the closest available length (186cm, 2070-2085g); confidence lower than most entries. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Rustler 9's review states the 9 'uses more metal than the 10 or 11' - the 11 is FluxForm woodcore, no titanal sheet. Weight is the closest available length (186cm, 2070-2085g); confidence lower than most entries. rocker_percent estimated from profile category. Corrected 2026-08-17: this entry's weight_g (2085g) and turn_radius_m (19m) turned out to be real values from two DIFFERENT lengths, not one - 2085g matches Blister's measured average at 186cm almost exactly (2082 & 2089g), while 19m is evo.com's real 180cm radius, not 186cm's (20.5m). Re-anchored reference_length_cm to 186cm (the Blister-measured, more authoritative field) and corrected turn_radius_m to the matching 20.5m - weight_g (2085g) already matched that length and didn't need to change. length_options: radius real at all 5 lengths; weight only real at 186cm - 168, 174, 180, 192cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 168,
+          "weight_g": 1781,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 174,
+          "weight_g": 1882,
+          "turn_radius_m": 17.5
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1984,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 2085,
+          "turn_radius_m": 20.5
+        },
+        {
+          "length_cm": 192,
+          "weight_g": 2186,
+          "turn_radius_m": 22
+        }
+      ]
     },
     {
       "name": "Blizzard Sheeva 9",
@@ -303,15 +450,42 @@
       "womens_specific": true,
       "waist_width_mm": 96,
       "weight_g": 1765,
-      "turn_radius_m": 17,
+      "turn_radius_m": 14,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2024-blizzard-sheeva-9",
-      "verified_date": "2026-08-12",
-      "notes": "Women's version of Rustler 9; FluxForm W.S.D. with 2 titanal plates full length. Corrected reference_length_cm from an earlier 174cm reading to 162cm on closer re-check of the same source figure (1765g) - only 3cm off the 165cm women's-line target, well within tolerance. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Women's version of Rustler 9; FluxForm W.S.D. with 2 titanal plates full length. Corrected reference_length_cm from an earlier 174cm reading to 162cm on closer re-check of the same source figure (1765g) - only 3cm off the 165cm women's-line target, well within tolerance. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was 17m; evo.com's current-generation table (post 23/24 redesign, waist/weight confirmed matching) gives 14m at the 162cm reference. length_options: radius real at all 5 lengths; weight real only at 162cm (existing reference) - a Blister-measured figure the initial research pass cited for 174cm (1751/1752g) turned out to be LOWER than the 162cm reference weight, which isn''t physically plausible for a longer length, so it was discarded rather than used; 150, 156, 168, and 174cm are all estimated via the scaling formula instead.",
+      "length_options": [
+        {
+          "length_cm": 150,
+          "weight_g": 1593,
+          "turn_radius_m": 12
+        },
+        {
+          "length_cm": 156,
+          "weight_g": 1679,
+          "turn_radius_m": 13
+        },
+        {
+          "length_cm": 162,
+          "weight_g": 1765,
+          "turn_radius_m": 14
+        },
+        {
+          "length_cm": 168,
+          "weight_g": 1851,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 174,
+          "weight_g": 1937,
+          "turn_radius_m": 16
+        }
+      ]
     },
     {
       "name": "Volkl Mantra M6",
@@ -361,8 +535,30 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-volkl-katana-108",
-      "verified_date": "2026-08-12",
-      "notes": "Full titanal sheet on the base + partial segmented sheet on top. 3D radius sidecut: 19m underfoot / 39m & 34m at tip & tail - turn_radius_m records the underfoot number. Mostly camber with low-rise tip/tail rocker, nudged below category default."
+      "verified_date": "2026-08-17",
+      "notes": "Full titanal sheet on the base + partial segmented sheet on top. 3D radius sidecut: 19m underfoot / 39m & 34m at tip & tail - turn_radius_m records the underfoot number. Mostly camber with low-rise tip/tail rocker, nudged below category default. length_options (2026-08-17): radius and weight real at 177/184/191cm (evo.com); reference row's weight (2356g) close to but not identical to evo's 2330g at 184cm (~1% apart, within normal measured-vs-claimed variance) - kept the existing, presumably-Blister-sourced value rather than overwrite it. 170cm weight estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 170,
+          "weight_g": 2089,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 177,
+          "weight_g": 2230,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 184,
+          "weight_g": 2356,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 191,
+          "weight_g": 2440,
+          "turn_radius_m": 21
+        }
+      ]
     },
     {
       "name": "Volkl Kendo 88",
@@ -411,15 +607,37 @@
       "womens_specific": true,
       "waist_width_mm": 92,
       "weight_g": 1760,
-      "turn_radius_m": 15,
+      "turn_radius_m": 16,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
       "tail_shape": "directional",
       "source": "evo / Freeride",
       "source_url": "https://www.evo.com/outlet/skis/volkl-secret-92-womens",
-      "verified_date": "2026-08-12",
-      "notes": "Women's line; 163cm is only 2cm off the 165cm women's-line target (see data/SOURCING.md), well within tolerance - no fix needed. Same 0.7mm 'Titanal Frame' (partial, not full-width) as Kendo 88. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Women's line; 163cm is only 2cm off the 165cm women's-line target (see data/SOURCING.md), well within tolerance - no fix needed. Same 0.7mm 'Titanal Frame' (partial, not full-width) as Kendo 88. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was 15m; evo.com gives 16m at the 163cm reference (weight 1760g close to evo's 1770g). length_options: fully real at all 4 lengths (evo.com), no estimation needed - kept the existing 1760g at 163cm rather than evo's near-identical 1770g.",
+      "length_options": [
+        {
+          "length_cm": 149,
+          "weight_g": 1580,
+          "turn_radius_m": 12.6
+        },
+        {
+          "length_cm": 156,
+          "weight_g": 1680,
+          "turn_radius_m": 14.2
+        },
+        {
+          "length_cm": 163,
+          "weight_g": 1760,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 170,
+          "weight_g": 1850,
+          "turn_radius_m": 17.9
+        }
+      ]
     },
     {
       "name": "Atomic Bent 100",
@@ -472,15 +690,32 @@
       "reference_length_cm": 180,
       "waist_width_mm": 110,
       "weight_g": 1750,
-      "turn_radius_m": 19,
+      "turn_radius_m": 18,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 50,
       "metal_content": "none",
       "tail_shape": "twin_tip",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-atomic-bent-110",
-      "verified_date": "2026-08-12",
-      "notes": "Published tip/camber/tail split 25/50/25% - rocker_percent = 25+25. Measured tip/tail splay 62mm/58mm, camber underfoot 8mm. Weight is Atomic's stated pair weight (3500g) halved - flagged lower confidence than a directly measured per-ski figure."
+      "verified_date": "2026-08-17",
+      "notes": "Published tip/camber/tail split 25/50/25% - rocker_percent = 25+25. Measured tip/tail splay 62mm/58mm, camber underfoot 8mm. Weight is Atomic's stated pair weight (3500g) halved - flagged lower confidence than a directly measured per-ski figure. Corrected 2026-08-17: turn_radius_m was 19m; evo.com gives 18m at the 180cm reference (weight 1750g matches exactly, confirming the same generation). length_options: radius real at all 3 lengths; 172, 188cm weight estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 172,
+          "weight_g": 1637,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1750,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 1863,
+          "turn_radius_m": 19
+        }
+      ]
     },
     {
       "name": "Atomic Vantage 97 Ti",
@@ -530,8 +765,30 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-atomic-maverick-95-ti",
-      "verified_date": "2026-08-12",
-      "notes": "2 full sheets of thin (0.4mm) titanal. Published tip/camber/tail split 20/70/10% - rocker_percent = 20+10."
+      "verified_date": "2026-08-17",
+      "notes": "2 full sheets of thin (0.4mm) titanal. Published tip/camber/tail split 20/70/10% - rocker_percent = 20+10. length_options (2026-08-17): radius real (evo.com), reference row matches exactly on both weight and radius. 164, 172, 188cm weight estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 164,
+          "weight_g": 1567,
+          "turn_radius_m": 16.5
+        },
+        {
+          "length_cm": 172,
+          "weight_g": 1683,
+          "turn_radius_m": 17.9
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1800,
+          "turn_radius_m": 19.3
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 1917,
+          "turn_radius_m": 20.8
+        }
+      ]
     },
     {
       "name": "Salomon QST 98",
@@ -547,8 +804,30 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review / SkiEssentials",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-salomon-qst-98",
-      "verified_date": "2026-08-12",
-      "notes": "Carbon/flax construction, no titanal sheet (QST line's defining trait vs. the metal Stance line). rocker_percent estimated from profile category - deeper rocker than the QST 99 it replaced."
+      "verified_date": "2026-08-17",
+      "notes": "Carbon/flax construction, no titanal sheet (QST line's defining trait vs. the metal Stance line). rocker_percent estimated from profile category - deeper rocker than the QST 99 it replaced. length_options (2026-08-17): fully real at all 4 lengths (evo.com), no estimation needed. Reference row matches turn radius exactly; weight very close (1970 recorded vs 1990 real).",
+      "length_options": [
+        {
+          "length_cm": 169,
+          "weight_g": 1740,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 176,
+          "weight_g": 1860,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 183,
+          "weight_g": 1970,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 189,
+          "weight_g": 2100,
+          "turn_radius_m": 18
+        }
+      ]
     },
     {
       "name": "Salomon QST 106",
@@ -601,15 +880,32 @@
       "reference_length_cm": 186,
       "waist_width_mm": 115,
       "weight_g": 2220,
-      "turn_radius_m": 21,
+      "turn_radius_m": 17,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 55,
       "metal_content": "none",
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2021-2022-salomon-qst-blank",
-      "verified_date": "2026-08-12",
-      "notes": "Full poplar wood core, no metal. Measured camber underfoot 5.5mm (small but positive, keeping it camber_tip_tail_rocker rather than flat/full-rocker). Described as deeper-rockered than the QST 106 but not as deep as the QST 118 - rocker_percent nudged above category default. Weight varies significantly by model year (2070-2265g); used the 2025 figure."
+      "verified_date": "2026-08-17",
+      "notes": "Full poplar wood core, no metal. Measured camber underfoot 5.5mm (small but positive, keeping it camber_tip_tail_rocker rather than flat/full-rocker). Described as deeper-rockered than the QST 106 but not as deep as the QST 118 - rocker_percent nudged above category default. Weight varies significantly by model year (2070-2265g); used the 2025 figure. Corrected 2026-08-17: turn_radius_m was 21m; evo.com's 2025 table gives 17m at the 186cm reference (weight 2220g matches exactly), consistent with a clean 16/17/18 progression across all 3 lengths. length_options: fully real at all 3 lengths, no estimation needed.",
+      "length_options": [
+        {
+          "length_cm": 178,
+          "weight_g": 2040,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 2220,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 194,
+          "weight_g": 2400,
+          "turn_radius_m": 18
+        }
+      ]
     },
     {
       "name": "Salomon Stance 96",
@@ -708,8 +1004,25 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-rossignol-sender-104-ti",
-      "verified_date": "2026-08-12",
-      "notes": "Source explicitly states 'titanal (partial layer)' - corrected from an earlier 'full' assumption. Published Free Rocker split 25% tip / 60% camber / 15% tail - rocker_percent = 25+15. Measured camber underfoot 6.5mm."
+      "verified_date": "2026-08-17",
+      "notes": "Source explicitly states 'titanal (partial layer)' - corrected from an earlier 'full' assumption. Published Free Rocker split 25% tip / 60% camber / 15% tail - rocker_percent = 25+15. Measured camber underfoot 6.5mm. length_options (2026-08-17): radius real (evo.com), reference row's radius matches exactly. evo's per-length weight figures (1800/1900/2000g) are manufacturer-claimed and run lighter than this entry's existing SkiEssentials-measured reference (2200g, independently confirmed) - not used; 172, 186cm weight estimated off the trusted existing reference instead via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 172,
+          "weight_g": 2093,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 178,
+          "weight_g": 2200,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 2343,
+          "turn_radius_m": 21
+        }
+      ]
     },
     {
       "name": "Head Kore 93",
@@ -769,8 +1082,8 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-head-kore-105",
-      "verified_date": "2026-08-12",
-      "notes": "Same construction family as Kore 93: graphene + titanal binding-area reinforcement, not metal-free. Source weight figure (3750 at 180cm) read as a per-pair number for consistency with the rest of the Kore line; halved here."
+      "verified_date": "2026-08-17",
+      "notes": "Same construction family as Kore 93: graphene + titanal binding-area reinforcement, not metal-free. Source weight figure (3750 at 180cm) read as a per-pair number for consistency with the rest of the Kore line; halved here. Checked 2026-08-17: only one length (184cm) has any published turn radius/weight data anywhere checked, and it's close to this entry's existing reference (17.8m vs 18m, 1846-1873g vs 1875g) - no correction needed, no length_options added (not enough real data points for a meaningful array)."
     },
     {
       "name": "DPS Pagoda Tour 100",
@@ -786,8 +1099,35 @@
       "tail_shape": "directional",
       "source": "Blister Review / skimo.co",
       "source_url": "https://skimo.co/dps-pagoda-tour-100",
-      "verified_date": "2026-08-12",
-      "notes": "Aerospace-grade foam core, no metal. Dramatically tapered, deep tip rocker with a less radical tail - freeride/backcountry 'RP' design philosophy, flatter than typical all-mountain skis. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Aerospace-grade foam core, no metal. Dramatically tapered, deep tip rocker with a less radical tail - freeride/backcountry 'RP' design philosophy, flatter than typical all-mountain skis. rocker_percent estimated from profile category. length_options (2026-08-17): turn radius is a genuine flat 15m at every length by design (DPS's stated \"RP Chassis\" sidecut, confirmed real, not a shortcut). evo.com's per-length weight figures ran lighter than Blister's independently-measured figure at the same reference length - not used, kept the existing Blister-measured anchor; 153, 163, 171, 179cm weight estimated via the scaling formula instead.",
+      "length_options": [
+        {
+          "length_cm": 153,
+          "weight_g": 1168,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 163,
+          "weight_g": 1295,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 171,
+          "weight_g": 1396,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 179,
+          "weight_g": 1497,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 184,
+          "weight_g": 1560,
+          "turn_radius_m": 15
+        }
+      ]
     },
     {
       "name": "Line Sick Day 94",
@@ -830,15 +1170,37 @@
       "reference_length_cm": 181,
       "waist_width_mm": 96,
       "weight_g": 1650,
-      "turn_radius_m": 16.8,
+      "turn_radius_m": 18,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "none",
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2018-2019-elan-ripstick-96",
-      "verified_date": "2026-08-12",
-      "notes": "Poplar/paulownia core + carbon/fiberglass, no titanal mentioned. Elan's 'Amphibio' asymmetric tip/tail rocker (longer camber line on inside edges) - modeled here as the standard camber_tip_tail_rocker category since the app doesn't have an asymmetric-rocker axis. turn_radius_m sourced at 175cm, closest available to the 181cm weight figure. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Poplar/paulownia core + carbon/fiberglass, no titanal mentioned. Elan's 'Amphibio' asymmetric tip/tail rocker (longer camber line on inside edges) - modeled here as the standard camber_tip_tail_rocker category since the app doesn't have an asymmetric-rocker axis. turn_radius_m sourced at 175cm, closest available to the 181cm weight figure. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was 16.8m, previously noted as approximated \"at 175cm, closest available\" - but the exact cited Blister source (re-fetched directly) explicitly states \"Stated Sidecut Radius: 18.0 meters\" at the actual 181cm reference, matching evo.com's independent table exactly. No approximation should have been needed. length_options: radius real at all 4 lengths; weight only real at the 181cm reference - 167, 174, 188cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 167,
+          "weight_g": 1463,
+          "turn_radius_m": 14.9
+        },
+        {
+          "length_cm": 174,
+          "weight_g": 1556,
+          "turn_radius_m": 16.2
+        },
+        {
+          "length_cm": 181,
+          "weight_g": 1650,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 1744,
+          "turn_radius_m": 19.5
+        }
+      ]
     },
     {
       "name": "Elan Ripstick 106",
@@ -854,8 +1216,30 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2018-2019-elan-ripstick-106",
-      "verified_date": "2026-08-12",
-      "notes": "Same Amphibio/TNT Technology family as Ripstick 96, no metal. weight_g corrected to Blister's individually-measured 180cm pair (1863g/1852g, averaged) - a closer match to the dataset's 180cm target than the 188cm figure used previously. turn_radius_m not published at 180cm - estimated from the Ripstick 96 and comparable ~106mm skis, lower confidence. rocker_percent: shallower tip/tail rocker lines than most ~106mm skis, nudged below category default."
+      "verified_date": "2026-08-17",
+      "notes": "Same Amphibio/TNT Technology family as Ripstick 96, no metal. weight_g corrected to Blister's individually-measured 180cm pair (1863g/1852g, averaged) - a closer match to the dataset's 180cm target than the 188cm figure used previously. turn_radius_m not published at 180cm - estimated from the Ripstick 96 and comparable ~106mm skis, lower confidence. rocker_percent: shallower tip/tail rocker lines than most ~106mm skis, nudged below category default. length_options (2026-08-17): radius real (evo.com), reference row's radius close (18.1 vs 18). evo's weight at 180cm (1790g) moderately close to existing (1857g, ~3.6% apart, within normal variance) - kept existing. 164, 172, 188cm weight estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 164,
+          "weight_g": 1616,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 172,
+          "weight_g": 1737,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1857,
+          "turn_radius_m": 18.1
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 1977,
+          "turn_radius_m": 20.4
+        }
+      ]
     },
     {
       "name": "Armada ARV 96 Ti",
@@ -864,15 +1248,37 @@
       "reference_length_cm": 184,
       "waist_width_mm": 96,
       "weight_g": 2100,
-      "turn_radius_m": 19,
+      "turn_radius_m": 20,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 30,
       "metal_content": "full",
       "tail_shape": "twin_tip",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-armada-arv-96-ti",
-      "verified_date": "2026-08-12",
-      "notes": "The 'Ti' variant (vs. the metal-free ARV 96) - full titanal laminate. Mellow tip/tail rocker with 6-7mm of camber underfoot - rocker_percent nudged below category default. turn_radius_m sourced at 177cm, close to the 184cm weight figure."
+      "verified_date": "2026-08-17",
+      "notes": "The 'Ti' variant (vs. the metal-free ARV 96) - full titanal laminate. Mellow tip/tail rocker with 6-7mm of camber underfoot - rocker_percent nudged below category default. turn_radius_m sourced at 177cm, close to the 184cm weight figure. Corrected 2026-08-17: turn_radius_m was 19m, which is actually the real 177cm value, not 184cm's (20m, confirmed by both evo.com and the cited Blister review; weight 2100g matches exactly at 184cm) - looks like a row mix-up. length_options: radius real at all 4 lengths; weight only real at the 184cm reference - 163, 170, 177cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 163,
+          "weight_g": 1743,
+          "turn_radius_m": 17.5
+        },
+        {
+          "length_cm": 170,
+          "weight_g": 1862,
+          "turn_radius_m": 18.5
+        },
+        {
+          "length_cm": 177,
+          "weight_g": 1981,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 184,
+          "weight_g": 2100,
+          "turn_radius_m": 20
+        }
+      ]
     },
     {
       "name": "Armada Tracer 108",
@@ -888,8 +1294,30 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-armada-tracer-108",
-      "verified_date": "2026-08-12",
-      "notes": "Titanal reinforcement underfoot and sidewall only (not a full sheet) - partial. Freeride-oriented, deeper rocker than a typical all-mountain ski at this width - rocker_percent nudged above category default."
+      "verified_date": "2026-08-17",
+      "notes": "Titanal reinforcement underfoot and sidewall only (not a full sheet) - partial. Freeride-oriented, deeper rocker than a typical all-mountain ski at this width - rocker_percent nudged above category default. length_options (2026-08-17): reference row (180cm) confirmed by 3 independent sources on both fields. 164/172cm radius is lower-confidence (aggregated across sources, not read from one single page) - worth independent re-confirmation in a future pass. 164, 172, 188cm weight estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 164,
+          "weight_g": 1523,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 172,
+          "weight_g": 1637,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1750,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 1863,
+          "turn_radius_m": 20
+        }
+      ]
     },
     {
       "name": "Faction Agent 100",
@@ -897,16 +1325,38 @@
       "model_year": "2016-2017",
       "reference_length_cm": 179,
       "waist_width_mm": 100,
-      "weight_g": 1550,
-      "turn_radius_m": 17,
+      "weight_g": 1480,
+      "turn_radius_m": 20,
       "rocker_profile": "camber_tip_rocker",
       "rocker_percent": 22,
       "metal_content": "none",
       "tail_shape": "directional",
       "source": "Blister Review / evo",
       "source_url": "https://www.evo.com/outlet/skis/faction-agent-100-2016",
-      "verified_date": "2026-08-12",
-      "notes": "Faction has since renamed this line to 'Agent 1' - kept the 'Agent 100' naming here since it's what's documented/searchable historically; a future refresh should check whether 'Agent 1' specs differ meaningfully. Paulownia/carbon core, no metal. Camber with tip rocker and a flat (not rockered) tail - camber_tip_rocker, not camber_tip_tail_rocker. weight_g and turn_radius_m are estimated (interpolated from the women's Agent 100W figure and comparable skis) - lower confidence than most entries."
+      "verified_date": "2026-08-17",
+      "notes": "Faction has since renamed this line to 'Agent 1' - kept the 'Agent 100' naming here since it's what's documented/searchable historically; a future refresh should check whether 'Agent 1' specs differ meaningfully. Paulownia/carbon core, no metal. Camber with tip rocker and a flat (not rockered) tail - camber_tip_rocker, not camber_tip_tail_rocker. weight_g and turn_radius_m are estimated (interpolated from the women's Agent 100W figure and comparable skis) - lower confidence than most entries. Corrected 2026-08-17: turn_radius_m and weight_g were both already flagged in this entry's own notes as estimated/interpolated, lower confidence. Re-fetched the exact already-cited source_url in a rendered browser (a plain-text fetch had apparently missed its real per-length table) and found real figures at the 179cm reference: turn_radius_m 20m (was estimated 17), weight_g 1480g (was estimated 1550) - upgraded both from estimated to real, same source already on file. length_options: radius real at all 4 lengths; weight only real at 179cm - 169, 174, 186cm estimated via the scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 169,
+          "weight_g": 1360,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 174,
+          "weight_g": 1420,
+          "turn_radius_m": 19
+        },
+        {
+          "length_cm": 179,
+          "weight_g": 1480,
+          "turn_radius_m": 20
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 1564,
+          "turn_radius_m": 26
+        }
+      ]
     },
     {
       "name": "Faction Prodigy 2",
@@ -922,8 +1372,8 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2017-2018-faction-prodigy-2-0",
-      "verified_date": "2026-08-12",
-      "notes": "Full poplar/beech core, no metal. turn_radius_m sourced from a newer (2026-2027) model year at 171cm, closest available reference. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Full poplar/beech core, no metal. turn_radius_m sourced from a newer (2026-2027) model year at 171cm, closest available reference. rocker_percent estimated from profile category. Note (2026-08-17): this ski has a genuine multi-radius sidecut (published as \"18/20\" front/rear, not a single number) - the schema only holds one turn_radius_m value, so the existing 16m isn't clearly \"wrong\" so much as this ski not fitting the single-radius model cleanly. Left unchanged rather than picking one of two real numbers arbitrarily. Only one length (178cm) has any published data at all, so no length_options added either way."
     },
     {
       "name": "Black Crows Corvus",
@@ -932,15 +1382,42 @@
       "reference_length_cm": 181,
       "waist_width_mm": 110,
       "weight_g": 1925,
-      "turn_radius_m": 21,
+      "turn_radius_m": 25,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
       "metal_content": "partial",
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2024-2025-black-crows-corvus",
-      "verified_date": "2026-08-12",
-      "notes": "Current version dropped from 2 full titanal sheets to 1 titanal plate - described as a 'plate' rather than an edge-to-edge sheet, so classified partial; some ambiguity here since the source doesn't fully specify coverage. weight_g interpolated between the 176cm (3700g/pair) and 183cm (3900g/pair) figures, halved."
+      "verified_date": "2026-08-17",
+      "notes": "Current version dropped from 2 full titanal sheets to 1 titanal plate - described as a 'plate' rather than an edge-to-edge sheet, so classified partial; some ambiguity here since the source doesn't fully specify coverage. weight_g interpolated between the 176cm (3700g/pair) and 183cm (3900g/pair) figures, halved. Corrected 2026-08-17: turn_radius_m was 21m - the *previous* (pre-2024-2025) generation's radius. The cited Blister review's own text confirms the 2024-2025 redesign changed the radius to a flat 25m across the whole size run (independently re-confirmed - \"up from 21 in the previous model\"), despite this entry's model_year already correctly saying \"2024-2025\". Flagging separately, NOT changed here: weight_g (1925g) - conflicting external figures turned up (~1750g vs ~2000g at 181cm from different sources) that don't resolve cleanly enough to correct with confidence; worth a dedicated look in a future pass rather than guessing between them now. length_options built off the existing (unchanged) weight_g as anchor - 169, 176, 186, 191cm weight is formula-estimated, not sourced.",
+      "length_options": [
+        {
+          "length_cm": 169,
+          "weight_g": 1738,
+          "turn_radius_m": 25
+        },
+        {
+          "length_cm": 176,
+          "weight_g": 1847,
+          "turn_radius_m": 25
+        },
+        {
+          "length_cm": 181,
+          "weight_g": 1925,
+          "turn_radius_m": 25
+        },
+        {
+          "length_cm": 186,
+          "weight_g": 2003,
+          "turn_radius_m": 25
+        },
+        {
+          "length_cm": 191,
+          "weight_g": 2081,
+          "turn_radius_m": 25
+        }
+      ]
     },
     {
       "name": "Black Crows Camox",
