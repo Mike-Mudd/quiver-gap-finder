@@ -880,6 +880,7 @@ function renderCoverageMapTable(skis, comparisonNames = new Set()) {
     .join("");
 
   return `
+    <div class="map-info-panel map-info-panel--table">${mapAxisLegendHtml()}</div>
     <table class="chart-table">
       <thead><tr><th>Ski</th><th>Year</th><th>Waist (mm)</th><th>Rocker</th><th>Temperament</th><th>Bucket</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -913,6 +914,26 @@ function renderSuggestionsMapSvg(quiverSkis, comparisonSkis) {
  * picked this" for caption wording; suggestionResult (only present for
  * the auto-suggestion case) supplies the uncovered-gap count.
  */
+/**
+ * Plain-language explanation of what the two axes/buckets mean,
+ * including their real ranges - built from WAIST_BUCKETS/STAB_BUCKETS
+ * directly so it can never drift out of sync with the actual boundaries.
+ * Shared by the on-demand info panel (see renderCoverageMapSection) and
+ * the "View as table" caption (see renderCoverageMapTable) rather than
+ * duplicated - on-chart labels stay uncluttered; this is for whoever
+ * actually goes looking for the explanation.
+ */
+function mapAxisLegendHtml() {
+  const widthParts = WAIST_BUCKETS.map((b) => `${escapeHtml(b.short)} ${b.min}–${b.max}mm`).join(" · ");
+  const feelParts = STAB_BUCKETS.map(
+    (b) => `${escapeHtml(b.short)} ${Math.round(b.min)}–${Math.round(b.max)}`
+  ).join(" · ");
+  return `
+    <p><strong>Ski width:</strong> ${widthParts}</p>
+    <p><strong>Ride feel</strong> (score out of 100): ${feelParts}</p>
+  `;
+}
+
 function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggestionResult) {
   const hasComparison = comparisonSkis.length > 0;
 
@@ -943,10 +964,13 @@ function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggest
   return `
     <section class="panel dashboard-card">
       <div class="card-header">
-        <h3>Coverage map</h3>
+        <h3>Coverage map
+          <button type="button" class="info-btn" id="map-info-toggle" aria-pressed="false" aria-label="What do the axes mean?">ⓘ</button>
+        </h3>
         <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
       </div>
       <p class="map-caption">${caption}</p>
+      <div class="map-info-panel" id="map-info-panel" hidden>${mapAxisLegendHtml()}</div>
       <div class="chart-wrap" id="map-chart-wrap">${svg}</div>
       <div class="chart-table-wrap" id="map-table-wrap" hidden>${table}</div>
       ${renderCandidatePicker()}
@@ -1087,6 +1111,14 @@ function wireCoverageMap(skis, comparisonSkis = []) {
     chartWrap.hidden = showTable;
     toggleBtn.setAttribute("aria-pressed", String(showTable));
     toggleBtn.textContent = showTable ? "View as chart" : "View as table";
+  });
+
+  const infoBtn = document.getElementById("map-info-toggle");
+  const infoPanel = document.getElementById("map-info-panel");
+  infoBtn.addEventListener("click", () => {
+    const showing = infoPanel.hidden;
+    infoPanel.hidden = !showing;
+    infoBtn.setAttribute("aria-pressed", String(showing));
   });
 
   chartWrap.querySelectorAll(".ski-mark").forEach((mark) => {

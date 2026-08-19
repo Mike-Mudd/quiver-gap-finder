@@ -385,6 +385,67 @@ body {
   color: var(--color-muted);
 }
 
+/* Sits inline right after the "Coverage map" text, not off in the
+   card-header's flex gap - visually part of the title, since that's
+   what it's explaining. */
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-left: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-bg);
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.info-btn:hover,
+.info-btn[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* On-demand only (see #map-info-toggle) - the whole point is this
+   doesn't compete with the chart by default. The --table variant sits
+   permanently above the table view instead, which is already the
+   "more detail" mode, so no toggle needed there. */
+.map-info-panel {
+  margin: 0 0 0.9rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.map-info-panel p {
+  margin: 0.3rem 0;
+}
+
+.map-info-panel p:first-child {
+  margin-top: 0;
+}
+
+.map-info-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.map-info-panel strong {
+  color: var(--color-text);
+}
+
+.map-info-panel--table {
+  margin-bottom: 0.75rem;
+}
+
 .chart-wrap {
   width: 100%;
 }
