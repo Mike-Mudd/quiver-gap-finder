@@ -947,6 +947,9 @@ function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggest
         <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
       </div>
       <p class="map-caption">${caption}</p>
+      <p class="map-axis-key">
+        Left–right = ski width, narrow to wide. Bottom–top = ride feel, playful/light to damp/stable at speed.
+      </p>
       <div class="chart-wrap" id="map-chart-wrap">${svg}</div>
       <div class="chart-table-wrap" id="map-table-wrap" hidden>${table}</div>
       ${renderCandidatePicker()}
