@@ -489,15 +489,32 @@
       "reference_length_cm": 180,
       "waist_width_mm": 97,
       "weight_g": 1900,
-      "turn_radius_m": 17,
+      "turn_radius_m": 19.1,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 25,
       "metal_content": "partial",
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2018-2019-atomic-vantage-97-ti/2",
-      "verified_date": "2026-08-12",
-      "notes": "'Titanium Tank Mesh' is an explicit mesh, not a full sheet - partial. Published tip/camber/tail split 15/75/10% - rocker_percent = 15+10."
+      "verified_date": "2026-08-17",
+      "notes": "'Titanium Tank Mesh' is an explicit mesh, not a full sheet - partial. Published tip/camber/tail split 15/75/10% - rocker_percent = 15+10. Corrected 2026-08-17: turn_radius_m was 17m; evo.com's full per-length table gives 19.1m at 180cm (weight 1900g at that same length matches this entry's existing reference exactly, confirming the same ski/generation). length_options: 180cm weight is real; 172cm and 188cm weight not published anywhere checked, estimated via the SOURCING.md scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 172,
+          "weight_g": 1777,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1900,
+          "turn_radius_m": 19.1
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 2023,
+          "turn_radius_m": 20.1
+        }
+      ]
     },
     {
       "name": "Atomic Maverick 95 Ti",
@@ -949,15 +966,37 @@
       "reference_length_cm": 180,
       "waist_width_mm": 96,
       "weight_g": 1950,
-      "turn_radius_m": 17,
+      "turn_radius_m": 18,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "partial",
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-fischer-ranger-96",
-      "verified_date": "2026-08-12",
-      "notes": "Titanal split in front of/behind the binding area (not a full sheet) - partial, confirmed by source. turn_radius_m not published for this length - estimated from comparable ~96mm skis, lower confidence. rocker_percent estimated from profile category."
+      "verified_date": "2026-08-17",
+      "notes": "Titanal split in front of/behind the binding area (not a full sheet) - partial, confirmed by source. turn_radius_m not published for this length - estimated from comparable ~96mm skis, lower confidence. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was already flagged in this entry's own notes as an estimate (17m, \"not published for this length\") - replaced with the real published figure (18m) found via evo.com's full per-length table, cross-confirming the 180cm reference weight (1950g) exactly. length_options: 173cm and 180cm weight are real (evo.com); 159cm and 187cm weight not published anywhere checked, estimated via the SOURCING.md scaling formula.",
+      "length_options": [
+        {
+          "length_cm": 159,
+          "weight_g": 1618,
+          "turn_radius_m": 15
+        },
+        {
+          "length_cm": 173,
+          "weight_g": 1850,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 1950,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 187,
+          "weight_g": 2061,
+          "turn_radius_m": 19
+        }
+      ]
     },
     {
       "name": "Fischer Ranger 108",
