@@ -149,41 +149,67 @@ moved from a more twin-ish shape to a more directional one in its
 
 ## Recording length options (per-length weight/turn radius)
 
+**As of 2026-08-17, this is a mechanical-first, formula-fallback
+process, not full research per ski.** The original all-sourced version
+of this section required a real, cross-checked number for every
+length - reasonable in principle, but two batches of real-world
+research both found the same wall: turn radius is reliably published
+per length on evo.com/skis.com almost every time, but *weight* usually
+isn't - most listings give weight only at one length (often, but not
+always, matching this dataset's `reference_length_cm`), even when the
+full radius table is right there. Requiring a sourced weight at every
+length was quietly capping how much of the dataset could ever get
+`length_options` at all, not just making it slower. See "Weight
+scaling formula" below for the fallback this enables, and why it tests
+out safe to use for weight specifically (and *not* for turn radius).
+
 1. Check evo.com and skis.com first (see "Practical note on JS-rendered
    size tables" above) — both have reliably exposed a full, static
    per-length table for every ski tried so far. Fall back to the
    manufacturer's own page, or another retailer, only if neither has
-   the model.
-2. Record every length listed, with that length's weight and turn
-   radius exactly as published — no interpolation, no estimating a
-   length the source doesn't list.
-3. **Cross-check at least one non-reference length against a second,
-   independent source** before trusting the table — don't record a
-   whole size run off a single source. This is a step down from
-   Blister-measured data already (see "Source priority"); a single
-   unverified source compounds that.
-4. **Sanity-check the weight column against a per-pair mislabel.**
+   the model. If neither has *any* listing for the model at all
+   (discontinued/renamed), skip it and say so - don't force it.
+2. Record every length listed, with its **real published turn radius**
+   - no interpolation, no estimating a length the source doesn't list.
+   Record real weight too, everywhere it's actually published.
+3. **For any length where the source has real weight but the row
+   doesn't match `reference_length_cm`, cross-check it against a
+   second independent source** before trusting it - don't record a
+   real (non-formula) weight figure off a single source. This is a
+   step down from Blister-measured data already (see "Source
+   priority"); a single unverified source compounds that. (This
+   doesn't apply to formula-estimated weight - there's nothing to
+   cross-check, it's already flagged as an estimate.)
+4. **Sanity-check any real weight figure against a per-pair mislabel.**
    Some sites label a per-pair figure as if it were per-ski without
    saying so — caught once already: a "Ski Weight" column turned out to
    be per-pair because halving it landed exactly on an already-known
    per-ski figure. If a sourced weight is roughly double what's
-   plausible for a ski that size (rough gut-check: compare against
-   similar skis already in the dataset), treat it as probably per-pair,
-   halve it, and say so in `notes` - or find a source that states the
-   unit unambiguously.
-5. One row should match the entry's existing `reference_length_cm`
+   plausible for a ski that size, treat it as probably per-pair, halve
+   it, and say so in `notes` - or find a source that states the unit
+   unambiguously.
+5. **For any length where turn radius is real but weight isn't
+   published, estimate weight with the scaling formula below** rather
+   than leaving that length out - flag it in `notes` as estimated, not
+   sourced. **Never estimate turn radius** with a formula - the
+   per-ski scaling rate varies too much (see below) for a universal
+   number to be trustworthy, and unlike weight it doesn't have the
+   coverage-space padding to absorb the error. If turn radius genuinely
+   isn't published for a length, leave that length out of the array
+   entirely.
+6. One row should match the entry's existing `reference_length_cm`
    exactly. Don't overwrite that row's `weight_g`/`turn_radius_m` with
    the new source's number even if it differs slightly - the existing
    top-level fields keep whatever source they already have (often
    Blister-measured); this array exists to add the *other* lengths, not
    to re-litigate the one already sourced.
-6. **If that row doesn't match** (not just a rounding difference, but a
+7. **If that row doesn't match** (not just a rounding difference, but a
    real disagreement), treat it as a red flag on the *entire* table, not
    just that one row - it usually means the source is describing a
    different model year or variant than the one already recorded. Don't
    use the rest of the array without resolving why it disagrees; note
    the discrepancy plainly rather than silently trusting the other rows.
-7. Run the monotonicity check below - within one ski, weight and turn
+8. Run the monotonicity check below - within one ski, weight and turn
    radius should both increase as length increases. A break in that
    pattern almost always means a transcription error (wrong row, mixed-
    up lengths), not a real property of the ski.
@@ -202,7 +228,67 @@ moved from a more twin-ish shape to a more directional one in its
                print(s['name'], 'turn radius decreasing:', a, b)
    "
    ```
-8. Set `verified_date` as usual.
+9. Set `verified_date` as usual.
+
+## Weight scaling formula (fallback for missing per-length weight)
+
+`predicted_weight_g = reference_weight_g * (1 + rate * (target_length_cm - reference_length_cm))`
+
+`rate` is the average of `(weight at longest known length - weight at
+shortest known length) / length difference / reference weight`, across
+every ski in the dataset that already has real (non-estimated)
+`length_options` covering more than one length. As of 2026-08-16, with
+7 such skis, `rate = 0.00810` (0.810%/cm). **Recompute this whenever a
+new ski's real length_options are added** - the more real data points
+feed it, the more the average reflects the actual dataset rather than
+whichever 7 skis happened to be sourced first:
+
+```
+python -c "
+import json
+d = json.load(open('data/skis.json'))
+rates = []
+for s in d['skis']:
+    opts = s.get('length_options')
+    if not opts or len(opts) < 2: continue
+    # Only count skis whose length_options are real, not formula-estimated -
+    # check notes for '(estimated' before including a ski here by hand.
+    ordered = sorted(opts, key=lambda o: o['length_cm'])
+    first, last = ordered[0], ordered[-1]
+    rate = (last['weight_g'] - first['weight_g']) / (last['length_cm'] - first['length_cm']) / s['weight_g']
+    rates.append(rate)
+print('rate =', round(sum(rates)/len(rates), 5), 'over', len(rates), 'skis')
+"
+```
+
+**Why weight and not turn radius:** per-ski weight scaling rates
+cluster fairly tightly (0.586%-1.089%/cm across the 7 calibration
+skis) — physically, more length is roughly just more material, a
+fairly consistent relationship regardless of ski design. Turn radius
+scaling rates don't (0.050-0.214 m/cm, over 4x spread) — it's a
+sidecut design choice each brand makes differently, not a simple
+consequence of length, so there's no safe universal rate to fall back
+on.
+
+**Validated before adopting**, not just assumed to work: leave-one-out
+testing across the 7 calibration skis (predict each one's real known
+weights using a rate calibrated on the other 6) averaged ~50g error
+(~2.5-3%), and out of 21 held-out predictions only 1 would have landed
+in a different stability-score band than the real value - and that one
+was on the boundary edge. A genuinely blind test (predicting a brand-
+new ski's real, independently-scraped weight at a non-reference
+length, using a rate calibrated on none of its own data) came in at
+11g error (0.6%). Re-run this kind of check periodically as more real
+data accumulates, rather than assuming the formula stays accurate
+forever without re-checking.
+
+**Marking an estimate:** append something like `"weight_g at 173cm
+estimated via the SOURCING.md scaling formula (real weight not
+published for this length), not sourced"` to the ski's `notes`. There's
+no separate schema field for this - consistent with how every other
+estimate in this dataset (interpolated `reference_length_cm`, `rocker_percent`
+defaults) is flagged in `notes` rather than a dedicated confidence
+field.
 
 ## Adding a new ski
 
