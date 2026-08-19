@@ -668,10 +668,7 @@ function getMapGeometry() {
   const compact = window.innerWidth <= MAP_COMPACT_BREAKPOINT_PX;
   const W = compact ? 240 : 640;
   const H = compact ? 320 : 380;
-  // bottom is taller than it needs to be for a single label line - see
-  // renderMapChrome, which draws the mm range as a second line under
-  // each X-axis bucket name.
-  const MARGIN = compact ? { top: 10, right: 8, bottom: 34, left: 8 } : { top: 16, right: 16, bottom: 42, left: 16 };
+  const MARGIN = compact ? { top: 10, right: 8, bottom: 22, left: 8 } : { top: 16, right: 16, bottom: 30, left: 16 };
   return {
     compact,
     W,
@@ -738,45 +735,25 @@ function renderMapChrome(geo) {
   svg += `<line x1="${plotLeft}" y1="${hy1}" x2="${plotRight}" y2="${hy1}" class="map-gridline" />`;
   svg += `<line x1="${plotLeft}" y1="${hy2}" x2="${plotRight}" y2="${hy2}" class="map-gridline" />`;
 
-  // X-axis zone labels, centered under each waist bucket, with the
-  // actual mm range as a second line underneath - lets someone match
-  // their own ski's known waist width straight to a zone without
-  // already knowing what "narrow" is supposed to mean. Compact mode
+  // X-axis zone labels, centered under each waist bucket. Compact mode
   // reuses the same short labels already defined on WAIST_BUCKETS
   // (WAIST_BUCKETS[].short) rather than inventing new abbreviations.
   const xLabels = geo.compact ? WAIST_BUCKETS.map((b) => b.short) : ["Narrow", "All-mountain", "Wide / powder"];
   const xCenters = [(WAIST_MIN + 89) / 2, (90 + 109) / 2, (110 + WAIST_MAX) / 2];
-  const xLabelY = plotBottom + (geo.compact ? 12 : 14);
-  const xRangeY = plotBottom + (geo.compact ? 23 : 27);
   xLabels.forEach((label, i) => {
     const x = mapX(xCenters[i], geo);
-    const bucket = WAIST_BUCKETS[i];
-    svg += `<text x="${x.toFixed(1)}" y="${xLabelY.toFixed(1)}" text-anchor="middle" class="map-axis-label">${escapeHtml(
+    svg += `<text x="${x.toFixed(1)}" y="${geo.H - (geo.compact ? 7 : 10)}" text-anchor="middle" class="map-axis-label">${escapeHtml(
       label
     )}</text>`;
-    svg += `<text x="${x.toFixed(1)}" y="${xRangeY.toFixed(
-      1
-    )}" text-anchor="middle" class="map-axis-range">${escapeHtml(`${bucket.min}–${bucket.max}mm`)}</text>`;
   });
 
-  // Y-axis zone labels, top-left of each stability band (damp at top),
-  // with the band's stability-score range as a second line underneath -
-  // same idea as the X-axis mm ranges above. STAB_BUCKETS is ascending
-  // (playful -> damp); yLabels is drawn damp-first (top of chart), so
-  // reverse a copy to keep the two aligned.
+  // Y-axis zone labels, top-left of each stability band (damp at top).
   const yLabels = geo.compact ? ["Damp", "Balanced", "Playful"] : ["Damp / charging", "Balanced", "Playful / light"];
-  const yBucketsDesc = [...STAB_BUCKETS].reverse();
   const bandTopY = [plotTop, hy2, hy1];
   yLabels.forEach((label, i) => {
-    const bucket = yBucketsDesc[i];
-    const labelX = plotLeft + (geo.compact ? 6 : 8);
-    const labelY = bandTopY[i] + (geo.compact ? 13 : 16);
-    svg += `<text x="${labelX.toFixed(1)}" y="${labelY.toFixed(
+    svg += `<text x="${(plotLeft + (geo.compact ? 6 : 8)).toFixed(1)}" y="${(bandTopY[i] + (geo.compact ? 13 : 16)).toFixed(
       1
     )}" text-anchor="start" class="map-axis-label map-axis-label-y">${escapeHtml(label)}</text>`;
-    svg += `<text x="${labelX.toFixed(1)}" y="${(labelY + (geo.compact ? 10 : 11)).toFixed(
-      1
-    )}" text-anchor="start" class="map-axis-range">${escapeHtml(`${Math.round(bucket.min)}–${Math.round(bucket.max)}`)}</text>`;
   });
 
   return svg;

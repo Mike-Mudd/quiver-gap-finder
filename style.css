@@ -385,7 +385,6 @@ body {
   color: var(--color-muted);
 }
 
-
 .chart-wrap {
   width: 100%;
 }
@@ -435,12 +434,6 @@ body {
 
 .map-axis-label-y {
   font-size: 10.5px;
-}
-
-.map-axis-range {
-  fill: var(--chart-muted);
-  font-size: 9px;
-  opacity: 0.7;
 }
 
 .ski-region {
