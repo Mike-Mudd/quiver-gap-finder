@@ -103,46 +103,6 @@ const resultsEl = document.getElementById("results");
 const tooltipEl = document.getElementById("chart-tooltip");
 
 /* ------------------------------------------------------------------ *
- *  TEMPORARY: on-screen debug log for diagnosing the mobile chart-
- *  tooltip "flash on tap" bug - only active with ?debug=1 in the URL,
- *  completely inert (debugLog is a no-op, no DOM node ever created)
- *  otherwise. Every call site is tagged "debug:" in a nearby comment -
- *  safe to strip all of them plus this block once the bug is
- *  understood; nothing here changes real behavior, only observes it.
- * ------------------------------------------------------------------ */
-const DEBUG_MODE = new URLSearchParams(window.location.search).has("debug");
-let debugLogEl = null;
-const debugLogLines = [];
-
-function debugLog(msg) {
-  if (!DEBUG_MODE) return;
-  const t = performance.now().toFixed(1);
-  debugLogLines.push(`${t}ms  ${msg}`);
-  if (debugLogLines.length > 30) debugLogLines.shift();
-  if (!debugLogEl) {
-    debugLogEl = document.createElement("div");
-    debugLogEl.id = "debug-log";
-    debugLogEl.style.cssText = [
-      "position:fixed",
-      "bottom:0",
-      "left:0",
-      "right:0",
-      "max-height:45vh",
-      "overflow-y:auto",
-      "background:rgba(0,0,0,0.92)",
-      "color:#3f3",
-      "font:10px/1.4 monospace",
-      "padding:6px 8px",
-      "z-index:99999",
-      "white-space:pre-wrap",
-      "pointer-events:none",
-    ].join(";");
-    document.body.appendChild(debugLogEl);
-  }
-  debugLogEl.textContent = debugLogLines.join("\n");
-}
-
-/* ------------------------------------------------------------------ *
  *  Init
  * ------------------------------------------------------------------ */
 
@@ -180,7 +140,6 @@ async function init() {
   // up to window - see checkTooltipAnchorMoved for the rest of the
   // reasoning.
   window.addEventListener("scroll", checkTooltipAnchorMoved, { capture: true, passive: true });
-  if (DEBUG_MODE) window.addEventListener("scroll", debugRawScroll, { capture: true, passive: true }); // debug
 
   findGapsBtn.addEventListener("click", onFindGaps);
 }
@@ -1176,30 +1135,6 @@ function wireCoverageMap(skis, comparisonSkis = []) {
     mark.addEventListener("focus", show);
     mark.addEventListener("pointerleave", hideTooltip);
     mark.addEventListener("blur", hideTooltip);
-
-    // debug: purely observational, doesn't touch real show/hide wiring
-    // above - see DEBUG_MODE/debugLog near the top of the file.
-    if (DEBUG_MODE) {
-      [
-        "pointerenter",
-        "pointerdown",
-        "pointerup",
-        "pointercancel",
-        "pointerleave",
-        "focus",
-        "blur",
-        "click",
-        "mouseover",
-        "mousedown",
-        "mouseup",
-        "mouseleave",
-        "touchstart",
-        "touchend",
-        "touchcancel",
-      ].forEach((type) => {
-        mark.addEventListener(type, () => debugLog(`${ski.name}: ${type}`));
-      });
-    }
   });
 
   const candidateSearchInput = document.getElementById("candidate-search");
@@ -1572,7 +1507,6 @@ const TOOLTIP_HIDE_DELAY_MS = 100;
 let tooltipHideTimer = null;
 
 function showTooltip(targetEl, contentNode) {
-  debugLog(`showTooltip() - was hidden=${tooltipEl.hidden}`); // debug
   if (tooltipHideTimer) {
     clearTimeout(tooltipHideTimer);
     tooltipHideTimer = null;
@@ -1585,13 +1519,6 @@ function showTooltip(targetEl, contentNode) {
   tooltipAnchorRect = targetEl.getBoundingClientRect();
 }
 
-// debug: raw scroll events regardless of tooltip state, so timing
-// relative to tap events is visible even when checkTooltipAnchorMoved's
-// early return would otherwise hide that a scroll happened at all.
-function debugRawScroll() {
-  debugLog(`raw scroll event (tooltip hidden=${tooltipEl.hidden})`);
-}
-
 /** Wired once, on window, capture phase (see init()) - catches page
  * scroll and the chart's own horizontal-scroll container alike, since
  * "scroll" doesn't bubble but capture-phase listeners still see it. */
@@ -1600,7 +1527,6 @@ function checkTooltipAnchorMoved() {
   const current = tooltipAnchorEl.getBoundingClientRect();
   const dx = Math.abs(current.left - tooltipAnchorRect.left);
   const dy = Math.abs(current.top - tooltipAnchorRect.top);
-  debugLog(`scroll check: dx=${dx.toFixed(1)} dy=${dy.toFixed(1)} (closes at >${TOOLTIP_MOVE_CLOSE_PX})`); // debug
   if (dx > TOOLTIP_MOVE_CLOSE_PX || dy > TOOLTIP_MOVE_CLOSE_PX) hideTooltip();
 }
 
@@ -1626,12 +1552,9 @@ function hideTooltip() {
   // resetting the timer instead of counting down. Only showTooltip()
   // should be able to cancel a pending hide now.
   if (tooltipHideTimer) {
-    debugLog(`hideTooltip() called (already pending, ignored)`); // debug
     return;
   }
-  debugLog(`hideTooltip() called (currently hidden=${tooltipEl.hidden}) - deferring ${TOOLTIP_HIDE_DELAY_MS}ms`); // debug
   tooltipHideTimer = setTimeout(() => {
-    debugLog("hideTooltip() timer fired - actually hiding now"); // debug
     tooltipEl.hidden = true;
     tooltipAnchorEl = null;
     tooltipAnchorRect = null;
