@@ -759,13 +759,24 @@ function renderMapChrome(geo) {
     )}" text-anchor="middle" class="map-axis-range">${escapeHtml(`${bucket.min}–${bucket.max}mm`)}</text>`;
   });
 
-  // Y-axis zone labels, top-left of each stability band (damp at top).
+  // Y-axis zone labels, top-left of each stability band (damp at top),
+  // with the band's stability-score range as a second line underneath -
+  // same idea as the X-axis mm ranges above. STAB_BUCKETS is ascending
+  // (playful -> damp); yLabels is drawn damp-first (top of chart), so
+  // reverse a copy to keep the two aligned.
   const yLabels = geo.compact ? ["Damp", "Balanced", "Playful"] : ["Damp / charging", "Balanced", "Playful / light"];
+  const yBucketsDesc = [...STAB_BUCKETS].reverse();
   const bandTopY = [plotTop, hy2, hy1];
   yLabels.forEach((label, i) => {
-    svg += `<text x="${(plotLeft + (geo.compact ? 6 : 8)).toFixed(1)}" y="${(bandTopY[i] + (geo.compact ? 13 : 16)).toFixed(
+    const bucket = yBucketsDesc[i];
+    const labelX = plotLeft + (geo.compact ? 6 : 8);
+    const labelY = bandTopY[i] + (geo.compact ? 13 : 16);
+    svg += `<text x="${labelX.toFixed(1)}" y="${labelY.toFixed(
       1
     )}" text-anchor="start" class="map-axis-label map-axis-label-y">${escapeHtml(label)}</text>`;
+    svg += `<text x="${labelX.toFixed(1)}" y="${(labelY + (geo.compact ? 10 : 11)).toFixed(
+      1
+    )}" text-anchor="start" class="map-axis-range">${escapeHtml(`${Math.round(bucket.min)}–${Math.round(bucket.max)}`)}</text>`;
   });
 
   return svg;
