@@ -753,8 +753,15 @@ function renderMapChrome(geo) {
     )}</text>`;
   });
 
-  // Y-axis zone labels, top-left of each stability band (damp at top).
-  const yLabels = geo.compact ? ["Damp", "Balanced", "Playful"] : ["Damp / charging", "Balanced", "Playful / light"];
+  // Y-axis zone labels, top-left of each stability band (charging at
+  // top). Each appends "feel" so the axis reads as a self-explanatory
+  // spectrum ("Playful feel" -> "Charging feel"), same way the X-axis
+  // reads as one from its own labels ("Narrow" -> "Wide") - no separate
+  // axis title needed. Deliberately says "Charging" here rather than
+  // "Damp" (still used elsewhere, e.g. temperamentPhrase's "Leans
+  // damp/charging") - "damp" reads as wet snow out of ski-jargon
+  // context, where "charging" doesn't need that context to land.
+  const yLabels = ["Charging feel", "Balanced feel", "Playful feel"];
   const bandTopY = [plotTop, hy2, hy1];
   yLabels.forEach((label, i) => {
     svg += `<text x="${(plotLeft + (geo.compact ? 6 : 8)).toFixed(1)}" y="${(bandTopY[i] + (geo.compact ? 13 : 16)).toFixed(
