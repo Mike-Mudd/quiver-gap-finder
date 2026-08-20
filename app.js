@@ -21,6 +21,13 @@ const STAB_RADIUS = 12; // stability points (0-100 scale)
 const WEIGHT_MIN = 1500;
 const WEIGHT_MAX = 2360;
 
+// Turn-radius range used to normalize the Trees/Powder/Speed interest
+// bias below (see INTERESTS). Spans the tightest (Rossignol Forza 70
+// V-Ti, 14m) to widest-arcing (Black Crows Corvus, 25m) turn radius in
+// the sourced dataset.
+const RADIUS_MIN = 14;
+const RADIUS_MAX = 25;
+
 // Contribution of metal content to the stability score (0-1 scale).
 const METAL_SCORE = { none: 0, partial: 0.5, full: 1 };
 
@@ -90,6 +97,15 @@ let quiver = []; // array of ski objects, max MAX_QUIVER_SIZE
 let candidateSkis = [];
 const MAX_CANDIDATES = 3;
 
+// Optional "lean toward" interest (see INTERESTS below) - one of
+// INTERESTS[].key or null for "no lean." Single-select: Trees and Speed
+// pull in opposite directions (short/light vs. long/heavy), so letting
+// both be active at once would muddy the bias with no clean way to
+// combine them. Persists across quiver/candidate changes like quiver
+// does, until the user picks a different chip or clears it - not reset
+// by onFindGaps.
+let selectedInterest = null;
+
 /* ------------------------------------------------------------------ *
  *  DOM references
  * ------------------------------------------------------------------ */
@@ -142,6 +158,25 @@ async function init() {
   window.addEventListener("scroll", checkTooltipAnchorMoved, { capture: true, passive: true });
 
   findGapsBtn.addEventListener("click", onFindGaps);
+  wireInterestPicker();
+}
+
+/** Single-select "lean toward" chips (see selectedInterest) - clicking
+ * the already-active chip clears it back to "no lean," same toggle
+ * pattern as the coverage map's info/table buttons. Lives in the
+ * static index.html markup (unlike quiver/results), so it's wired once
+ * here rather than re-wired on every render - live-updates results in
+ * place via refreshResultsIfShown, same as a length picker change. */
+function wireInterestPicker() {
+  const chips = document.querySelectorAll(".interest-chip");
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const key = chip.dataset.interest;
+      selectedInterest = selectedInterest === key ? null : key;
+      chips.forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.interest === selectedInterest)));
+      refreshResultsIfShown();
+    });
+  });
 }
 
 /* ------------------------------------------------------------------ *
@@ -344,6 +379,81 @@ function rectsOverlap(a, b) {
 }
 
 /* ------------------------------------------------------------------ *
+ *  Interest bias — "Trees / Powder / Speed" (see selectedInterest,
+ *  renderInterestPicker)
+ *
+ *  Not a new axis and not sourced data: each affinity score is a 0-1
+ *  lean built entirely from specs already in every ski's record (waist
+ *  width, turn radius, rocker, weight, and the existing stability
+ *  score). It only nudges *which* already-qualifying ski wins a
+ *  gap-bucket tiebreak (see bucketFitDistance) - it never changes which
+ *  buckets count as gaps or lets a non-fitting ski into the running.
+ *
+ *  "Park" deliberately isn't included here - it depends on twin-tip
+ *  construction and mount point, neither of which exists in the
+ *  dataset, so there's no honest way to derive it (same reasoning that
+ *  ruled out "stiff" for the Y-axis wording - see git history).
+ * ------------------------------------------------------------------ */
+
+function normalize01(value, min, max) {
+  return clamp((value - min) / (max - min), 0, 1);
+}
+
+const INTERESTS = [
+  {
+    key: "trees",
+    label: "Trees",
+    // Quick, easy pivots: short turn radius + more rocker + lighter
+    // weight. Uses effectiveSpecs so a length change (see the length
+    // picker) shifts the lean too, same as every other length-aware
+    // number in the app.
+    affinity(ski) {
+      const specs = effectiveSpecs(ski);
+      const radius = normalize01(specs.turn_radius_m ?? RADIUS_MAX, RADIUS_MIN, RADIUS_MAX);
+      const rocker = rockerPercent(ski) / 100;
+      const weight = normalize01(specs.weight_g, WEIGHT_MIN, WEIGHT_MAX);
+      return (1 - radius) * 0.5 + rocker * 0.3 + (1 - weight) * 0.2;
+    },
+  },
+  {
+    key: "powder",
+    label: "Powder",
+    // Float and easy surfacing: wide waist + more rocker.
+    affinity(ski) {
+      const waist = normalize01(ski.waist_width_mm, WAIST_MIN, WAIST_MAX);
+      const rocker = rockerPercent(ski) / 100;
+      return waist * 0.6 + rocker * 0.4;
+    },
+  },
+  {
+    key: "speed",
+    label: "Speed",
+    // Planted at pace: reuses the existing damp/charging stability
+    // score (heavier, more metal, less rocker), plus a longer turn
+    // radius for wide-arcing turns at speed.
+    affinity(ski) {
+      const specs = effectiveSpecs(ski);
+      const stab = stabilityScore(ski) / 100;
+      const radius = normalize01(specs.turn_radius_m ?? RADIUS_MIN, RADIUS_MIN, RADIUS_MAX);
+      return stab * 0.7 + radius * 0.3;
+    },
+  },
+];
+
+function interestAffinity(ski, interestKey) {
+  const interest = INTERESTS.find((i) => i.key === interestKey);
+  return interest ? interest.affinity(ski) : 0;
+}
+
+// How much a full-affinity (1.0) match can pull a ski's bucketFitDistance
+// closer to "best pick." Distances are normalized fractions of each
+// axis span (see bucketFitDistance) and stay small for anything that
+// overlaps a bucket at all - 0.15 is enough to flip a close tiebreak
+// toward the interest-matching ski without overriding a genuinely
+// better-centered one for the bucket itself.
+const INTEREST_BIAS_WEIGHT = 0.15;
+
+/* ------------------------------------------------------------------ *
  *  Temperament display
  *
  *  The underlying 0-100 number (computed by stabilityScore) is never
@@ -476,7 +586,7 @@ function bucketCenter(bucket) {
  * because of its raw units). Shared by both the per-bucket suggestion
  * list (bullets/tooltips) and the map's cross-bucket ranking below.
  */
-function bucketFitDistance(ski, waistBucket, stabBucket) {
+function bucketFitDistance(ski, waistBucket, stabBucket, interestKey = null) {
   const region = coverageRegion(ski);
   const overlaps =
     rectsOverlap({ xMin: region.xMin, xMax: region.xMax }, waistBucket) &&
@@ -485,13 +595,23 @@ function bucketFitDistance(ski, waistBucket, stabBucket) {
 
   const dx = (ski.waist_width_mm - bucketCenter(waistBucket)) / (WAIST_MAX - WAIST_MIN);
   const dy = (region.stab - bucketCenter(stabBucket)) / (STAB_MAX - STAB_MIN);
-  return Math.sqrt(dx * dx + dy * dy);
+  let distance = Math.sqrt(dx * dx + dy * dy);
+
+  // Tiebreak only, not a filter (see INTERESTS above) - only reachable
+  // once a ski has already passed the overlap check, so this can never
+  // pull a non-fitting ski into the running, only reorder among ones
+  // that already qualify.
+  if (interestKey) {
+    distance -= interestAffinity(ski, interestKey) * INTEREST_BIAS_WEIGHT;
+  }
+
+  return distance;
 }
 
-function suggestSkisForBucket(waistBucket, stabBucket, quiverNames, limit = 2) {
+function suggestSkisForBucket(waistBucket, stabBucket, quiverNames, limit = 2, interestKey = null) {
   return allSkis
     .filter((ski) => !quiverNames.has(ski.name))
-    .map((ski) => ({ ski, distance: bucketFitDistance(ski, waistBucket, stabBucket) }))
+    .map((ski) => ({ ski, distance: bucketFitDistance(ski, waistBucket, stabBucket, interestKey) }))
     .filter((c) => c.distance !== null)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, limit)
@@ -536,7 +656,7 @@ function suggestionPhrase(suggestions) {
  * genuinely doesn't have a fit for what's left - surfaced to the
  * caller as `uncoveredCount` rather than hidden).
  */
-function selectTopSuggestionsForMap(gaps, quiverNames) {
+function selectTopSuggestionsForMap(gaps, quiverNames, interestKey = null) {
   const remaining = new Set(gaps);
   const suggestions = [];
   const used = new Set();
@@ -556,7 +676,7 @@ function selectTopSuggestionsForMap(gaps, quiverNames) {
       const covers = new Set();
       let totalDistance = 0;
       for (const cell of remaining) {
-        const distance = bucketFitDistance(ski, cell.waistBucket, cell.stabBucket);
+        const distance = bucketFitDistance(ski, cell.waistBucket, cell.stabBucket, interestKey);
         if (distance !== null) {
           covers.add(cell);
           totalDistance += distance;
@@ -621,7 +741,7 @@ function renderDashboard(grid, skis) {
   let gapSuggestions = [];
   let suggestionResult = null;
   if (gaps.length > 0) {
-    suggestionResult = selectTopSuggestionsForMap(gaps, quiverNames);
+    suggestionResult = selectTopSuggestionsForMap(gaps, quiverNames, selectedInterest);
     gapSuggestions = suggestionResult.suggestions;
   }
 
@@ -643,7 +763,7 @@ function renderDashboard(grid, skis) {
     renderConditionCardsSection(grid, skis),
   ];
 
-  sections.push(renderDetailsSection(gaps, redundant, quiverNames));
+  sections.push(renderDetailsSection(gaps, redundant, quiverNames, selectedInterest));
 
   resultsEl.innerHTML = sections.join("\n");
 
@@ -960,8 +1080,10 @@ function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggest
             uncoveredCount === 1 ? "it" : "them"
           }.`
         : "";
+    const interestMeta = selectedInterest ? INTERESTS.find((i) => i.key === selectedInterest) : null;
+    const interestNote = interestMeta ? ` Leaning toward ${escapeHtml(interestMeta.label)}.` : "";
     caption = `Blue is your quiver. Red (${comparisonSkis.length}) is the smallest set of
-        catalog skis that covers your gaps with the least overlap.${uncoveredNote}`;
+        catalog skis that covers your gaps with the least overlap.${uncoveredNote}${interestNote}`;
   } else {
     caption = `Each dot is a ski. The shaded box is the terrain/temperament range it covers —
         darker overlap means more coverage. Tap a dot for details.`;
@@ -1414,13 +1536,13 @@ function renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions) {
 
 /* ---- Collapsible plain-language detail ------------------------------ */
 
-function renderDetailsSection(gaps, redundant, quiverNames) {
+function renderDetailsSection(gaps, redundant, quiverNames, interestKey = null) {
   const gapItems =
     gaps.length === 0
       ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No gaps — every bucket has at least one ski covering it.</span></li>`
       : gaps
           .map((cell) => {
-            const suggestions = suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames);
+            const suggestions = suggestSkisForBucket(cell.waistBucket, cell.stabBucket, quiverNames, 2, interestKey);
             return `<li class="result-item gap"><span class="status-icon status-critical" aria-hidden="true">✕</span><span>No coverage for <strong>${escapeHtml(
               bucketLabel(cell)
             )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}. <span class="result-suggestion">${suggestionPhrase(
