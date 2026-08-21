@@ -164,12 +164,14 @@ body {
   cursor: pointer;
   font-size: 0.8rem;
   border-bottom: 1px solid rgba(36,22,26,0.09);
-  transition: color 0.16s var(--ease-out-expo), padding-left 0.16s var(--ease-out-expo);
+  /* transform, not padding — sliding the row via padding relayouts the
+     whole list on every hover */
+  transition: color 0.16s var(--ease-out-expo), transform 0.16s var(--ease-out-expo);
 }
-.results li:hover, .results li[data-active="true"] { color: var(--accent); padding-left: 0.5rem; }
+.results li:hover, .results li[data-active="true"] { color: var(--accent); transform: translateX(5px); }
 .results li .spec { font-size: 0.6875rem; letter-spacing: 0.1em; color: rgba(36,22,26,0.74); white-space: nowrap; }
 .results li.empty { cursor: default; color: rgba(36,22,26,0.74); }
-.results li.empty:hover { color: rgba(36,22,26,0.74); padding-left: 0.15rem; }
+.results li.empty:hover { color: rgba(36,22,26,0.74); transform: none; }
 
 .quiver { list-style: none; display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; }
 .quiver:not(:empty) { margin-top: 0.9rem; }
