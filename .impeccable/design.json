@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-20T23:00:00Z",
+  "title": "Design System: Quiver Gap Finder",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Instrument Blue",
+        "canonical": "#2a78d6",
+        "tonalRamp": ["#0f243e", "#1c4373", "#2860a4", "#3a7ecf", "#6b9edb", "#98bce6", "#c1d7f0", "#eaf2fa"]
+      },
+      "primary-deep": {
+        "role": "primary",
+        "displayName": "Instrument Blue, Deep",
+        "canonical": "#184f95"
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Beacon Orange",
+        "canonical": "#ef8354",
+        "tonalRamp": ["#431b0a", "#7d3212", "#b2481a", "#e06129", "#e8885f", "#efad90", "#f5cebc", "#fcefe9"]
+      },
+      "surface-bg": {
+        "role": "neutral",
+        "displayName": "Cool Backdrop",
+        "canonical": "#f4f7fb",
+        "tonalRamp": ["#162436", "#294365", "#3b6091", "#517db8", "#7d9eca", "#a4bbda", "#c9d6e9", "#edf1f8"]
+      },
+      "surface-panel": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#262626", "#474747", "#666666", "#858585", "#a3a3a3", "#bfbfbf", "#d9d9d9", "#f2f2f2"]
+      },
+      "border-hairline": {
+        "role": "neutral",
+        "displayName": "Hairline Mist",
+        "canonical": "#dbe4ee",
+        "tonalRamp": ["#1a2633", "#30465e", "#456487", "#5d83ac", "#86a2c1", "#abbed4", "#ccd8e5", "#eef2f6"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1c2b3a",
+        "tonalRamp": ["#1a2632", "#31475e", "#466686", "#5e85ab", "#86a3c0", "#abbfd3", "#cdd9e5", "#eef2f6"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink, Muted",
+        "canonical": "#5b6b7c",
+        "tonalRamp": ["#21262c", "#3e4751", "#586674", "#748496", "#97a3b0", "#b6bfc8", "#d3d9de", "#f0f2f4"]
+      },
+      "status-good": {
+        "role": "status",
+        "displayName": "Status Good Green",
+        "canonical": "#0ca30c",
+        "tonalRamp": ["#094409", "#107f10", "#17b517", "#26e426", "#5cea5c", "#8ef18e", "#bbf6bb", "#e8fce8"]
+      },
+      "status-warning": {
+        "role": "status",
+        "displayName": "Status Warning Amber",
+        "canonical": "#fab219",
+        "tonalRamp": ["#473205", "#855e0a", "#be860e", "#eeab1b", "#f2c054", "#f6d388", "#fae5b8", "#fdf6e7"]
+      },
+      "status-critical": {
+        "role": "status",
+        "displayName": "Status Critical Red",
+        "canonical": "#d03b3b",
+        "tonalRamp": ["#3b1111", "#6f2020", "#9e2e2e", "#c84141", "#d67171", "#e29c9c", "#eec4c4", "#f9ebeb"]
+      },
+      "chart-gridline": {
+        "role": "chart",
+        "displayName": "Chart Gridline (warm, reference-palette)",
+        "canonical": "#e1e0d9",
+        "tonalRamp": ["#2a2922", "#4f4d40", "#716e5b", "#928e78", "#adaa99", "#c6c4b9", "#dddcd5", "#f4f3f1"]
+      },
+      "chart-muted": {
+        "role": "chart",
+        "displayName": "Chart Axis Label (warm, reference-palette)",
+        "canonical": "#898781",
+        "tonalRamp": ["#2a2822", "#4f4b40", "#706b5c", "#918b78", "#aca89a", "#c6c2b9", "#dddbd5", "#f4f3f1"]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "The page h1 only. Appears exactly once." },
+      "title": { "displayName": "Title", "purpose": "Section headers (panel h2/h3) - two real sizes, 1.15rem and 1rem, same weight/role." },
+      "body": { "displayName": "Body", "purpose": "Prose, but in practice most on-screen text is the compact 0.78-0.95rem end of this range - specs, captions, table cells." },
+      "label": { "displayName": "Label", "purpose": "Uppercase eyebrow sub-headers (\"MY QUIVER\") and group headers - never used for primary content." }
+    },
+    "shadows": [
+      { "name": "ambient-lift", "value": "0 1px 3px rgba(20,40,70,0.08), 0 1px 2px rgba(20,40,70,0.06)", "purpose": "The system's single shadow role, used at rest on panels, the search-results dropdown, and the chart tooltip. Dark mode: 0 1px 3px rgba(0,0,0,0.4)." }
+    ],
+    "breakpoints": [
+      { "name": "compact", "value": "480px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single full-width primary CTA (\"What should I add?\").",
+      "html": "<button class=\"ds-btn-primary\">What should I add?</button>",
+      "css": ".ds-btn-primary { width: 100%; padding: 0.75rem 1rem; font-size: 1rem; font-weight: 600; color: #fff; background: #2a78d6; border: none; border-radius: 8px; cursor: pointer; transition: background 0.15s ease; } .ds-btn-primary:hover { background: #184f95; } .ds-btn-primary:disabled { background: #dbe4ee; color: #5b6b7c; cursor: not-allowed; }"
+    },
+    {
+      "name": "Toggle Chip",
+      "kind": "chip",
+      "refersTo": "button-toggle",
+      "description": "Pill-shaped secondary toggle (view-as-table, info panel, interest chips) - aria-pressed drives the active state.",
+      "html": "<button class=\"ds-toggle-chip\" aria-pressed=\"false\">Trees</button>",
+      "css": ".ds-toggle-chip { background: #f4f7fb; border: 1px solid #dbe4ee; color: #1c2b3a; font-size: 0.8rem; padding: 0.4rem 0.7rem; border-radius: 999px; cursor: pointer; } .ds-toggle-chip:hover { border-color: #2a78d6; } .ds-toggle-chip[aria-pressed='true'] { background: #2a78d6; border-color: #2a78d6; color: #fff; }"
+    },
+    {
+      "name": "Quiver Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A removable pill representing one selected ski, with a circular remove button meeting the 24x24 WCAG tap-target minimum.",
+      "html": "<span class=\"ds-quiver-chip\">Nordica Enforcer 94<button class=\"ds-quiver-chip-remove\" aria-label=\"Remove\">✕</button></span>",
+      "css": ".ds-quiver-chip { display: inline-flex; align-items: center; gap: 0.4rem; background: #f4f7fb; border: 1px solid #dbe4ee; border-radius: 999px; padding: 0.35rem 0.4rem 0.35rem 0.85rem; font-size: 0.9rem; color: #1c2b3a; } .ds-quiver-chip-remove { border: none; background: #dbe4ee; color: #1c2b3a; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; } .ds-quiver-chip-remove:hover { background: #d03b3b; color: #fff; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "The recessed (page-background, not panel-white) search field shared by both search boxes in the app.",
+      "html": "<input class=\"ds-search-input\" type=\"text\" placeholder=\"Search skis by name…\" />",
+      "css": ".ds-search-input { width: 100%; padding: 0.65rem 0.85rem; font-size: 1rem; border: 1px solid #dbe4ee; border-radius: 8px; background: #f4f7fb; color: #1c2b3a; } .ds-search-input:focus { outline: 2px solid #2a78d6; outline-offset: 1px; } .ds-search-input:disabled { opacity: 0.6; cursor: not-allowed; }"
+    },
+    {
+      "name": "Status Card",
+      "kind": "card",
+      "refersTo": "card-panel",
+      "description": "Condition card with a tinted background and solid left-border, colored by state (good/warning/critical) - color is always paired with an icon and label, never used alone.",
+      "html": "<div class=\"ds-status-card\" data-status=\"critical\"><span class=\"ds-status-icon\">✕</span><div><p class=\"ds-status-desc\">Powder</p><p class=\"ds-status-detail\">No coverage for wide/powder terrain.</p></div></div>",
+      "css": ".ds-status-card { display: flex; align-items: flex-start; gap: 0.6rem; border-radius: 8px; border-left: 3px solid transparent; padding: 0.85rem 0.9rem; } .ds-status-card[data-status='critical'] { background: rgba(208,59,59,0.12); border-left-color: #d03b3b; } .ds-status-icon { font-weight: 700; color: #d03b3b; } .ds-status-desc { margin: 0 0 0.2rem; font-size: 0.95rem; font-weight: 600; color: #1c2b3a; } .ds-status-detail { margin: 0; font-size: 0.8rem; color: #5b6b7c; }"
+    },
+    {
+      "name": "Temperament Gauge",
+      "kind": "custom",
+      "description": "Signature component: a word + position-on-spectrum widget. Never shows the raw 0-100 score as a bare number - always a phrase headline plus a small secondary value.",
+      "html": "<div class=\"ds-gauge\"><div class=\"ds-gauge-track\"><span class=\"ds-gauge-divider\" style=\"left:33.33%\"></span><span class=\"ds-gauge-divider\" style=\"left:66.67%\"></span><span class=\"ds-gauge-dot\" style=\"left:62%\"></span></div><div class=\"ds-gauge-caption\"><span class=\"ds-gauge-phrase\">Leans damp/charging</span><span class=\"ds-gauge-value\">(62)</span></div></div>",
+      "css": ".ds-gauge { display: flex; flex-direction: column; gap: 0.3rem; min-width: 110px; color: #1c2b3a; } .ds-gauge-track { position: relative; height: 6px; border-radius: 999px; background: #dbe4ee; } .ds-gauge-divider { position: absolute; top: -2px; bottom: -2px; width: 1px; background: #898781; opacity: 0.6; } .ds-gauge-dot { position: absolute; top: 50%; width: 10px; height: 10px; background: #2a78d6; border: 2px solid #fff; border-radius: 50%; transform: translate(-50%, -50%); } .ds-gauge-caption { display: flex; align-items: baseline; gap: 0.3rem; font-size: 0.8rem; } .ds-gauge-phrase { font-weight: 600; } .ds-gauge-value { opacity: 0.7; font-size: 0.75rem; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Instrument Panel",
+    "overview": "Quiver Gap Finder reads like flight-deck telemetry, not a marketing page: every number on screen earns its place, and nothing is drawn purely for decoration. There is no hero image, no marketing copy, no custom display typeface - the system font stack does all the work, and visual weight is spent almost entirely on making dense spec data (waist width, weight, turn radius, a derived \"temperament\" score) scannable rather than on styling for its own sake. Color is treated as a signal, not a decoration: one blue hue carries every interactive and chart-accent role, one orange is reserved for the single most important line on the results panel, and a fixed three-color status scale (good/warning/critical) is never reused for anything but literally reporting a state. This is a quiet, precise system by deliberate choice, not by default or neglect - the restraint itself is the current design's whole personality. It is also explicitly a snapshot of the incumbent system, captured as a baseline ahead of a planned visual overhaul; it documents what is true today, not a target to defend.",
+    "keyCharacteristics": [
+      "Zero imagery, zero display typography - plain system fonts carry the entire type system",
+      "One sequential accent hue (blue) for every interactive element and every chart mark; color is never used to distinguish individual items",
+      "A fixed, reserved status vocabulary (green/amber/red) that means the same thing everywhere it appears and nowhere else",
+      "Flat surfaces with a single soft ambient shadow at rest - no elevation ladder",
+      "Every chart ships an accessible table-view twin with identical data"
+    ],
+    "rules": [
+      { "name": "The Reserved Signal Rule", "body": "Status green/amber/red mean exactly one thing - gap/redundant/covered - everywhere they appear, and are never repurposed for decoration or unrelated emphasis, even when a \"free\" color would be convenient.", "section": "colors" },
+      { "name": "The Reference Palette Rule", "body": "Status colors, the chart's sequential blue, and the chart-specific greys trace to a fixed external dataviz reference palette (see README.md), not to this system's own neutral scale - that's why they're warm-toned while the UI's own neutrals are cool blue-grey. Don't re-harmonize them; changing them means redoing the dataviz methodology, not a color-matching pass.", "section": "colors" },
+      { "name": "The No-Bare-Number Rule", "body": "The derived 0-100 temperament score is never shown alone as a standalone figure - it always appears as a short phrase plus a position-on-spectrum gauge, with the raw number kept as small secondary detail only.", "section": "typography" },
+      { "name": "The One Shadow Rule", "body": "There is exactly one shadow in this system. A new component doesn't get a bespoke shadow value - it either uses Ambient Lift or stays flat.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do pair every status/coverage signal with an icon and a text label, never color alone.",
+      "Do give every chart an accessible table-view twin with identical underlying data.",
+      "Do design mobile layouts as their own real layout, not a scaled-down desktop canvas.",
+      "Do treat touch and hover as genuinely different interaction models."
+    ],
+    "donts": [
+      "Don't assign arbitrary per-item color coding on the coverage map.",
+      "Don't show the derived temperament score as a bare, standalone number anywhere in the UI.",
+      "Don't invent a new shadow value for a new component.",
+      "Don't re-harmonize the chart's warm-toned greys to match the UI's cool-toned neutrals."
+    ]
+  }
+}
