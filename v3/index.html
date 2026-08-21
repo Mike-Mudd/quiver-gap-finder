@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiver Gap Finder — Direction 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===== the canvas within a canvas ===== -->
+<div class="frame">
+
+  <!-- MONUMENTAL IMAGE: sky gradient hands off to ridge with no seam -->
+  <div class="scene" aria-hidden="true">
+    <svg class="scene-svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#E7EBED" />
+          <stop offset="42%"  stop-color="#D3DFE6" />
+          <stop offset="72%"  stop-color="#BCCFDA" />
+          <stop offset="100%" stop-color="#AAC1CE" />
+        </linearGradient>
+        <!-- the blend: far ridge dissolves upward into the sky, no crop line -->
+        <linearGradient id="dissolveFar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#A2B7C4" stop-opacity="0" />
+          <stop offset="38%"  stop-color="#9DB3C1" stop-opacity="0.72" />
+          <stop offset="100%" stop-color="#93AAB9" stop-opacity="1" />
+        </linearGradient>
+        <linearGradient id="dissolveMid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#8AA2B1" stop-opacity="0.14" />
+          <stop offset="46%"  stop-color="#7F97A7" stop-opacity="0.92" />
+          <stop offset="100%" stop-color="#748D9E" stop-opacity="1" />
+        </linearGradient>
+        <linearGradient id="dissolveNear" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#63798A" stop-opacity="0.30" />
+          <stop offset="52%"  stop-color="#5A7183" stop-opacity="1" />
+          <stop offset="100%" stop-color="#4C6274" stop-opacity="1" />
+        </linearGradient>
+        <filter id="grain3">
+          <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="4" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <filter id="soft3"><feGaussianBlur stdDeviation="9" /></filter>
+      </defs>
+
+      <rect width="1600" height="1000" fill="url(#sky3)" />
+
+      <!-- far range, softened and dissolving into the gradient -->
+      <g filter="url(#soft3)">
+        <path fill="url(#dissolveFar)" d="M0,742 L96,676 L158,708 L252,616 L322,660 L418,570 L496,624 L588,542 L672,600 L764,522 L852,582 L944,506 L1036,568 L1126,498 L1220,560 L1312,492 L1408,552 L1500,486 L1600,540 L1600,1000 L0,1000 Z"/>
+      </g>
+
+      <!-- mid range -->
+      <path fill="url(#dissolveMid)" d="M0,838 L84,786 L148,816 L238,742 L312,782 L404,708 L482,754 L578,682 L660,730 L750,664 L838,714 L928,650 L1018,704 L1108,642 L1200,696 L1290,638 L1382,692 L1474,634 L1600,690 L1600,1000 L0,1000 Z"/>
+      <!-- snowfields as negative space, tying the ridges to the sky -->
+      <path fill="#C7D6DF" opacity="0.55" d="M578,682 L660,730 L622,762 L580,724 L548,748 L516,712 Z M928,650 L1018,704 L978,738 L936,698 L906,724 L876,688 Z M1290,638 L1382,692 L1344,724 L1300,684 L1272,708 L1244,674 Z"/>
+
+      <!-- near range: dark enough to anchor the blend and carry small type -->
+      <path fill="#41576A" d="M0,946 L110,900 L188,928 L292,876 L378,912 L480,860 L570,900 L672,848 L764,888 L868,838 L958,880 L1062,830 L1156,872 L1258,824 L1352,868 L1450,820 L1552,864 L1600,842 L1600,1000 L0,1000 Z"/>
+
+      <!-- a single descent trace, following the face of one peak -->
+      <path fill="none" stroke="#EFEDE8" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="5 10" opacity="0.6"
+            d="M1258,828 C1236,862 1210,866 1188,900 C1166,934 1162,952 1138,982"/>
+
+      <rect width="1600" height="1000" filter="url(#grain3)" opacity="0.13" style="mix-blend-mode:multiply"/>
+    </svg>
+
+    <!-- oversized wordmark used as texture, not as a legible logo -->
+    <p class="ghost">Quiver</p>
+  </div>
+
+  <header class="nav">
+    <a class="mark" href="#">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" aria-hidden="true">
+        <path d="M2 20 L9 7 L13.5 15 M11 20 L16 11 L22 20 Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <span>Quiver Gap Finder</span>
+    </a>
+    <nav aria-label="Primary">
+      <a href="#">Method</a>
+      <a href="#">Catalog</a>
+      <a href="#">Sourcing</a>
+    </nav>
+  </header>
+
+  <div class="copy">
+    <h1 class="display">The days<br />you can&rsquo;t ski</h1>
+
+    <div class="search-module">
+      <label class="mono" for="ski-search">Add what you own</label>
+      <div class="field">
+        <svg class="field-icon" viewBox="0 0 20 20" width="16" height="16" fill="none" aria-hidden="true">
+          <circle cx="8.75" cy="8.75" r="5.25" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M12.9 12.9 L17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <input id="ski-search" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Enforcer, Mantra, Sheeva, Ranger…" />
+      </div>
+      <ul id="results" class="results" role="listbox" aria-label="Matching skis" hidden></ul>
+      <ul id="quiver" class="quiver" aria-label="Your skis"></ul>
+    </div>
+  </div>
+
+  <!-- measurement leaders: type tied physically to the landscape -->
+  <div class="leaders" aria-hidden="true">
+    <div class="leader" style="--x:23%; --h:132px"><span class="mono">60–89mm</span></div>
+    <div class="leader" style="--x:50%; --h:186px"><span class="mono">90–109mm</span></div>
+    <div class="leader" style="--x:77%; --h:112px"><span class="mono">110–130mm</span></div>
+  </div>
+</div>
+
+<section class="strip">
+  <p class="mono dim" id="readout">Nine zones of ski day. Add a ski to see which ones you cover.</p>
+  <p class="mono dim">61 skis · sourced, never estimated</p>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>

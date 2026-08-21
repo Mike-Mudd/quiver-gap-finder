@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiver Gap Finder — Direction 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ MONUMENTAL IMAGE: layered alpine ridge, duotone + grain ======== -->
+<div class="scene" aria-hidden="true">
+  <svg class="scene-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#0B1C2A" />
+        <stop offset="38%" stop-color="#16344A" />
+        <stop offset="70%" stop-color="#26506B" />
+        <stop offset="100%" stop-color="#33627F" />
+      </linearGradient>
+      <radialGradient id="glow" cx="0.62" cy="0.44" r="0.46">
+        <stop offset="0%"   stop-color="#F2A93B" stop-opacity="0.30" />
+        <stop offset="55%"  stop-color="#F2A93B" stop-opacity="0.08" />
+        <stop offset="100%" stop-color="#F2A93B" stop-opacity="0" />
+      </radialGradient>
+      <filter id="grain">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" stitchTiles="stitch" />
+        <feColorMatrix type="saturate" values="0" />
+      </filter>
+      <filter id="soften"><feGaussianBlur stdDeviation="7" /></filter>
+    </defs>
+
+    <rect width="1440" height="900" fill="url(#sky)" />
+    <rect width="1440" height="900" fill="url(#glow)" />
+
+    <!-- distant range: hazy, lightest value — atmospheric perspective -->
+    <g filter="url(#soften)">
+      <path fill="#4A748F" d="M0,556 L120,468 L192,504 L300,356 L372,428 L470,296 L560,392 L660,262 L760,372 L860,286 L962,398 L1060,316 L1180,428 L1282,348 L1382,438 L1440,398 L1440,900 L0,900 Z" />
+    </g>
+
+    <!-- mid range: the readable silhouette, clear value step down -->
+    <path fill="#254156" d="M0,662 L100,600 L172,634 L280,518 L362,580 L470,468 L556,540 L662,438 L752,520 L852,452 L950,540 L1062,468 L1162,556 L1272,488 L1372,570 L1440,528 L1440,900 L0,900 Z" />
+    <!-- snowfields hugging the lit face of each peak -->
+    <g fill="#6B94AC" opacity="0.5">
+      <path d="M470,468 L438,516 L400,544 L424,494 L446,486 Z" />
+      <path d="M662,438 L632,486 L594,516 L618,464 L642,456 Z" />
+      <path d="M1062,468 L1032,514 L996,544 L1018,494 L1040,486 Z" />
+      <path d="M852,452 L888,498 L920,520 L892,478 Z" />
+    </g>
+
+    <!-- near range: dark, anchors the base -->
+    <path fill="#132534" d="M0,792 L110,740 L200,774 L302,700 L400,750 L502,684 L602,742 L702,672 L802,732 L902,668 L1002,728 L1102,664 L1202,724 L1302,660 L1402,720 L1440,698 L1440,900 L0,900 Z" />
+
+    <!-- carved descent trace: the product's whole subject, drawn as a line -->
+    <path class="trace" d="M1272,520 C1240,566 1206,570 1176,610 C1144,652 1140,682 1104,718 C1070,752 1040,752 1008,792"
+          fill="none" stroke="#F2A93B" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="7 11" opacity="0.92" />
+
+    <!-- foreground shelf: darkest, brings the eye back to the type -->
+    <path fill="#0A1219" d="M0,864 L180,842 L360,860 L540,836 L720,858 L900,834 L1080,856 L1260,832 L1440,854 L1440,900 L0,900 Z" />
+
+    <rect class="grain" width="1440" height="900" filter="url(#grain)" opacity="0.15" />
+  </svg>
+  <div class="scene-vignette"></div>
+</div>
+
+<!-- ============ NAV: frosted glass over the photograph ======== -->
+<header class="nav">
+  <a class="brand" href="#">
+    <svg class="brand-mark" viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M2 20 L9 7 L13.5 15 M11 20 L16 11 L22 20 Z" stroke="#F2A93B" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/>
+    </svg>
+    <span>Quiver Gap Finder</span>
+  </a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#">Method</a>
+    <a href="#">Catalog</a>
+    <a href="#">Sourcing</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <h1 class="display">
+      <span class="display-line">Find the</span>
+      <span class="display-line">day you<span class="display-accent">'</span>re</span>
+      <span class="display-line">not built for</span>
+    </h1>
+
+    <!-- PRIMARY ACTION: the glass module is the centerpiece, not a footnote -->
+    <div class="glass search-module">
+      <label class="mono-label" for="ski-search">Add the skis you already own</label>
+      <div class="search-field">
+        <svg class="search-icon" viewBox="0 0 20 20" width="17" height="17" fill="none" aria-hidden="true">
+          <circle cx="8.75" cy="8.75" r="5.25" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M12.9 12.9 L17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <input id="ski-search" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Enforcer, Mantra, Sheeva, Ranger…" aria-describedby="search-hint" />
+      </div>
+      <ul id="results" class="results" role="listbox" aria-label="Matching skis" hidden></ul>
+      <ul id="quiver" class="quiver" aria-label="Your skis"></ul>
+      <p id="search-hint" class="mono-label dim">61 skis · specs sourced, never estimated</p>
+    </div>
+
+    <!-- gap readout: real coverage math, appears once a ski is added -->
+    <div id="readout" class="glass readout" hidden>
+      <div class="readout-head">
+        <span class="mono-label">Coverage readout</span>
+        <span id="readout-count" class="mono-label accent"></span>
+      </div>
+      <ul id="readout-list" class="readout-list"></ul>
+    </div>
+  </section>
+
+  <!-- annotation pins: treat the image as an annotated field, not a backdrop -->
+  <div class="pins" aria-hidden="true">
+    <div class="pin" style="--x:62%; --y:31%"><span class="pin-dot"></span><span class="mono-label">96mm waist</span></div>
+    <div class="pin" style="--x:77%; --y:55%"><span class="pin-dot"></span><span class="mono-label">damp / charging</span></div>
+    <div class="pin" style="--x:69%; --y:79%"><span class="pin-dot"></span><span class="mono-label">gap: wide + playful</span></div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span class="mono-label dim">Direction 01 — glass over the ridge</span>
+  <span class="mono-label dim">Sourced from Blister · manufacturer specs</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+/* ===================================================================
+   Direction 02 — "Collage"
+   Bold typography · photo collage · playful · ski sports
+   Warm near-monochrome ground (maroon-black + cream). Orange is the
+   single accent and it owns exactly one shape: the monument plate.
+   =================================================================== */
+
+:root {
+  --ground: #24161A;
+  --ground-lift: #2E1D21;
+  --cream: #F3E9DA;
+  --dim: rgba(243, 233, 218, 0.66);
+  --accent: #F0632A;
+
+  --display: "Anton", sans-serif;
+  --mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--ground);
+  color: var(--cream);
+  font-family: var(--mono);
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+::selection { background: var(--accent); color: var(--ground); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+* { scrollbar-width: thin; scrollbar-color: rgba(243,233,218,0.26) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(243,233,218,0.24); border-radius: 99px;
+  border: 2px solid transparent; background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(243,233,218,0.42); background-clip: content-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+.mono {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.mono.dim { color: var(--dim); }
+
+/* ---------- ambient glyphs ---------- */
+
+.glyphs { position: fixed; inset: 0; z-index: 0; pointer-events: none; color: rgba(243,233,218,0.13); }
+.glyph {
+  position: absolute; left: var(--x); top: var(--y);
+  width: 46px; height: 46px;
+  transform: rotate(var(--r)) scale(var(--s));
+}
+
+/* ---------- bar ---------- */
+
+.bar {
+  position: relative; z-index: 4;
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.5rem clamp(1.15rem, 4vw, 3.2rem) 0;
+}
+.wordmark {
+  font-family: var(--display);
+  font-size: 1.3rem; letter-spacing: 0.02em; text-transform: uppercase;
+  color: var(--cream); text-decoration: none;
+}
+.wordmark .dot { color: var(--accent); }
+.bar nav { display: flex; gap: 1.5rem; }
+.bar nav a {
+  color: var(--dim); text-decoration: none;
+  font-size: 0.6875rem; letter-spacing: 0.16em; text-transform: uppercase;
+  transition: color 0.25s var(--ease-out-expo);
+}
+.bar nav a:hover { color: var(--cream); }
+
+/* ---------- stage: type and monument deliberately collide ---------- */
+
+.stage {
+  position: relative; z-index: 2;
+  flex: 1;
+  max-width: 1320px; width: 100%;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vh, 3rem) clamp(1.15rem, 4vw, 3.2rem) 0;
+}
+
+.monument {
+  position: absolute;
+  right: clamp(1.15rem, 11vw, 12rem);
+  top: clamp(2.2rem, 5vh, 4rem);   /* clears the nav rather than fighting it */
+  width: clamp(230px, 29vw, 385px);
+  aspect-ratio: 46 / 62;
+  z-index: 1;
+}
+.plate { position: absolute; inset: 0; background: var(--accent); border-radius: 4px; }
+.peak { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.display {
+  position: relative;
+  z-index: 3;              /* type crosses in front of the plate */
+  font-family: var(--display);
+  font-size: clamp(3.6rem, 13.5vw, 11.5rem);
+  line-height: 0.82;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  margin: clamp(1rem, 5vh, 3.4rem) 0 0;
+  pointer-events: none;
+}
+.l { display: block; }
+.l2 { padding-left: clamp(1.5rem, 7vw, 6.5rem); }
+.l3 { padding-left: clamp(0.5rem, 2.5vw, 2.4rem); }
+/* the last line is thrown right so it runs into the plate — type and
+   image occupy the same space rather than politely stacking */
+.l4 { color: var(--accent); padding-left: clamp(2rem, 22vw, 20rem); }
+.tick { color: var(--accent); }
+
+/* ---------- the one solid block: the search ---------- */
+
+.search-block {
+  position: relative; z-index: 5;
+  width: min(520px, 100%);
+  margin-top: clamp(1.6rem, 4vh, 2.6rem);
+  padding: 1.15rem 1.2rem 1.2rem;
+  background: var(--cream);
+  color: var(--ground);
+  border-radius: 6px;
+  box-shadow: 0 26px 54px -20px rgba(0, 0, 0, 0.72);
+}
+.search-block > .mono { color: rgba(36, 22, 26, 0.68); margin-bottom: 0.7rem; }
+
+.field {
+  display: flex; align-items: center; gap: 0.6rem;
+  border-bottom: 2px solid var(--ground);
+  padding-bottom: 0.15rem;
+}
+.field-icon { color: var(--ground); flex: none; }
+#ski-search {
+  flex: 1; min-width: 0;
+  border: none; background: none; outline: none;
+  font-family: var(--mono); font-size: 1rem;
+  color: var(--ground);
+  caret-color: var(--accent);
+  padding: 0.55rem 0;
+}
+#ski-search::placeholder { color: rgba(36, 22, 26, 0.74); }
+.field:focus-within { border-bottom-color: var(--accent); }
+
+.results {
+  list-style: none; margin: 0.7rem 0 0; padding: 0;
+  max-height: 214px; overflow-y: auto;
+  border-top: 1px solid rgba(36,22,26,0.14);
+}
+.results li {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.9rem;
+  padding: 0.58rem 0.15rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(36,22,26,0.09);
+  transition: color 0.16s var(--ease-out-expo), padding-left 0.16s var(--ease-out-expo);
+}
+.results li:hover, .results li[data-active="true"] { color: var(--accent); padding-left: 0.5rem; }
+.results li .spec { font-size: 0.6875rem; letter-spacing: 0.1em; color: rgba(36,22,26,0.74); white-space: nowrap; }
+.results li.empty { cursor: default; color: rgba(36,22,26,0.74); }
+.results li.empty:hover { color: rgba(36,22,26,0.74); padding-left: 0.15rem; }
+
+.quiver { list-style: none; display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0; padding: 0; }
+.quiver:not(:empty) { margin-top: 0.9rem; }
+.quiver li {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.32rem 0.32rem 0.32rem 0.7rem;
+  background: var(--ground); color: var(--cream);
+  border-radius: 4px;
+  font-size: 0.6875rem; letter-spacing: 0.04em;
+  animation: pop 0.4s var(--ease-out-expo) both;
+}
+@keyframes pop { from { opacity: 0; transform: translateY(4px) rotate(-1.5deg); } }
+.quiver button {
+  width: 22px; height: 22px; flex: none;
+  display: inline-grid; place-items: center;
+  border: none; border-radius: 3px; cursor: pointer;
+  background: rgba(243,233,218,0.14); color: var(--cream);
+  transition: background 0.2s var(--ease-out-expo), color 0.2s var(--ease-out-expo);
+}
+.quiver button:hover { background: var(--accent); color: var(--ground); }
+
+/* ---------- misaligned cluster ---------- */
+
+.cluster {
+  position: relative; z-index: 2;
+  max-width: 1320px; width: 100%;
+  margin: clamp(3rem, 9vh, 6rem) auto 0;
+  padding: 0 clamp(1.15rem, 4vw, 3.2rem);
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: clamp(1rem, 2.4vw, 2.2rem);
+}
+.card {
+  background: var(--ground-lift);
+  border: 1px solid rgba(243,233,218,0.12);
+  border-radius: 8px;
+  padding: 1.1rem 1.2rem;
+}
+/* each card its own size and tilt — the cluster is scrapbook, not a grid */
+.card-readout { width: 252px; transform: rotate(-2.2deg); }
+.card-stat    { width: 210px; transform: rotate(2.6deg) translateY(-22px); padding-bottom: 1rem; }
+.card-quote   { width: 330px; transform: rotate(-0.9deg) translateY(12px); flex: 1 1 260px; max-width: 380px; }
+
+.card-big {
+  font-family: var(--display);
+  font-size: 2.6rem; line-height: 1;
+  margin: 0.5rem 0 0.4rem;
+  color: var(--accent);
+}
+.card-note { font-size: 0.7rem; line-height: 1.5; color: var(--dim); margin: 0; letter-spacing: 0.02em; }
+.card-num {
+  font-family: var(--display);
+  font-size: 3.1rem; line-height: 0.9;
+  margin: 0 0 0.45rem;
+}
+.card-line { font-size: 0.78rem; line-height: 1.62; margin: 0 0 0.75rem; letter-spacing: 0.01em; }
+
+/* ---------- foot ---------- */
+
+.foot {
+  position: relative; z-index: 2;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.7rem;
+  margin-top: clamp(2.5rem, 7vh, 4.5rem);
+  padding: 1.3rem clamp(1.15rem, 4vw, 3.2rem) 1.6rem;
+  border-top: 1px solid rgba(243,233,218,0.12);
+}
+
+/* ---------- one authored entrance ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .l { animation: slam 0.86s var(--ease-out-expo) both; animation-delay: calc(var(--i,0) * 78ms); }
+  .l2 { --i: 1; } .l3 { --i: 2; } .l4 { --i: 3; }
+  @keyframes slam {
+    from { opacity: 0; transform: translateY(0.14em) scaleY(0.9); }
+    to   { opacity: 1; transform: none; }
+  }
+  .monument { animation: plate-in 1.05s var(--ease-out-expo) 0.12s both; }
+  @keyframes plate-in {
+    from { opacity: 0; transform: translateY(26px) rotate(1.5deg); }
+    to   { opacity: 1; transform: none; }
+  }
+  .search-block { animation: slam 0.8s var(--ease-out-expo) 0.42s both; }
+  .card { animation: slam 0.8s var(--ease-out-expo) 0.5s both; }
+}
+@media (prefers-reduced-motion: reduce) { .quiver li { animation: none; } }
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1020px) {
+  .monument { width: clamp(200px, 27vw, 300px); opacity: 0.92; }
+  .display { font-size: clamp(3.2rem, 12vw, 7rem); }
+}
+@media (max-width: 760px) {
+  .bar nav { display: none; }
+  .monument {
+    position: relative; right: auto; top: auto;
+    width: min(260px, 62%);
+    margin: 0 0 -2.4rem auto;
+  }
+  .display { margin-top: 0; font-size: clamp(3rem, 15vw, 5rem); }
+  .l2, .l3 { padding-left: 0; }
+  .cluster { flex-direction: column; align-items: stretch; }
+  .card, .card-readout, .card-stat, .card-quote {
+    width: 100%; max-width: none; transform: none;
+  }
+  .foot { justify-content: center; text-align: center; }
+}
