@@ -4,3 +4,16 @@ Thumbs.db
 .vscode/
 .idea/
 node_modules/
+
+# Claude Code: track only launch.json (the dev-server config, which is
+# genuinely shared). settings.local.json carries absolute paths from
+# whichever machine wrote it, and skills/ is vendored tooling that
+# belongs to the tool, not to this app.
+.claude/*
+!.claude/launch.json
+
+# Impeccable: design.json is the design system and IS tracked (see
+# DESIGN.md). These two are per-machine: a local consent flag and
+# regenerated detector output.
+.impeccable/config.local.json
+.impeccable/hook.cache.json
