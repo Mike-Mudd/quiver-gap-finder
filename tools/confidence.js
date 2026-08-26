@@ -59,13 +59,22 @@ function phrase(v) {
   return `Between ${lo.label} and ${hi.label}`;
 }
 
-/** Which zones a ski should be treated as covering. Near a boundary it
- *  genuinely covers both — which is what the coverage map already does
- *  spatially with its ±12pt region, and what the label should match. */
+/** Which zones a ski covers.
+ *
+ *  An earlier version of this switched on `dist < UNSURE_PTS`, which
+ *  simply relocated the cliff: a ski drifting from 6 points off a
+ *  boundary to 4 gained an entire zone in one step. That is the same
+ *  brittleness the buckets already had.
+ *
+ *  The coverage map solved this properly a long time ago by giving each
+ *  ski a ±12pt REGION rather than a point, so a ski near a line
+ *  genuinely overlaps both sides and nothing snaps. This reuses that
+ *  idea, so the label and the map agree by construction. */
+const FEEL_RADIUS = 12; // matches STAB_RADIUS in the shipped app
+
 function zonesCovered(v) {
-  const here = band(v);
-  const { dist, other } = neighbour(v);
-  return dist < UNSURE_PTS && other ? [other.key, here.key] : [here.key];
+  const lo = v - FEEL_RADIUS, hi = v + FEEL_RADIUS;
+  return BANDS.filter((b) => lo <= b.max && hi >= b.min).map((b) => b.key);
 }
 
 /** Plain facts from the inputs — unarguable, unlike the label. */
