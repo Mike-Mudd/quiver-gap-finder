@@ -48,12 +48,12 @@ Worth recording so the same ground isn't re-covered:
 1. Download the **Large** size from Unsplash (not Original — often 20MB+).
 2. Compress at [squoosh.app](https://squoosh.app) — MozJPEG, quality ~75,
    resized to **2400px wide**. Target **under ~600KB**.
-3. Save to `v7/img/hero.jpg` (and `v8/`, `v9/` as those are built).
+3. Save to `assets/hero.jpg` — shared by every version.
 
 Each layout reads the image through a single CSS variable:
 
 ```css
---hero: url("img/hero.jpg");
+--hero: url("../assets/hero.jpg");
 ```
 
 so swapping G for H, or either for something else, is a one-line change
@@ -92,11 +92,11 @@ makes snow the page ground rather than an obstacle.
 
 ## Hero image — CHOSEN 2026-08-25
 
-**S4 — skier in powder spray** → `v7/img/hero.jpg`
+**S4 — skier in powder spray** → `assets/hero.jpg`
 - Page: https://unsplash.com/photos/person-performing-ski-r8FHH3Eph_k
 - 2400x1469, natural crop, 245KB
 
-**S6 — grayscale skier** → `v7/img/hero-alt.jpg` (alternate)
+**S6 — grayscale skier** → `assets/hero-alt.jpg` (alternate)
 - Page: https://unsplash.com/photos/grayscale-photography-of-person-playing-ski-QBbSK65o7FQ
 - 2400x1609, 292KB
 

@@ -22,22 +22,18 @@ the search and gap readout in each are genuine, not mocked.
 **What the user liked about `v2`:** the colours "really pop" and the
 large bold text.
 
-## Round 2 — v2 plus a hero photograph (2026-08-20)
+## Round 2 — v2 plus a hero photograph (2026-08-20, removed)
 
-Built to resolve one open question: how a hero mountain photo should
-coexist with v2's flat orange plate. Each answers it differently.
+`v4`/`v5`/`v6` explored how a hero photograph could coexist with v2's
+flat orange plate: as a duotone *inside* the plate, as a full-bleed
+ground with the orange moved entirely into the type, and as a hard
+split between photo and solid colour.
 
-| | Direction | Outcome |
-|---|---|---|
-| `v4` | **Duotone plate** — the photo *is* the orange; image mapped into the maroon→orange ramp inside the plate shape. | Retired |
-| `v5` | **Full bleed, orange as voice** — photo edge-to-edge but crushed to near-monochrome ground; the accent belongs entirely to the type. | Retired |
-| `v6` | **Split field** — hard horizontal seam, photo above and solid orange below, headline spanning the boundary. | Retired |
-
-**Never resolved:** no hero photograph was ever generated. Higgsfield's
-free plan gates `soul_location` ("Requires basic plan or higher") — the
-model actually built for landscapes — leaving `z_image`, whose jobs
-stayed queued indefinitely. So `v4`–`v6` ship pure-CSS stand-in ridges
-behind a `--hero` variable; dropping in a real photo is one line each.
+**Deleted during cleanup.** They were superseded by round 3, their
+premise (the orange accent) is retired, and they never received a real
+photograph — each referenced an `img/hero.jpg` that was never added, so
+all three silently fell back to a CSS stand-in. Recoverable from git
+history at `ba2790f` if the approach is ever worth revisiting.
 
 ## Round 3 — photo-led mountain hero (current)
 
@@ -54,4 +50,7 @@ type voice, and whether the type competes with the image or sits in it.
 **Hard dependency:** this direction lives or dies on photo quality in a
 way the orange versions did not. A mediocre photo cannot be rescued by
 layout. Photos are being sourced from free stock (Unsplash/Pexels)
-rather than generated — see `ROUND3-PHOTO-BRIEF.md`.
+rather than generated — see `ROUND3-PHOTO-BRIEF.md` and `IMAGES.md`.
+
+The chosen hero lives once at `assets/hero.jpg` and is shared by every
+version, rather than duplicated per folder.

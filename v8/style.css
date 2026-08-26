@@ -24,7 +24,7 @@
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --hero: url("img/hero.jpg");
+  --hero: url("../assets/hero.jpg");
 }
 
 * { box-sizing: border-box; }
