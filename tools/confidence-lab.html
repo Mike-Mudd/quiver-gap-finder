@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Confidence lab — Quiver Gap Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #F4F7FA; --ink: #101A22; --soft: #2E4152; --faint: #5B7086;
+    --line: rgba(16,26,34,.14); --panel: #FFFFFF;
+    --playful: #3E7CA6; --balanced: #8A7320; --charging: #B0432F;
+    --warn: #B0432F;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font: 13px/1.55 "IBM Plex Mono", ui-monospace, monospace; }
+  header { padding: 22px 26px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0 0 6px; font-size: 13px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+  .lede { color: var(--soft); font-size: 12px; max-width: 68ch; line-height: 1.7; }
+  .wrap { padding: 24px 26px 90px; max-width: 1180px; }
+  section { margin-bottom: 40px; }
+  h2 { font-size: 10.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+       color: var(--faint); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+
+  /* side-by-side compare */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .compare > div { background: var(--panel); padding: 16px 18px; }
+  .compare .hd { background: var(--paper); font-size: 10px; letter-spacing: .16em;
+                 text-transform: uppercase; color: var(--faint); padding: 9px 18px; }
+
+  /* fixed row height so the two columns stay level - otherwise the
+     honest column's extra line pushes every later row out of step and
+     you cannot compare a ski against itself */
+  .ski { padding: 15px 0; border-bottom: 1px solid var(--line);
+         height: 150px; display: flex; flex-direction: column; }
+  .ski:last-child { border-bottom: none; }
+  .ski .track { margin-top: auto; }
+  .ski-name { font-family: "Cormorant Garamond", serif; font-size: 21px; font-weight: 400; line-height: 1.15; }
+  .ski-spec { font-size: 10.5px; color: var(--faint); letter-spacing: .05em; margin-top: 3px; }
+
+  /* the label treatments */
+  .verdict { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; margin-top: 9px; }
+  .phrase { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 19px; margin-top: 8px; line-height: 1.25; }
+  .because { font-size: 10.5px; color: var(--soft); letter-spacing: .04em; margin-top: 5px; }
+  .playful { color: var(--playful); } .balanced { color: var(--balanced); } .charging { color: var(--charging); }
+
+  /* spectrum */
+  .track { position: relative; height: 5px; border-radius: 99px; background: rgba(16,26,34,.1); margin-top: 11px; }
+  .div { position: absolute; top: -3px; bottom: -3px; width: 1px; background: rgba(16,26,34,.28); }
+  .span { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: rgba(16,26,34,.18); }
+  .dot { position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 50%;
+         background: var(--ink); border: 2px solid var(--panel); transform: translate(-50%,-50%); }
+  .ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--faint);
+           letter-spacing: .14em; text-transform: uppercase; margin-top: 6px; }
+
+  .flag { display: inline-block; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase;
+          color: var(--warn); border: 1px solid currentColor; border-radius: 99px; padding: 1px 7px; margin-left: 7px; vertical-align: 2px; }
+  .stat { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat div { font-size: 11px; color: var(--soft); }
+  .stat b { display: block; font-family: "Cormorant Garamond", serif; font-size: 26px; font-weight: 400; color: var(--ink); }
+  table { border-collapse: collapse; width: 100%; font-size: 11.5px; }
+  th, td { text-align: left; padding: 6px 9px; border-bottom: 1px solid var(--line); }
+  th { font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); font-weight: 500; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--soft); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Confidence lab</h1>
+  <p class="lede">Same scores, same buckets, same maths. The only thing that changes is what
+  the interface <em>says</em> about a score when it sits close to a boundary.
+  Left is what ships today; right is the proposed treatment.</p>
+</header>
+<div class="wrap" id="out">Loading…</div>
+
+<script src="formulas.js"></script>
+<script src="confidence.js"></script>
+<script>
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstChild; };
+const esc = (s) => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const pct = (v) => Math.max(0, Math.min(100, v));
+
+fetch("../data/skis.json").then(r => r.json()).then(({ skis }) => {
+  const out = document.getElementById("out");
+  out.innerHTML = "";
+  const F = FORMULAS[0]; // judge the treatment against the shipped formula
+
+  const scored = skis.map(s => ({ s, v: F.score(s) }));
+  const low = scored.filter(x => confidence(x.v) === "low");
+
+  /* ---- the scale of the problem ---- */
+  const counts = { high: 0, medium: 0, low: 0 };
+  scored.forEach(x => counts[confidence(x.v)]++);
+  out.appendChild($(`<section>
+    <h2>How often is the single word trustworthy?</h2>
+    <div class="stat">
+      <div><b>${counts.high}</b>clearly inside a zone</div>
+      <div><b>${counts.medium}</b>leaning, but safe</div>
+      <div><b>${counts.low}</b>within ${UNSURE_PTS} pts of a boundary</div>
+      <div><b>${Math.round(counts.low / scored.length * 100)}%</b>of the catalog is a coin flip</div>
+    </div>
+    <p class="lede">${UNSURE_PTS} points is roughly 66&nbsp;g of weight, or a third of one
+    <code>metal_content</code> step — well inside normal sourcing error. For those skis the
+    word shown today could flip without anything about the ski changing.</p>
+  </section>`));
+
+  /* ---- side by side on the least certain skis ---- */
+  const render = (x, honest) => {
+    const { s, v } = x;
+    const b = band(v);
+    const zones = zonesCovered(v);
+    const spanStart = zones.length > 1 ? Math.min(...zones.map(k => BANDS.find(z => z.key === k).min)) : b.min;
+    const spanEnd = zones.length > 1 ? Math.max(...zones.map(k => BANDS.find(z => z.key === k).max)) : b.max;
+    return `<div class="ski">
+      <div class="ski-name">${esc(s.name)}</div>
+      <div class="ski-spec">${s.waist_width_mm}mm &middot; ${s.weight_g}g &middot; ${esc(s.metal_content)} metal &middot; ${rocker(s)}% rocker</div>
+      ${honest
+        ? `<div class="phrase">${esc(phrase(v))}</div>
+           <div class="because">${esc(because(s, rocker))} &middot; scores ${v.toFixed(1)}</div>`
+        : `<div class="verdict ${b.key}">${esc(b.label)}</div>`}
+      <div class="track">
+        ${honest && zones.length > 1 ? `<span class="span" style="left:${pct(spanStart)}%;width:${pct(spanEnd - spanStart)}%"></span>` : ``}
+        <span class="div" style="left:33.33%"></span><span class="div" style="left:66.67%"></span>
+        <span class="dot" style="left:${pct(v)}%"></span>
+      </div>
+      <div class="ticks"><span>playful</span><span>balanced</span><span>charging</span></div>
+    </div>`;
+  };
+
+  const sample = low.sort((a, b) => Math.abs(a.v - 50) - Math.abs(b.v - 50)).slice(0, 8);
+  out.appendChild($(`<section>
+    <h2>The eight least certain skis — most of them famous</h2>
+    <div class="compare">
+      <div class="hd">Today — one confident word</div>
+      <div class="hd">Proposed — the honest version</div>
+      <div>${sample.map(x => render(x, false)).join("")}</div>
+      <div>${sample.map(x => render(x, true)).join("")}</div>
+    </div>
+  </section>`));
+
+  /* ---- a confident ski, to check the treatment does not hedge everything ---- */
+  const sure = scored.filter(x => confidence(x.v) === "high")
+    .sort((a, b) => b.v - a.v).slice(0, 2)
+    .concat(scored.filter(x => confidence(x.v) === "high").sort((a, b) => a.v - b.v).slice(0, 2));
+  out.appendChild($(`<section>
+    <h2>Skis the model IS sure about — the treatment should stay decisive here</h2>
+    <div class="compare">
+      <div class="hd">Today</div><div class="hd">Proposed</div>
+      <div>${sure.map(x => render(x, false)).join("")}</div>
+      <div>${sure.map(x => render(x, true)).join("")}</div>
+    </div>
+  </section>`));
+
+  /* ---- what it means for coverage ---- */
+  const spanning = scored.filter(x => zonesCovered(x.v).length > 1).length;
+  out.appendChild($(`<section>
+    <h2>Effect on coverage</h2>
+    <p class="lede">Treating near-boundary skis as covering <em>both</em> adjacent zones means
+    ${spanning} of ${scored.length} skis would fill two temperament zones instead of one.
+    That reduces false gaps — the app currently tells someone they have a hole when their
+    ski sits 1&nbsp;point the wrong side of a line.</p>
+    <table>
+      <thead><tr><th>Ski</th><th class="num">Score</th><th>Today</th><th>Proposed covers</th></tr></thead>
+      <tbody>${low.sort((a,b)=>a.v-b.v).map(x =>
+        `<tr><td>${esc(x.s.name)}</td><td class="num">${x.v.toFixed(1)}</td>
+         <td class="${band(x.v).key}">${band(x.v).label}</td>
+         <td>${zonesCovered(x.v).join(" + ")}</td></tr>`).join("")}</tbody>
+    </table>
+  </section>`));
+});
+</script>
+</body>
+</html>
