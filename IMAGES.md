@@ -90,16 +90,46 @@ Rejected alternatives:
 This inverts the near-universal ski-site default of white-on-dark, and
 makes snow the page ground rather than an obstacle.
 
-## Hero image — pending reselection
+## Hero image — CHOSEN 2026-08-25
 
-The cloud-sea shot (`1527pjeb6jg`) was downloaded to `v7/img/hero.jpg`
-but set aside: cloud seas read as *scenery*, while the audience is
-buying skis and responds to *fresh snow they want to ride*.
+**S4 — skier in powder spray** → `v7/img/hero.jpg`
+- Page: https://unsplash.com/photos/person-performing-ski-r8FHH3Eph_k
+- 2400x1469, natural crop, 245KB
 
-Powder candidates tested so far, with type low-left:
+**S6 — grayscale skier** → `v7/img/hero-alt.jpg` (alternate)
+- Page: https://unsplash.com/photos/grayscale-photography-of-person-playing-ski-QBbSK65o7FQ
+- 2400x1609, 292KB
 
-- `photo-1664436341001-b02974ae7524` — skier carving, alps behind
-- `photo-1735749328571-a705c1de6cdd` — skier, deep blue sky
-- `photo-1552757666-98833dbd51fc` — skier near dark pines
-- `photo-1610127685758-002974138232` — sculpted wind-carved drift
-  (used for the type-colour test above; strong graphic shot, no figure)
+### Why S4, measured not eyeballed
+
+Three finalists were rendered at full hero size with real page
+furniture (nav, headline, subhead, search field), then the actual
+pixel regions under each element were sampled and scored against
+charcoal `#101A22`:
+
+| Shot | Headline | Nav | Search |
+|---|---|---|---|
+| **S4 powder spray** | **13.57** | **14.45** | **13.76** |
+| S6 grayscale | 4.30 | 13.94 | 3.49 |
+| S2 deep blue sky | 2.93 | **1.96** | 5.78 |
+
+S4 clears 4.5 everywhere by roughly 3x. S2 fails both headline and nav
+— its nav at 1.96:1 is effectively unreadable against the dark blue
+sky. S6 fails headline and search against its mid-grey left half.
+
+Neither failure is fixable by moving type around: those images are
+mid-toned exactly where the copy has to live. The alternatives would
+be white type (which then fails on their bright regions), a scrim
+(rejected earlier for good reason), or a crop that destroys the
+composition.
+
+S4 also happens to be the most powder-forward of the three, which is
+the quality identified as what actually appeals to skiers.
+
+### Skier vs. no skier
+
+Resolved in favour of a skier. The figure adds energy and human scale,
+and the red jacket supplies a natural focal point. Worth noting it also
+introduces an accent colour that was not deliberately chosen — if a
+brand hue is later picked, S6 (grayscale) leaves that field clear.
+
