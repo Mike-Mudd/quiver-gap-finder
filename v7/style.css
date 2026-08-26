@@ -43,12 +43,31 @@ body {
 
 /* ---------- hero ---------- */
 
+html {
+  /* anchor jumps glide instead of teleporting */
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
 .hero {
   position: relative;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* The hero used to stop dead against flat paper, which is what made
+   the first scroll feel like a jolt. This dissolves the photograph
+   into the page colour over the last slice of the hero, so the snow
+   runs out rather than being cut off. */
+.hero::after {
+  content: "";
+  position: absolute; z-index: 1;
+  left: 0; right: 0; bottom: 0;
+  height: clamp(90px, 16vh, 190px);
+  background: linear-gradient(to bottom, rgba(244,247,250,0) 0%, var(--paper) 100%);
+  pointer-events: none;
 }
 
 /* The skier sits centre-right in the source frame and a `cover` crop
@@ -85,12 +104,21 @@ body {
 }
 .nav nav a:hover { color: var(--ink); }
 
+/* Centred within the hero, but the block is capped so that on a very
+   tall viewport the copy does not float to the middle of an otherwise
+   empty field — it settles just above centre and the photograph keeps
+   the rest. */
 .copy {
   position: relative; z-index: 2;
   flex: 1;
   display: flex; flex-direction: column; justify-content: center;
   padding: 0 clamp(1.3rem, 4vw, 3.2rem) clamp(3rem, 8vh, 5rem);
   max-width: min(560px, 54%);
+}
+@media (min-height: 900px) {
+  /* Nudge the block below centre on a tall viewport instead of pinning
+     it to the bottom — flex-end plus a large pad overflowed the hero. */
+  .copy { justify-content: center; padding-top: clamp(2rem, 12vh, 9rem); }
 }
 
 /* Slender serif mixing upright and italic within one line, which is
@@ -199,12 +227,16 @@ body {
 
 /* ---------- scroll cue ---------- */
 
+/* Fixed to the viewport, not the hero, so it sits where the reader
+   actually is — and fades out once they have taken the hint. */
 .scroll-cue {
-  position: absolute; z-index: 2;
+  position: fixed; z-index: 4;
   left: clamp(1.3rem, 4vw, 3.2rem);
   bottom: 0;
   display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+  transition: opacity 0.5s var(--ease);
 }
+.scroll-cue[data-hidden="true"] { opacity: 0; pointer-events: none; }
 .scroll-cue span {
   font-size: 0.5625rem; letter-spacing: 0.24em; text-transform: uppercase;
   color: var(--ink-soft);
@@ -258,7 +290,106 @@ body {
   color: var(--ink);
 }
 
-/* ---------- one authored entrance ---------- */
+/* ---------- zones ---------- */
+
+.zones {
+  background: var(--paper);
+  padding: clamp(3rem, 8vh, 5.5rem) clamp(1.3rem, 4vw, 3.2rem) clamp(3.4rem, 9vh, 6rem);
+}
+.zones-inner { max-width: 1080px; margin: 0 auto; }
+
+.zones h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  line-height: 1.06;
+  margin: 0 0 clamp(2.2rem, 5vh, 3.4rem);
+  color: var(--ink);
+}
+.zones h2 em { font-style: italic; }
+
+.zone-grid {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.zone-grid li {
+  background: var(--paper);
+  padding: clamp(1.1rem, 2.4vw, 1.7rem);
+  display: flex; flex-direction: column;
+  transition: background 0.4s var(--ease);
+}
+.zone-grid li:hover { background: #FFFFFF; }
+.zone-n {
+  font-size: 0.5625rem; letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  margin-bottom: 0.9rem;
+}
+.zone-w {
+  font-family: var(--serif);
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-weight: 400; line-height: 1.1;
+  color: var(--ink);
+}
+.zone-f {
+  font-family: var(--serif);
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-style: italic; font-weight: 300; line-height: 1.1;
+  color: var(--ink-soft);
+  margin-bottom: 0.8rem;
+}
+.zone-grid p {
+  font-size: 0.6875rem; line-height: 1.75;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+  margin: auto 0 0;
+}
+
+/* ---------- method ---------- */
+
+.method {
+  background: var(--ink);
+  color: var(--paper);
+  padding: clamp(4rem, 11vh, 7rem) clamp(1.3rem, 4vw, 3.2rem);
+}
+.method-inner { max-width: 1080px; margin: 0 auto; }
+.method-lead {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(1.5rem, 3.2vw, 2.6rem);
+  line-height: 1.34;
+  margin: 0 0 clamp(1.8rem, 4vh, 2.6rem);
+  max-width: 26ch;
+  color: var(--paper);
+}
+.method-lead em { font-style: italic; }
+.method-link {
+  display: inline-block;
+  font-size: 0.625rem; font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--paper);
+  text-decoration: none;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(244, 247, 250, 0.35);
+  transition: border-color 0.3s var(--ease);
+}
+.method-link:hover { border-bottom-color: var(--paper); }
+
+/* ---------- foot ---------- */
+
+.foot {
+  background: var(--ink);
+  color: rgba(244, 247, 250, 0.6);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.7rem;
+  padding: 0 clamp(1.3rem, 4vw, 3.2rem) clamp(2.2rem, 5vh, 3rem);
+  font-size: 0.5625rem; letter-spacing: 0.2em; text-transform: uppercase;
+}
+
+/* ---------- motion ---------- */
 
 @media (prefers-reduced-motion: no-preference) {
   .copy h1 { animation: lift 1.25s var(--ease) 0.12s both; }
@@ -270,7 +401,24 @@ body {
     from { opacity: 0; transform: translateY(15px); }
     to   { opacity: 1; transform: none; }
   }
+
+  /* Content arrives as you reach it rather than sitting there already
+     finished. Only opacity and transform animate, so this stays on the
+     compositor and never triggers layout while scrolling. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.85s var(--ease), transform 0.85s var(--ease);
+  }
+  .reveal.is-in { opacity: 1; transform: none; }
+
+  /* the nine zones stagger in sequence, so the grid reads as a list
+     being laid out rather than a block appearing */
+  .zone-grid li { transition-delay: calc(var(--i, 0) * 55ms); }
 }
+
+/* Without JS, or with reduced motion, everything is simply visible. */
+.no-js .reveal, .reveal.is-in { opacity: 1; transform: none; }
 
 /* ---------- responsive ---------- */
 
@@ -296,16 +444,29 @@ body {
      visible seam. It then drifts a couple of steps lighter, which
      reads as the slope running out of frame rather than as a panel. */
   .hero-photo {
-    background-image:
-      var(--hero),
-      linear-gradient(to bottom,
-        rgb(213, 235, 244) 0%,
-        rgb(221, 239, 247) 46%,
-        rgb(230, 243, 249) 100%);
-    background-repeat: no-repeat, no-repeat;
-    background-size: 260% auto, 100% 100%;
-    background-position: 52% 26%, center;
+    background-image: linear-gradient(to bottom,
+      rgb(213, 235, 244) 0%,
+      rgb(221, 239, 247) 46%,
+      rgb(230, 243, 249) 100%);
   }
+  /* The photo sits in its own layer so its lower edge can be masked to
+     transparent. Handing off with two stacked backgrounds left a hard
+     line where the image stopped; a mask dissolves the last 90px of
+     the crop into the gradient instead. */
+  .hero-photo::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: var(--hero);
+    background-repeat: no-repeat;
+    background-size: 260% auto;
+    background-position: 52% 26%;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 80%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 80%);
+  }
+  /* The mobile crop already ends in its own sampled gradient, so the
+     hero's fade-out would stack a second ramp on top and produce a
+     visible band. One gradient only. */
+  .hero::after { display: none; }
   .copy {
     max-width: none;
     justify-content: flex-end;
