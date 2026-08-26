@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Formula lab — Quiver Gap Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0F1216; --panel: #161B21; --line: #262E37;
+    --ink: #E6EDF3; --dim: #8FA1B2; --faint: #5D6E7E;
+    --playful: #4FA3D9; --balanced: #C9A227; --charging: #D9614F;
+    --good: #4CAF6E; --bad: #D9614F;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 13px/1.5 "IBM Plex Mono", ui-monospace, monospace;
+  }
+  header {
+    padding: 20px 24px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 20px; flex-wrap: wrap;
+  }
+  h1 { font-size: 14px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; margin: 0; }
+  .hint { color: var(--faint); font-size: 11px; }
+  .wrap { padding: 22px 24px 80px; max-width: 1500px; }
+  section { margin-bottom: 40px; }
+  h2 {
+    font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--dim); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 8px; }
+  .note { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 13px 15px; }
+  .note h3 { margin: 0 0 7px; font-size: 12px; font-weight: 600; }
+  .note p { margin: 0; font-size: 11px; line-height: 1.65; color: var(--dim); }
+  table { border-collapse: collapse; width: 100%; font-size: 11.5px; }
+  th, td { text-align: left; padding: 6px 9px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--faint); font-weight: 500; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; position: sticky; top: 0; background: var(--bg); }
+  td.name { white-space: normal; min-width: 190px; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--dim); }
+  .zone { font-size: 10px; letter-spacing: .08em; }
+  .playful { color: var(--playful); } .balanced { color: var(--balanced); } .charging { color: var(--charging); }
+  .moved { background: rgba(217,97,79,.12); }
+  .grid9 { display: grid; grid-template-columns: 90px repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .grid9 > div { background: var(--panel); padding: 9px 11px; font-size: 11px; }
+  .grid9 .hd { color: var(--faint); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+  .cnt { font-size: 17px; font-weight: 600; }
+  .empty { color: var(--bad); }
+  .flags li { margin-bottom: 6px; font-size: 12px; color: var(--dim); }
+  .flags strong { color: var(--ink); }
+  .ok { color: var(--good); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Formula lab</h1>
+  <span class="hint">Temperament scoring, current vs. candidates &middot; 61 skis</span>
+</header>
+<div class="wrap" id="out">Loading…</div>
+
+<script src="formulas.js"></script>
+<script>
+const $ = (h) => { const d = document.createElement("div"); d.innerHTML = h.trim(); return d.firstChild; };
+const esc = (s) => String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+fetch("../data/skis.json").then(r => r.json()).then(({ skis }) => {
+  const out = document.getElementById("out");
+  out.innerHTML = "";
+
+  /* ---- what each formula is trying to fix ---- */
+  const notes = FORMULAS.map(f =>
+    `<div class="note"><h3>${esc(f.name)}</h3><p>${esc(f.note)}</p></div>`).join("");
+  out.appendChild($(`<section><h2>The candidates</h2><div class="notes">${notes}</div></section>`));
+
+  /* ---- zone occupancy: the headline test ---- */
+  const tally = (f) => {
+    const g = {};
+    skis.forEach(s => {
+      const k = waistBucket(s).key + "|" + feelBucket(f.score(s)).key;
+      g[k] = (g[k] || 0) + 1;
+    });
+    return g;
+  };
+  let gridHtml = "";
+  FORMULAS.forEach(f => {
+    const g = tally(f);
+    let rows = `<div class="hd"></div>` +
+      FEEL_BUCKETS.map(b => `<div class="hd">${b.label}</div>`).join("");
+    WAIST_BUCKETS.forEach(w => {
+      rows += `<div class="hd" style="display:flex;align-items:center">${w.label}</div>`;
+      FEEL_BUCKETS.forEach(b => {
+        const n = g[w.key + "|" + b.key] || 0;
+        rows += `<div><span class="cnt ${n === 0 ? "empty" : ""}">${n}</span></div>`;
+      });
+    });
+    gridHtml += `<div style="margin-bottom:20px">
+      <p style="font-size:11px;color:var(--dim);margin:0 0 7px">${esc(f.name)}</p>
+      <div class="grid9">${rows}</div></div>`;
+  });
+  out.appendChild($(`<section><h2>Zone occupancy — empty zones in red</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px">${gridHtml}</div></section>`));
+
+  /* ---- automatic health checks ---- */
+  const flags = FORMULAS.map(f => {
+    const vals = skis.map(s => f.score(s));
+    const g = tally(f);
+    const emptyZones = [];
+    WAIST_BUCKETS.forEach(w => FEEL_BUCKETS.forEach(b => {
+      if (!g[w.key + "|" + b.key]) emptyZones.push(w.label + " + " + b.label);
+    }));
+    const atFloor = vals.filter(v => v <= 0.01).length;
+    const atCeil = vals.filter(v => v >= 99.99).length;
+    const spread = Math.max(...vals) - Math.min(...vals);
+    const biggest = Math.max(...Object.values(g));
+    return `<li><strong>${esc(f.name)}</strong> —
+      ${emptyZones.length ? `<span class="empty">${emptyZones.length} unreachable zone${emptyZones.length > 1 ? "s" : ""}: ${esc(emptyZones.join(", "))}</span>` : `<span class="ok">every zone reachable</span>`};
+      ${atFloor + atCeil ? `<span class="empty">${atFloor + atCeil} clamped</span>` : `<span class="ok">nothing clamped</span>`};
+      spread ${spread.toFixed(0)} pts; largest zone holds ${biggest} skis</li>`;
+  }).join("");
+  out.appendChild($(`<section><h2>Health checks</h2><ul class="flags">${flags}</ul></section>`));
+
+  /* ---- is an empty zone the formula's fault, or the catalog's? ----
+     An unreachable zone matters very differently depending on whether
+     no ski *could* land there, or simply no ski in this catalog does.  */
+  const probe = FORMULAS.map(f => {
+    // strongest candidate the catalog has for wide+charging
+    const wides = skis.filter(s => s.waist_width_mm >= 110)
+      .map(s => ({ s, v: f.score(s) })).sort((a, b) => b.v - a.v);
+    if (!wides.length) return "";
+    const best = wides[0];
+    const gap = (66.67 - best.v);
+    // what a plausible wide charger would score: 2300g, partial metal, 35% rocker, 112mm
+    const hypo = f.score({ weight_g: 2300, metal_content: "partial", rocker_percent: 35, waist_width_mm: 112 });
+    return `<li><strong>${esc(f.name)}</strong> — best wide ski is
+      ${esc(best.s.name)} at ${best.v.toFixed(1)}
+      ${gap > 0 ? `(<span class="empty">${gap.toFixed(1)} short of charging</span>)` : `(<span class="ok">reaches charging</span>)`}.
+      A hypothetical 112mm / 2300g / partial-metal / 35%-rocker ski would score
+      <strong>${hypo.toFixed(1)}</strong> ${hypo >= 66.67 ? `<span class="ok">— reachable, the catalog just lacks one</span>` : `<span class="empty">— still unreachable, so the formula is the limit</span>`}.</li>`;
+  }).join("");
+  out.appendChild($(`<section><h2>Is “wide + charging” unreachable, or just unpopulated?</h2>
+    <ul class="flags">${probe}</ul>
+    <p class="hint" style="margin-top:10px">Only ${skis.filter(s => s.waist_width_mm >= 110).length} skis in the catalog are 110mm or wider,
+    so an empty wide zone may say more about the dataset than the maths.</p></section>`));
+
+  /* ---- every ski, every formula, sorted by current score ---- */
+  const rows = skis
+    .map(s => ({ s, scores: FORMULAS.map(f => f.score(s)) }))
+    .sort((a, b) => b.scores[0] - a.scores[0])
+    .map(({ s, scores }) => {
+      const zones = scores.map(v => feelBucket(v));
+      const moved = zones.some(z => z.key !== zones[0].key);
+      const cells = scores.map((v, i) =>
+        `<td class="num">${v.toFixed(1)}</td>
+         <td class="zone ${zones[i].key}">${zones[i].label}</td>`).join("");
+      return `<tr class="${moved ? "moved" : ""}">
+        <td class="name">${esc(s.name)}</td>
+        <td class="num">${s.waist_width_mm}</td>
+        <td class="num">${s.weight_g}</td>
+        <td class="num">${esc(s.metal_content)}</td>
+        <td class="num">${rocker(s)}%</td>
+        ${cells}</tr>`;
+    }).join("");
+  const heads = FORMULAS.map(f => `<th colspan="2">${esc(f.name)}</th>`).join("");
+  out.appendChild($(`<section><h2>Every ski — highlighted rows land in different zones depending on formula</h2>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Ski</th><th>Waist</th><th>Weight</th><th>Metal</th><th>Rocker</th>${heads}</tr></thead>
+      <tbody>${rows}</tbody></table></div></section>`));
+});
+</script>
+</body>
+</html>
