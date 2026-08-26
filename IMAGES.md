@@ -7,16 +7,23 @@ good standalone fail badly behind type — see the note below).
 ## Chosen
 
 **G — aerial foggy mountains** (primary)
-- https://unsplash.com/photos/aerial-photo-of-foggy-mountains-21bda4d32df4
+- Page: https://unsplash.com/photos/aerial-photo-of-foggy-mountains-1527pjeb6jg
+- Direct download: https://unsplash.com/photos/1527pjeb6jg/download?force=true
 - Sharp alpine peaks left, cloud sea running through the middle exactly
   where the headline sits, layered depth, subtle warm/cool contrast.
 - Reads cleanly with **no overlay needed**, which is rare.
 
 **H — black & white mountain range** (alternate)
-- Unsplash id `photo-1639516325878-5fdaae9702e8`
+- Page: https://unsplash.com/photos/a-black-and-white-photo-of-a-mountain-range-3XKoYtfmXTk
+- Direct download: https://unsplash.com/photos/3XKoYtfmXTk/download?force=true
 - Monochrome and austere. Removes colour as a variable, so any accent
   added later is unambiguous. Slightly busier edges; wants a little
   more separation behind the type.
+
+> Photo IDs above are the real Unsplash page slugs (`1527pjeb6jg`,
+> `3XKoYtfmXTk`), not the CDN filenames. The CDN filename
+> (`photo-1506905925346-…`) is *not* a valid page URL — that mistake
+> produced a broken link once already.
 
 ## Licence
 
