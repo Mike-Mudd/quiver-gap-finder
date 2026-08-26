@@ -58,3 +58,48 @@ Each layout reads the image through a single CSS variable:
 
 so swapping G for H, or either for something else, is a one-line change
 per version.
+
+## Type colour on snow — resolved 2026-08-25
+
+Bright powder is the point of the site, so the type was built for white
+rather than routed around it. Five strategies were tested on the same
+bright snow photo, then measured:
+
+| Type colour | Bright snow | Mid snow | Shadowed snow |
+|---|---|---|---|
+| **Charcoal `#101A22`** | **15.66** | 13.19 | 9.67 |
+| Alpine blue `#0B3D66` | 9.97 | 8.40 | 6.15 |
+| White `#FFFFFF` | **1.12** | — | — |
+
+**Decision: dark type on snow, no scrim.**
+
+White on bright snow measures 1.12:1 — functionally invisible against a
+4.5 requirement. Charcoal clears it by more than 3x and, importantly,
+stays above 4.5 even on *shadowed* snow, so the type works anywhere in
+the frame without policing where it lands. Alpine blue also passes
+everywhere and carries brand character if a hue is wanted.
+
+Rejected alternatives:
+- **Duotone the photo** so white type works — legible, but it throws
+  away the photograph; a deep blue sky flattens to teal.
+- **Local scrim** behind the text — works, but you can see it working,
+  and it dims exactly the snow the site is meant to show off.
+- **Solid block** behind the type — strong, but closer to the retired
+  v2 energy than this direction wants.
+
+This inverts the near-universal ski-site default of white-on-dark, and
+makes snow the page ground rather than an obstacle.
+
+## Hero image — pending reselection
+
+The cloud-sea shot (`1527pjeb6jg`) was downloaded to `v7/img/hero.jpg`
+but set aside: cloud seas read as *scenery*, while the audience is
+buying skis and responds to *fresh snow they want to ride*.
+
+Powder candidates tested so far, with type low-left:
+
+- `photo-1664436341001-b02974ae7524` — skier carving, alps behind
+- `photo-1735749328571-a705c1de6cdd` — skier, deep blue sky
+- `photo-1552757666-98833dbd51fc` — skier near dark pines
+- `photo-1610127685758-002974138232` — sculpted wind-carved drift
+  (used for the type-colour test above; strong graphic shot, no figure)
