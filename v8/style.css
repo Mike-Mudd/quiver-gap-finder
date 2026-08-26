@@ -1,0 +1,315 @@
+/* ===================================================================
+   Direction 08 — "Plate"
+   The photograph is treated as a plate on a page: inset in a paper
+   margin, full width, with the type set BELOW it on clean paper rather
+   than over the snow.
+
+   This started as centred type over the photo and was changed after
+   testing: the skier sits off-centre, and every crop that keeps the
+   figure in frame drags it toward the middle — exactly where centred
+   text lives. Rather than crop past the subject and lose it, the
+   composition gives the photo its own uninterrupted space. The photo
+   is never asked to be a background, so it reads at full strength.
+   =================================================================== */
+
+:root {
+  --ink: #101A22;          /* 13.6:1 on this photo's snow */
+  --ink-soft: #2E4152;     /* 9.4:1 — captions, nav, labels */
+  --ink-faint: #5B7086;
+  --paper: #F4F7FA;
+  --line: rgba(16, 26, 34, 0.16);
+  --accent: #C1372B;       /* drawn from the skier's jacket, used sparingly */
+
+  --serif: "Cormorant Garamond", Georgia, serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --hero: url("img/hero.jpg");
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+}
+
+::selection { background: var(--ink); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+* { scrollbar-width: thin; scrollbar-color: rgba(16,26,34,0.3) transparent; }
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(16,26,34,0.28); border-radius: 99px;
+  border: 2px solid transparent; background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(16,26,34,0.48); background-clip: content-box; }
+
+/* ---------- hero ---------- */
+
+.frame {
+  padding: clamp(0.7rem, 1.6vw, 1.3rem);
+  background: var(--paper);
+}
+
+.hero {
+  position: relative;
+  min-height: calc(100svh - clamp(1.4rem, 3.2vw, 2.6rem));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  border-radius: clamp(10px, 1.2vw, 18px);
+  background: var(--paper);
+}
+
+/* the plate: photo occupies the upper band, uninterrupted */
+.hero-photo {
+  position: relative;
+  grid-row: 2;
+  min-height: min(52vh, 460px);
+  border-radius: clamp(6px, 0.8vw, 12px);
+  margin: 0 clamp(0.8rem, 2vw, 1.6rem);
+}
+
+/* The photograph carries the page. Position keeps the skier right of
+   centre so the pale left field stays clear for the type. */
+.hero-photo {
+  background-image: var(--hero);
+  background-size: cover;
+  background-position: 52% 46%;
+}
+
+.nav {
+  grid-row: 1;
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1.3rem, 4vw, 3.2rem);
+}
+.brand {
+  font-family: var(--mono);
+  font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none;
+}
+.nav nav { display: flex; gap: clamp(1.1rem, 2.4vw, 1.8rem); }
+.nav nav a {
+  font-size: 0.625rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-soft); text-decoration: none;
+  transition: color 0.25s var(--ease);
+}
+.nav nav a:hover { color: var(--ink); }
+
+.copy {
+  grid-row: 3;
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  align-items: end;
+  gap: clamp(1.6rem, 4vw, 3.4rem);
+  padding: clamp(1.8rem, 4vh, 2.8rem) clamp(1.3rem, 4vw, 3.2rem) clamp(1.8rem, 4vh, 2.8rem);
+}
+
+.eyebrow-rule { display: none; }
+.copy h1 { grid-column: 1; }
+.sub { grid-column: 1; }
+.search-module { grid-column: 2; grid-row: 1 / span 3; align-self: end; }
+
+/* Slender serif mixing upright and italic within one line, which is
+   the single move that makes this read editorial rather than corporate. */
+.copy h1 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(2.9rem, 6.4vw, 5.6rem);
+  line-height: 1.02;
+  letter-spacing: 0.004em;
+  margin: 0;
+  color: var(--ink);
+}
+.copy h1 em { font-style: italic; font-weight: 400; }
+
+.sub {
+  font-family: var(--mono);
+  font-size: 0.625rem; font-weight: 500;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: clamp(1.1rem, 2.4vh, 1.6rem) 0 0;
+}
+
+/* ---------- search ---------- */
+
+.search-module { width: 100%; }
+
+.field {
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0 0.4rem 0 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.field:focus-within {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(16, 26, 34, 0.1);
+}
+.field-icon { color: var(--ink-faint); flex: none; }
+.field:focus-within .field-icon { color: var(--ink); }
+
+#ski-search {
+  flex: 1; min-width: 0;
+  border: none; background: none; outline: none;
+  font-family: var(--mono); font-size: 0.875rem;
+  color: var(--ink);
+  caret-color: var(--accent);
+  padding: 0.9rem 0.4rem 0.9rem 0;
+}
+#ski-search::placeholder { color: rgba(16, 26, 34, 0.62); }
+
+.results {
+  list-style: none; margin: 0.5rem 0 0; padding: 0.3rem;
+  max-height: 210px; overflow-y: auto;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -18px rgba(16, 26, 34, 0.38);
+}
+.results li {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.9rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  transition: background 0.16s var(--ease);
+}
+.results li:hover, .results li[data-active="true"] { background: rgba(16, 26, 34, 0.07); }
+.results li .spec { font-size: 0.6875rem; letter-spacing: 0.08em; color: var(--ink-faint); white-space: nowrap; }
+.results li.empty { cursor: default; color: var(--ink-faint); }
+.results li.empty:hover { background: none; }
+
+.quiver { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; padding: 0; }
+.quiver:not(:empty) { margin-top: 0.75rem; }
+.quiver li {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.75rem;
+  background: var(--ink); color: var(--paper);
+  border-radius: 100px;
+  font-size: 0.6875rem; letter-spacing: 0.04em;
+  animation: rise 0.4s var(--ease) both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(5px); } }
+.quiver button {
+  width: 21px; height: 21px; flex: none;
+  display: inline-grid; place-items: center;
+  border: none; border-radius: 50%; cursor: pointer;
+  background: rgba(244, 247, 250, 0.24); color: var(--paper);
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.quiver button:hover { background: var(--paper); color: var(--ink); }
+
+.readout {
+  font-family: var(--mono);
+  font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0.95rem 0 0;
+  line-height: 1.7;
+}
+.readout .gap { color: var(--accent); font-weight: 500; }
+
+/* ---------- scroll cue ---------- */
+
+.scroll-cue {
+  position: absolute; z-index: 2;
+  left: clamp(1.3rem, 4vw, 3.2rem);
+  bottom: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+}
+.scroll-cue span {
+  font-size: 0.5625rem; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-soft);
+  writing-mode: vertical-rl;
+}
+.scroll-cue::after {
+  content: "";
+  width: 1px; height: clamp(38px, 7vh, 62px);
+  background: linear-gradient(to bottom, var(--ink-soft), transparent);
+}
+
+/* ---------- ledger ---------- */
+
+.ledger {
+  background: var(--paper);
+  padding: clamp(3.4rem, 9vh, 6rem) clamp(1.3rem, 4vw, 3.2rem);
+}
+.ledger-inner { max-width: 1080px; margin: 0 auto; }
+
+.ledger-lead {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(1.4rem, 2.7vw, 2.15rem);
+  line-height: 1.36;
+  letter-spacing: 0.004em;
+  margin: 0 0 clamp(2.6rem, 6vh, 4rem);
+  max-width: 30ch;
+  color: var(--ink);
+}
+.ledger-lead em { font-style: italic; }
+
+.ledger-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(1rem, 3vw, 2.4rem);
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 1.5rem;
+}
+.ledger-stats dt {
+  font-size: 0.5625rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.55rem;
+}
+.ledger-stats dd {
+  font-family: var(--serif);
+  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
+  font-weight: 300;
+  line-height: 1;
+  margin: 0;
+  color: var(--ink);
+}
+
+/* ---------- one authored entrance ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .copy h1 { animation: lift 1.25s var(--ease) 0.12s both; }
+  .sub { animation: lift 1s var(--ease) 0.4s both; }
+  .search-module { animation: lift 1s var(--ease) 0.54s both; }
+  .nav { animation: lift 0.9s var(--ease) both; }
+  .scroll-cue { animation: lift 1s var(--ease) 0.9s both; }
+  @keyframes lift {
+    from { opacity: 0; transform: translateY(15px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .copy { grid-template-columns: 1fr; gap: 1.4rem; }
+  .search-module { grid-column: 1; grid-row: auto; }
+}
+@media (max-width: 680px) {
+  .nav nav { display: none; }
+  .scroll-cue { display: none; }
+  /* On a tall crop the skier would sit behind the copy, so the frame
+     shifts to keep the figure low-right and the type on clear snow. */
+  .hero-photo { background-position: 58% 46%; min-height: 34vh; }
+  .copy h1 { font-size: clamp(2.5rem, 11.5vw, 3.4rem); }
+  #ski-search { font-size: 1rem; }
+  .search-module { width: 100%; }
+  .ledger-stats { grid-template-columns: repeat(2, 1fr); gap: 1.6rem 1rem; }
+}
