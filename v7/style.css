@@ -280,15 +280,36 @@ body {
 @media (max-width: 680px) {
   .nav nav { display: none; }
   .scroll-cue { display: none; }
-  /* A tall crop of a wide photo cuts the subject to a fragment. Zooming
-     out to `contain`-like framing is not an option on a full-bleed hero,
-     so the crop centres the figure in the upper half and the copy sits
-     under it — the skier stays a skier rather than a red smear. */
-  .hero-photo { background-position: 56% 30%; background-size: 175% auto; background-repeat: no-repeat; }
+  /* Keep desktop's text-over-image composition rather than splitting
+     photo and type into separate bands. The jacket occupies 44-55% of
+     the source width and 33-48% of its height (measured), so a plain
+     `cover` crop on a tall viewport puts the figure exactly where the
+     headline goes. Instead the image is scaled up and anchored so the
+     skier reads large in the upper half, with the type on the churned
+     snow below — the pole line runs down toward the headline the way
+     it does on desktop.
+
+     `background-size: 260% auto` leaves the lower frame unpainted, so
+     a second layer continues the slope. Its start colour is sampled
+     from the actual pixels along the crop's bottom edge —
+     rgb(213,235,244) — rather than guessed; an eyeballed value left a
+     visible seam. It then drifts a couple of steps lighter, which
+     reads as the slope running out of frame rather than as a panel. */
+  .hero-photo {
+    background-image:
+      var(--hero),
+      linear-gradient(to bottom,
+        rgb(213, 235, 244) 0%,
+        rgb(221, 239, 247) 46%,
+        rgb(230, 243, 249) 100%);
+    background-repeat: no-repeat, no-repeat;
+    background-size: 260% auto, 100% 100%;
+    background-position: 52% 26%, center;
+  }
   .copy {
     max-width: none;
     justify-content: flex-end;
-    padding-bottom: clamp(2.4rem, 6vh, 3.4rem);
+    padding-bottom: clamp(2.2rem, 5vh, 3rem);
   }
   .copy h1 { font-size: clamp(2.5rem, 11.5vw, 3.4rem); }
   #ski-search { font-size: 1rem; }
