@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<script src="../scoring.js"></script>
 </head>
 <body>
 
@@ -38,6 +39,12 @@
       </div>
       <ul id="results" class="results" role="listbox" aria-label="Matching skis" hidden></ul>
       <ul id="quiver" class="quiver" aria-label="Your skis"></ul>
+      <div class="interest-picker" id="interest-picker" role="group" aria-label="Lean recommendations toward (optional)" hidden>
+        <span class="interest-picker-label">Lean toward</span>
+        <button type="button" class="interest-chip" data-interest="trees" aria-pressed="false">Trees</button>
+        <button type="button" class="interest-chip" data-interest="powder" aria-pressed="false">Powder</button>
+        <button type="button" class="interest-chip" data-interest="speed" aria-pressed="false">Speed</button>
+      </div>
       <p class="readout" id="readout">Nine kinds of ski day. Add what you own to see which ones you cover.</p>
     </div>
   </div>
@@ -45,6 +52,16 @@
   <!-- vertical rule + label, the reference's scroll cue -->
   <div class="scroll-cue" aria-hidden="true"><span>Scroll</span></div>
 </div>
+
+<section class="map-section" id="map-section" aria-label="Coverage map" hidden>
+  <div class="map-section-inner">
+    <h2>Where you&rsquo;re<br />covered</h2>
+    <div class="summary-block" id="summary-content"></div>
+    <div id="map-content"></div>
+    <div class="condition-block" id="condition-content"></div>
+    <div id="details-content"></div>
+  </div>
+</section>
 
 <section class="ledger" aria-label="What this is">
   <div class="ledger-inner">
@@ -96,6 +113,10 @@
   <span>Direction 07 — editorial</span>
 </footer>
 
+<div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
+
+<script src="../coverage-map.js"></script>
+<script src="../condition-cards.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

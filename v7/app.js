@@ -2,46 +2,26 @@
 
 /* Direction 07 — visual exploration.
    Search and coverage readout run on the real dataset and the real
-   coverage math (see ../README.md) rather than mocked copy. */
+   coverage math from ../scoring.js (see ../README.md for the
+   reasoning) rather than a re-derived copy — this used to carry its
+   own feelScore/zones, which had already drifted from root's coverage
+   math (a flat boundary check, missing the region-overlap fix in
+   scoring.js's buildGrid). Loading order matters: index.html pulls in
+   scoring.js before this file. */
 
-const WAIST = [
-  { key: "narrow", label: "Narrow", min: 60, max: 89 },
-  { key: "allmtn", label: "All-mountain", min: 90, max: 109 },
-  { key: "wide", label: "Wide", min: 110, max: 130 },
-];
-const FEEL = [
-  { key: "playful", label: "playful", min: 0, max: 33.33 },
-  { key: "balanced", label: "balanced", min: 33.33, max: 66.67 },
-  { key: "charging", label: "charging", min: 66.67, max: 100 },
-];
-const METAL = { none: 0, partial: 0.5, full: 1 };
-const ROCKER_DEFAULT = {
-  full_camber: 5, camber_tip_rocker: 20, camber_tip_tail_rocker: 40,
-  flat_tip_tail_rocker: 65, full_rocker: 90,
-};
+const { buildGrid, selectTopSuggestionsForMap, REDUNDANCY_THRESHOLD } = window.QuiverScoring;
 
-const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
-const rocker = (s) => typeof s.rocker_percent === "number" ? s.rocker_percent : (ROCKER_DEFAULT[s.rocker_profile] ?? 40);
-
-function feelScore(ski) {
-  const w = clamp((ski.weight_g - 1500) / (2360 - 1500), 0, 1);
-  const m = METAL[ski.metal_content] ?? 0;
-  return clamp(w * 65 + m * 35 - (rocker(ski) / 100) * 25, 0, 100);
-}
+// Short zone labels for the readout copy ("Narrow" / "playful"), kept
+// separate from scoring.js's own bucket.label ("narrow / firm-groomer")
+// so this direction's voice doesn't change just by sharing the math.
+const WAIST_SHORT = { narrow: "Narrow", allmtn: "All-mountain", wide: "Wide" };
+const FEEL_SHORT = { playful: "playful", balanced: "balanced", damp: "charging" };
 
 function zones(quiver) {
-  const regions = quiver.map((s) => {
-    const f = feelScore(s);
-    return { xMin: s.waist_width_mm - 7, xMax: s.waist_width_mm + 7, yMin: f - 12, yMax: f + 12 };
-  });
-  const out = [];
-  for (const f of FEEL) for (const w of WAIST) {
-    out.push({
-      label: `${w.label} + ${f.label}`,
-      covered: regions.some((r) => r.xMin <= w.max && r.xMax >= w.min && r.yMin <= f.max && r.yMax >= f.min),
-    });
-  }
-  return out;
+  return buildGrid(quiver).map((cell) => ({
+    label: `${WAIST_SHORT[cell.waistBucket.key]} + ${FEEL_SHORT[cell.stabBucket.key]}`,
+    covered: cell.skis.length > 0,
+  }));
 }
 
 /* ------------------------------------------------------------------ */
@@ -50,10 +30,27 @@ const searchEl = document.getElementById("ski-search");
 const resultsEl = document.getElementById("results");
 const quiverEl = document.getElementById("quiver");
 const readoutEl = document.getElementById("readout");
+const mapSectionEl = document.getElementById("map-section");
+const mapContentEl = document.getElementById("map-content");
+const summaryContentEl = document.getElementById("summary-content");
+const conditionContentEl = document.getElementById("condition-content");
+const interestPickerEl = document.getElementById("interest-picker");
+const interestChips = document.querySelectorAll(".interest-chip");
+const detailsContentEl = document.getElementById("details-content");
 
 let all = [];
 let quiver = [];
 let cursor = -1;
+let candidateSkis = []; // "what if I added this" — see coverage-map.js
+// Optional "lean toward" interest (see scoring.js INTERESTS) - one of
+// INTERESTS[].key or null for "no lean." Single-select: clicking the
+// already-active chip clears it, same toggle pattern as root.
+let selectedInterest = null;
+
+const coverageMap = window.CoverageMap.create({
+  tooltipEl: document.getElementById("chart-tooltip"),
+});
+const conditionCards = window.ConditionCards.create();
 
 fetch("../data/skis.json")
   .then((r) => r.json())
@@ -92,25 +89,57 @@ function renderResults() {
 
 function add(ski) {
   if (quiver.some((s) => s.name === ski.name)) return;
-  quiver.push(ski);
+  // A shallow copy, not the shared `all` reference - each quiver slot
+  // tracks its own selected_length_cm independently (see
+  // scoring.js effectiveSpecs), defaulting to the ski's reference
+  // length. Matches root's addToQuiver.
+  quiver.push({ ...ski, selected_length_cm: ski.reference_length_cm });
   searchEl.value = "";
   resultsEl.hidden = true;
   renderQuiver();
   renderReadout();
+  renderMap();
   searchEl.focus();
 }
 
 function remove(name) {
   quiver = quiver.filter((s) => s.name !== name);
+  // A stale comparison no longer applies once the quiver it was being
+  // compared against has changed underneath it — same reasoning as
+  // root's onFindGaps resetting candidateSkis on a fresh run.
+  candidateSkis = [];
   renderQuiver();
   renderReadout();
+  renderMap();
+}
+
+/**
+ * <select> of a ski's available lengths (see length_options in
+ * data/SOURCING.md) - quietly absent rather than showing a picker with
+ * nothing to pick, for the (currently most) skis that haven't been
+ * backfilled with any yet. Matches root's lengthPickerHtml.
+ */
+function lengthPickerHtml(ski) {
+  if (!ski.length_options || ski.length_options.length === 0) return "";
+  const options = ski.length_options
+    .map((o) => `<option value="${o.length_cm}" ${o.length_cm === ski.selected_length_cm ? "selected" : ""}>${o.length_cm}cm</option>`)
+    .join("");
+  return `<select class="length-picker" aria-label="Length for ${ski.name}">${options}</select>`;
 }
 
 function renderQuiver() {
+  interestPickerEl.hidden = quiver.length === 0;
   quiverEl.innerHTML = "";
   quiver.forEach((ski) => {
     const li = document.createElement("li");
-    li.innerHTML = `<span>${ski.name}</span>`;
+    li.innerHTML = `<span>${ski.name}</span>${lengthPickerHtml(ski)}`;
+    const picker = li.querySelector(".length-picker");
+    if (picker) {
+      picker.addEventListener("change", () => {
+        ski.selected_length_cm = Number(picker.value);
+        renderMap();
+      });
+    }
     const btn = document.createElement("button");
     btn.type = "button";
     btn.setAttribute("aria-label", `Remove ${ski.name}`);
@@ -133,6 +162,63 @@ function renderReadout() {
     : `${9 - missing.length} of 9 covered · <span class="gap">biggest gap: ${missing[0].label}</span>`;
 }
 
+/**
+ * The coverage map, TL;DR summary, and condition cards all live in one
+ * section below the hero and live-update with the quiver — no "Find
+ * gaps" button, matching this direction's no-friction feel (see
+ * readout above). When the quiver has gaps and nothing is being
+ * manually compared, the map doubles as "what should I add" using the
+ * same greedy-suggestion algorithm as root (selectTopSuggestionsForMap)
+ * — see coverage-map.js/condition-cards.js/scoring.js. grid/gaps are
+ * computed once here and reused across all three, same as root's
+ * renderResults -> renderDashboard.
+ */
+function renderMap() {
+  if (quiver.length === 0) {
+    mapSectionEl.hidden = true;
+    return;
+  }
+  mapSectionEl.hidden = false;
+
+  const grid = buildGrid(quiver);
+  const gaps = grid.filter((c) => c.skis.length === 0);
+  const redundant = grid.filter((c) => c.skis.length >= REDUNDANCY_THRESHOLD);
+
+  const quiverNames = new Set(quiver.map((s) => s.name));
+  const usingCandidates = candidateSkis.length > 0;
+  let comparisonSkis = candidateSkis;
+  let suggestionResult = null;
+
+  if (!usingCandidates && gaps.length > 0) {
+    suggestionResult = selectTopSuggestionsForMap(all, gaps, quiverNames, selectedInterest);
+    comparisonSkis = suggestionResult.suggestions;
+  }
+
+  summaryContentEl.innerHTML = conditionCards.renderQuiverSummarySection(
+    grid,
+    gaps,
+    redundant,
+    suggestionResult ? suggestionResult.suggestions : null
+  );
+  conditionContentEl.innerHTML = conditionCards.renderConditionCardsSection(grid, quiver);
+  detailsContentEl.innerHTML = conditionCards.renderDetailsSection(gaps, redundant, quiverNames, all, selectedInterest);
+
+  mapContentEl.innerHTML = coverageMap.renderSection(quiver, comparisonSkis, {
+    usingCandidates,
+    suggestionResult,
+    candidateSkis,
+    selectedInterest,
+  });
+  coverageMap.wire(mapContentEl, quiver, comparisonSkis, {
+    getAllSkis: () => all,
+    candidateSkis,
+    onCandidatesChange: (next) => {
+      candidateSkis = next;
+      renderMap();
+    },
+  });
+}
+
 searchEl.addEventListener("input", renderResults);
 searchEl.addEventListener("focus", renderResults);
 searchEl.addEventListener("blur", () => setTimeout(() => { resultsEl.hidden = true; }, 120));
@@ -151,6 +237,19 @@ searchEl.addEventListener("keydown", (e) => {
     const ski = all.find((s) => s.name === items[cursor].firstChild.textContent);
     if (ski) add(ski);
   }
+});
+
+/** Single-select "lean toward" chips (see selectedInterest) - clicking
+ * the already-active chip clears it back to "no lean," same toggle
+ * pattern as root. Lives in static markup, wired once here rather than
+ * re-wired on every renderMap() call. */
+interestChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const key = chip.dataset.interest;
+    selectedInterest = selectedInterest === key ? null : key;
+    interestChips.forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.interest === selectedInterest)));
+    renderMap();
+  });
 });
 
 /* ------------------------------------------------------------------ *
