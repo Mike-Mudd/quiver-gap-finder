@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#000",
+        "createdAt": "2026-08-27T17:08:52.074Z",
+        "reason": "mask-image alpha-mask gradient stop (black=opaque/transparent=see-through), not a visible palette color - v7/style.css line 947-948"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "2px",
+        "createdAt": "2026-08-27T17:10:34.992Z",
+        "reason": "focus-visible outline's own corner rounding, not a content-surface radius - v7/style.css line 62"
+      }
+    ]
+  }
+}
