@@ -100,7 +100,7 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2023-2023-nordica-unleashed-98",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "Single layer 'Terrain Specific Metal' - thinner at center, extends near edge-to-edge at tips/tails: partial, not a full flat sheet. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was 16m; evo.com's full per-length table and the cited Blister review's own stated radius progression both agree on ~18.1m at 180cm. length_options: radius real at all 4 lengths; weight only confirmed at the 180cm reference (couldn't independently confirm a clean per-pair weight figure elsewhere) - 168, 174, 186cm estimated via the SOURCING.md scaling formula.",
       "length_options": [
         {
@@ -139,7 +139,7 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-nordica-unleashed-108",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "Corrected weight_g from 2120 (Nordica's manufacturer-claimed figure) to 2087 (Blister's own measured weight) - the original entry violated the sourcing rule of preferring measured over claimed. Found because the claimed figure happened to exactly match Fischer Ranger 108's weight/metal/rocker, causing the two to render as a single indistinguishable mark on the coverage map - caught via user testing, not caught during original sourcing. Same Terrain Specific Metal concept as Unleashed 98, proportionally more metal underfoot given the wider waist. rocker_percent estimated from profile category. length_options (2026-08-17): radius real (evo.com), reference row matches exactly. Weight only real at 186cm - 174, 180, 191cm estimated via the scaling formula.",
       "length_options": [
         {
@@ -184,33 +184,33 @@
     {
       "name": "K2 Mindbender 99Ti",
       "brand": "K2",
-      "model_year": "2022-2023",
+      "model_year": "2025-2026",
       "reference_length_cm": 184,
       "waist_width_mm": 99,
-      "weight_g": 2103,
+      "weight_g": 2290,
       "turn_radius_m": 19.6,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 40,
       "metal_content": "full",
       "tail_shape": "directional",
-      "source": "Blister Review",
-      "source_url": "https://blisterreview.com/gear-reviews/2022-2023-k2-mindbender-99ti",
-      "verified_date": "2026-08-17",
-      "notes": "Titanal Y-Beam runs edge-to-edge underfoot. Measured tip/camber/tail splay 64mm / ~4mm / 20mm. rocker_percent estimated from profile category. Corrected 2026-08-16: weight_g was 2311g, which independent re-checking traces to a DIFFERENT, older (2019/20-2021/22) generation's weight appearing in a comparison table inside an unrelated Blister review (the Volkl M6 Mantra review) - not this entry's actual cited 2022-2023 review. That review's own measured weight at 184cm is 2085 & 2120g (avg 2103g, independently re-confirmed via a fresh search). No length_options added yet - weight isn't reliably published at the other four lengths, only 184cm. length_options (2026-08-17): turn radius real (evo.com/skis.com, from prior research); weight not published beyond the 184cm reference anywhere checked, so weight at 166, 178cm is estimated via the SOURCING.md scaling formula (rate 0.81%/cm), not sourced - only the 184cm row's weight is real.",
+      "source": "K2 official 2026 spec page",
+      "source_url": "https://k2snow.com/en-us/p/mindbender-99ti-mens-skis-2026",
+      "verified_date": "2026-09-01",
+      "notes": "Titanal Y-Beam runs edge-to-edge underfoot. Measured tip/camber/tail splay 64mm / ~4mm / 20mm. rocker_percent estimated from profile category. Refreshed 2026-09-01: manufacturer-stated weight at 184cm increased from 2103g to 2290g (+9%), confirmed consistently across K2's own site, REI, and SkiEssentials' 2026 test - no source describes an actual construction/layup change (still Titanal Y-Beam, same aspen core, same All-Terrain Rocker profile), but the weight delta clears SOURCING.md's materiality threshold regardless of cause, so treated as a refresh. waist_width_mm, turn_radius_m, metal_content, and rocker_profile all independently reconfirmed unchanged. length_options weight estimates at 166/178cm re-derived from the new 2290g reference via the SOURCING.md scaling formula (rate 0.00814) - still estimated, not independently sourced at those lengths.",
       "length_options": [
         {
           "length_cm": 166,
-          "weight_g": 1796,
+          "weight_g": 1954,
           "turn_radius_m": 15.4
         },
         {
           "length_cm": 178,
-          "weight_g": 2001,
+          "weight_g": 2178,
           "turn_radius_m": 18.1
         },
         {
           "length_cm": 184,
-          "weight_g": 2103,
+          "weight_g": 2290,
           "turn_radius_m": 19.6
         }
       ]
@@ -697,7 +697,7 @@
       "tail_shape": "twin_tip",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-atomic-bent-110",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "Published tip/camber/tail split 25/50/25% - rocker_percent = 25+25. Measured tip/tail splay 62mm/58mm, camber underfoot 8mm. Weight is Atomic's stated pair weight (3500g) halved - flagged lower confidence than a directly measured per-ski figure. Corrected 2026-08-17: turn_radius_m was 19m; evo.com gives 18m at the 180cm reference (weight 1750g matches exactly, confirming the same generation). length_options: radius real at all 3 lengths; 172, 188cm weight estimated via the scaling formula.",
       "length_options": [
         {
@@ -960,7 +960,7 @@
       "tail_shape": "directional",
       "source": "evo / SkiEssentials",
       "source_url": "https://www.evo.com/skis/rossignol-sender-94",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "'Titanal Beam' runs underfoot only (localized, not a full sheet) - partial, corrected from an earlier 'full' assumption. Published Free Rocker split 25% tip / 60% camber / 15% tail - rocker_percent = 25+15. length_options (2026-08-17): turn radius real (evo.com/skis.com, from prior research); weight not published beyond the 178cm reference anywhere checked, so weight at 156, 164, 172, 186cm is estimated via the SOURCING.md scaling formula (rate 0.81%/cm), not sourced - only the 178cm row's weight is real.",
       "length_options": [
         {
@@ -1004,7 +1004,7 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-rossignol-sender-104-ti",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "Source explicitly states 'titanal (partial layer)' - corrected from an earlier 'full' assumption. Published Free Rocker split 25% tip / 60% camber / 15% tail - rocker_percent = 25+15. Measured camber underfoot 6.5mm. length_options (2026-08-17): radius real (evo.com), reference row's radius matches exactly. evo's per-length weight figures (1800/1900/2000g) are manufacturer-claimed and run lighter than this entry's existing SkiEssentials-measured reference (2200g, independently confirmed) - not used; 172, 186cm weight estimated off the trusted existing reference instead via the scaling formula.",
       "length_options": [
         {
@@ -1450,7 +1450,7 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2022-2023-fischer-ranger-96",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "Titanal split in front of/behind the binding area (not a full sheet) - partial, confirmed by source. turn_radius_m not published for this length - estimated from comparable ~96mm skis, lower confidence. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was already flagged in this entry's own notes as an estimate (17m, \"not published for this length\") - replaced with the real published figure (18m) found via evo.com's full per-length table, cross-confirming the 180cm reference weight (1950g) exactly. length_options: 173cm and 180cm weight are real (evo.com); 159cm and 187cm weight not published anywhere checked, estimated via the SOURCING.md scaling formula.",
       "length_options": [
         {
