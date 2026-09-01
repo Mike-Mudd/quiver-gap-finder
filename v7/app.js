@@ -189,8 +189,15 @@ function renderReadout() {
 function renderMap() {
   if (quiver.length === 0) {
     mapSectionEl.hidden = true;
+    // is-in survives on these wrapper nodes even though the section is
+    // hidden - the early return here never reaches the innerHTML writes
+    // below that would otherwise refresh them. Clear it explicitly so
+    // the stagger plays again next time the section is reached from
+    // empty, rather than only once per page load.
+    mapSectionEl.querySelectorAll(".stage").forEach((el) => el.classList.remove("is-in"));
     return;
   }
+  const firstReveal = mapSectionEl.hidden;
   mapSectionEl.hidden = false;
 
   const grid = buildGrid(quiver);
@@ -229,6 +236,41 @@ function renderMap() {
       candidateSkis = next;
       renderMap();
     },
+  });
+
+  if (firstReveal) {
+    playMapReveal();
+  } else {
+    // Every renderMap() after the first replaces these nodes wholesale
+    // (innerHTML), which drops the is-in class fresh HTML starts
+    // without. Re-apply immediately so a chip toggle or length change
+    // doesn't fade content back in that the reader is already looking
+    // at - the stagger is a one-time intro, not a per-update effect.
+    mapSectionEl.querySelectorAll(".stage").forEach((el) => el.classList.add("is-in"));
+  }
+}
+
+/**
+ * The summary sentence, then the map + condition cards together, then
+ * the details fallback - three beats instead of one instant dump, so
+ * the reader gets the headline before the evidence and the evidence
+ * before the deep-dive (see the v7 critique, P1: five surfaces
+ * revealing simultaneously). Runs once per reveal, not on every
+ * renderMap() call - a chip toggle or length change should not
+ * re-animate content the reader is already looking at.
+ */
+function playMapReveal() {
+  const stages = mapSectionEl.querySelectorAll(".stage");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced) {
+    stages.forEach((el) => el.classList.add("is-in"));
+    return;
+  }
+  requestAnimationFrame(() => {
+    stages.forEach((el) => {
+      const stage = Number(el.dataset.stage || 1);
+      setTimeout(() => el.classList.add("is-in"), (stage - 1) * 160);
+    });
   });
 }
 

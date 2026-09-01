@@ -606,6 +606,21 @@ html {
    contract as root. The summary sits above the map as the section's
    TL;DR; condition cards sit below it as their own block. */
 
+/* First-reveal stagger: the four content blocks below the hero arrive
+   in one short sequence (summary, then map+cards, then details) rather
+   than all at once - see wireMapReveal() in app.js. Re-renders after
+   the first (a chip toggle, a length change) skip this entirely; only
+   .is-in state applies, so nothing re-animates on every update. */
+#map-section .stage {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+}
+#map-section .stage.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  #map-section .stage { transition: none; }
+}
+
 .summary-block {
   margin-bottom: clamp(2rem, 5vh, 3rem);
 }
