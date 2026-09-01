@@ -784,6 +784,32 @@ html {
   margin: auto 0 0;
 }
 
+/* ---------- pitch ---------- */
+/* The outcome-focused sales pitch, right after the hero - not a
+   rewrite of .method below, a separate section. .method stays put
+   further down the page as the sourcing case for anyone who scrolls
+   that far and remains the page's one dark ("ink") moment; this one
+   sells the result to everyone else. Kept on paper deliberately - an
+   ink spread landing this early, right off the hero photo, read as a
+   stark flip rather than a deliberate beat (no established
+   paper/ink rhythm yet to place it in). Matches .map-section and
+   .zones on either side instead. */
+.pitch {
+  background: var(--paper);
+  padding: clamp(3rem, 8vh, 5rem) clamp(1.3rem, 4vw, 3.2rem);
+}
+.pitch-inner { max-width: 1080px; margin: 0 auto; }
+.pitch-lead {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(1.5rem, 3.2vw, 2.6rem);
+  line-height: 1.34;
+  margin: 0;
+  max-width: 32ch;
+  color: var(--ink);
+}
+.pitch-lead em { font-style: italic; }
+
 /* ---------- method ---------- */
 
 .method {

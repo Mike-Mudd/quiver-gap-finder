@@ -61,6 +61,16 @@
   </div>
 </section>
 
+<section class="pitch" aria-label="Why this exists">
+  <div class="pitch-inner">
+    <p class="pitch-lead reveal">
+      Stop guessing what your next ski should be. Add what you own
+      and know <em>exactly</em> what it's missing. Then see the real
+      ski that closes the gap.
+    </p>
+  </div>
+</section>
+
 <section class="zones" id="zones" aria-label="The nine zones">
   <div class="zones-inner">
     <h2 class="reveal">Nine kinds<br />of <em>ski day</em></h2>
@@ -80,11 +90,14 @@
 
 <section class="method" id="method" aria-label="Method">
   <div class="method-inner">
+    <!-- Deliberately not "nothing is estimated" - same reasoning as
+         index.html's footer: rocker uses profile-category defaults and
+         non-reference lengths use the scaling formula, both disclosed
+         per-ski in notes. Claim only what data/SOURCING.md backs. -->
     <p class="method-lead reveal">
-      Nothing here is estimated. Every waist width, weight and turn
-      radius traces to a manufacturer spec sheet or a measured review
-      — and where a number couldn&rsquo;t be sourced, the claim
-      <em>isn&rsquo;t made</em>.
+      Every waist width, weight and turn radius traces to a
+      manufacturer spec sheet or a measured review. Where a figure
+      is estimated instead, the entry <em>says so</em>.
     </p>
     <a class="method-link reveal" href="https://github.com/Mike-Mudd/quiver-gap-finder/blob/main/data/SOURCING.md">Read the sourcing method</a>
   </div>
@@ -92,7 +105,7 @@
 
 <footer class="foot">
   <span>Quiver Gap Finder</span>
-  <span>Specs sourced, never estimated</span>
+  <span>Specs sourced, estimates labeled</span>
 </footer>
 
 <div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
