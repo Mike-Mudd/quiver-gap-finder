@@ -564,8 +564,7 @@ html {
 }
 
 /* Tooltip - inverted relative to the page (dark bg / light text),
-   matching root's .chart-tooltip, positioned in JS (see
-   coverage-map.js positionTooltip). */
+   positioned in JS (see coverage-map.js positionTooltip). */
 .chart-tooltip {
   position: fixed; z-index: 20;
   max-width: 240px;

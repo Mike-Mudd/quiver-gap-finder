@@ -9,7 +9,7 @@ const { buildGrid, selectTopSuggestionsForMap, REDUNDANCY_THRESHOLD } = window.Q
 
 // Short zone labels for the readout copy ("Narrow" / "playful"), kept
 // separate from scoring.js's own bucket.label ("narrow / firm-groomer")
-// so this direction's voice doesn't change just by sharing the math.
+// so this page's voice doesn't change just by sharing the math.
 const WAIST_SHORT = { narrow: "Narrow", allmtn: "All-mountain", wide: "Wide" };
 const FEEL_SHORT = { playful: "playful", balanced: "balanced", damp: "charging" };
 
@@ -103,7 +103,7 @@ function add(ski) {
   // A shallow copy, not the shared `all` reference - each quiver slot
   // tracks its own selected_length_cm independently (see
   // scoring.js effectiveSpecs), defaulting to the ski's reference
-  // length. Matches root's addToQuiver.
+  // length.
   quiver.push({ ...ski, selected_length_cm: ski.reference_length_cm });
   searchEl.value = "";
   resultsEl.hidden = true;
@@ -115,8 +115,7 @@ function add(ski) {
 function remove(name) {
   quiver = quiver.filter((s) => s.name !== name);
   // A stale comparison no longer applies once the quiver it was being
-  // compared against has changed underneath it — same reasoning as
-  // root's onFindGaps resetting candidateSkis on a fresh run.
+  // compared against has changed underneath it.
   candidateSkis = [];
   renderQuiver();
   if (quiver.length === 0) {
@@ -209,8 +208,7 @@ function search() {
   renderMap();
 }
 
-/** The shared post-first-search update path - matches root's
- * refreshResultsIfShown naming/behavior: a no-op before the first
+/** The shared post-first-search update path: a no-op before the first
  * "See my coverage" press, a live re-render after it. */
 function refreshResultsIfSearched() {
   if (!hasSearched) return;
@@ -222,7 +220,7 @@ function refreshResultsIfSearched() {
  * <select> of a ski's available lengths (see length_options in
  * data/SOURCING.md) - quietly absent rather than showing a picker with
  * nothing to pick, for the (currently most) skis that haven't been
- * backfilled with any yet. Matches root's lengthPickerHtml.
+ * backfilled with any yet.
  */
 function lengthPickerHtml(ski) {
   if (!ski.length_options || ski.length_options.length === 0) return "";
@@ -271,16 +269,14 @@ function renderReadout() {
  * The coverage map, TL;DR summary, and condition cards all live in one
  * section below the hero. Gated behind "See my coverage" (see
  * search()/hasSearched) rather than appearing on the first add - build
- * the whole quiver, then press search, matching root's "Find gaps"
- * flow instead of this direction's earlier no-friction/live-update
- * feel. Once revealed, later add/remove/length-change calls still
- * update it live (see refreshResultsIfSearched) - only the *first*
- * reveal is gated. When the quiver has gaps and nothing is being
- * manually compared, the map doubles as "what should I add" using the
- * same greedy-suggestion algorithm as root (selectTopSuggestionsForMap)
- * — see coverage-map.js/condition-cards.js/scoring.js. grid/gaps are
- * computed once here and reused across all three, same as root's
- * renderResults -> renderDashboard.
+ * the whole quiver, then press search. Once revealed, later
+ * add/remove/length-change calls still update it live (see
+ * refreshResultsIfSearched) - only the *first* reveal is gated. When
+ * the quiver has gaps and nothing is being manually compared, the map
+ * doubles as "what should I add" using the greedy-suggestion algorithm
+ * in selectTopSuggestionsForMap - see coverage-map.js/condition-cards.js/
+ * scoring.js. grid/gaps are computed once here and reused across all
+ * three renders.
  */
 function renderMap() {
   if (!hasSearched || quiver.length === 0) {

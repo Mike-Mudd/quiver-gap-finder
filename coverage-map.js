@@ -660,7 +660,7 @@ function create(opts = {}) {
       picker.addEventListener("change", () => {
         candidate.selected_length_cm = Number(picker.value);
         // Mutated in place, same candidateSkis array - re-render without
-        // treating this as an add/remove (matches root's wireCoverageMap).
+        // treating this as an add/remove.
         if (onCandidatesChange) onCandidatesChange(candidateSkis);
       });
     });
