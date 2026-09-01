@@ -820,7 +820,14 @@ html {
   background: var(--paper);
   padding: clamp(1.1rem, 2.4vw, 1.7rem);
   display: flex; flex-direction: column;
-  transition: background 0.4s var(--ease);
+  /* transition is a shorthand, so listing only "background" here was
+     silently replacing .reveal's opacity/transform transition (higher
+     specificity: element+class beats class alone) - the scroll-reveal
+     motion was getting clobbered to nothing, and cards snapped straight
+     to opacity:1 instead of fading in. List all three properties so
+     hover and reveal share one declaration instead of one erasing the
+     other. */
+  transition: background 0.4s var(--ease), opacity 0.85s var(--ease), transform 0.85s var(--ease);
 }
 .zone-grid li:hover { background: #FFFFFF; }
 .zone-n {
@@ -915,9 +922,13 @@ html {
   }
   .reveal.is-in { opacity: 1; transform: none; }
 
-  /* the nine zones stagger in sequence, so the grid reads as a list
-     being laid out rather than a block appearing */
-  .zone-grid li { transition-delay: calc(var(--i, 0) * 55ms); }
+  /* The nine zones stagger in sequence so the grid reads as a list
+     being laid out rather than a block appearing. 55ms was too tight
+     against the three-column layout - three cards in one row differ by
+     only 110ms total, which reads as one row snapping in rather than a
+     cascade. 110ms/card gives each row a visible left-to-right beat
+     while the whole grid still finishes well under a second. */
+  .zone-grid li { transition-delay: calc(var(--i, 0) * 110ms); }
 }
 
 /* Without JS, or with reduced motion, everything is simply visible. */
