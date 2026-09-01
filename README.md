@@ -1,4 +1,4 @@
-# Quiver Gap Finder
+# Ski Gap
 
 A single-page tool for skiers to find coverage gaps in their ski quiver.
 Pick up to 6 skis you own (or are considering), and it tells you which
