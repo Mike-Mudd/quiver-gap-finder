@@ -29,6 +29,7 @@ function zones(quiver) {
 const searchEl = document.getElementById("ski-search");
 const resultsEl = document.getElementById("results");
 const quiverEl = document.getElementById("quiver");
+const searchBtnEl = document.getElementById("search-btn");
 const readoutEl = document.getElementById("readout");
 const mapSectionEl = document.getElementById("map-section");
 const mapContentEl = document.getElementById("map-content");
@@ -39,6 +40,13 @@ const detailsContentEl = document.getElementById("details-content");
 let all = [];
 let quiver = [];
 let cursor = -1;
+// Gates the readout + map behind "See my coverage" (see search()) -
+// build the whole quiver first, then reveal results once, rather than
+// re-computing on every add. Once true, add/remove/length-change keep
+// results live again without needing another press. Reset back to
+// false when the quiver empties out (see remove()), so starting over
+// gets the same before/after-search behavior as the first time.
+let hasSearched = false;
 let candidateSkis = []; // "what if I added this" — see coverage-map.js
 
 const coverageMap = window.CoverageMap.create({
@@ -104,8 +112,7 @@ function add(ski) {
   searchEl.value = "";
   resultsEl.hidden = true;
   renderQuiver();
-  renderReadout();
-  renderMap();
+  refreshResultsIfSearched();
   searchEl.focus();
 }
 
@@ -116,6 +123,101 @@ function remove(name) {
   // root's onFindGaps resetting candidateSkis on a fresh run.
   candidateSkis = [];
   renderQuiver();
+  if (quiver.length === 0) {
+    // Starting over from empty should feel like starting over: the
+    // next add builds up to a fresh "See my coverage" press, not
+    // results that silently reappear from the last search. Render
+    // once *before* clearing hasSearched, so the now-empty state
+    // actually reaches the DOM (hide the map, clear the readout) -
+    // refreshResultsIfSearched() would otherwise no-op once the flag
+    // is already false, leaving stale results on screen.
+    renderReadout();
+    renderMap();
+    hasSearched = false;
+  } else {
+    refreshResultsIfSearched();
+  }
+}
+
+/**
+ * Native `scroll-behavior: smooth` (used everywhere else on this page,
+ * e.g. the nav's #zones/#method anchors) has a short, fixed duration -
+ * not independently sped up or slowed down via CSS. This search
+ * button's scroll is the one moment on the page meant to read as
+ * unmistakably slow and deliberate (user testing: the native version
+ * "moves fairly quick"), so it gets its own rAF-driven animation
+ * instead, timed explicitly and using the same --ease curve as every
+ * other transition on the page rather than inventing a new one.
+ *
+ * getTargetY is a function, called every frame, not a fixed number -
+ * as of this commit, real-machine testing still reports a "waits ~1s,
+ * then snaps" symptom that a fixed-target version didn't fix (see git
+ * history), so this isn't confirmed as the actual resolution yet. The
+ * theory: renderMap() unhiding and building the map/summary/cards/
+ * details is real synchronous DOM work that can itself take a real
+ * beat, and nothing can paint - not this animation's first frame, not
+ * anything else - until the main thread is free, so any target
+ * measured once (before or after that work) is measuring the wrong
+ * thing. Re-measuring live sidesteps needing to know how long
+ * rendering takes: the animation moves toward wherever the target
+ * *currently* is on every frame it manages to paint. If the symptom
+ * persists after this too, the bottleneck is likely something other
+ * than target-measurement timing - profile what's actually blocking
+ * the main thread between click and first paint before trying a third
+ * theory blind.
+ */
+function smoothScrollTo(getTargetY, duration) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.scrollTo(0, getTargetY());
+    return;
+  }
+  const startY = window.scrollY;
+  // cubic-bezier(0.16, 1, 0.3, 1) has no closed-form inverse worth
+  // reaching for here - this is a plain, close-enough cubic ease-out
+  // (fast start, gentle settle) in the same spirit, not a literal port.
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  let startTime = null;
+
+  function step(now) {
+    if (startTime === null) startTime = now;
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const distance = getTargetY() - startY;
+    window.scrollTo(0, startY + distance * easeOutCubic(t));
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/** Runs the initial search: reveals the readout + map for the first
+ * time and marks the session as "searched," so every add/remove/
+ * length-change after this point keeps results live without another
+ * button press (see refreshResultsIfSearched). Then scrolls to what
+ * was just generated - only here, on the actual button press, not on
+ * every live update afterward (see refreshResultsIfSearched), since a
+ * length-picker change shouldn't yank the reader back down the page. */
+function search() {
+  if (quiver.length === 0) return;
+  hasSearched = true;
+  // Start the scroll animation before the render work below, not
+  // after - renderMap() is real, possibly-slow synchronous DOM work
+  // (building the map SVG, condition cards, details table), and
+  // nothing can paint while the main thread is busy with it. Starting
+  // the animation first means it's already running - re-reading
+  // mapSectionEl's position every frame, see smoothScrollTo - the
+  // instant the browser gets a free frame, rather than sitting behind
+  // the render work waiting to measure a target that doesn't exist
+  // until that work finishes anyway.
+  smoothScrollTo(() => mapSectionEl.getBoundingClientRect().top + window.scrollY, 1300);
+  renderReadout();
+  renderMap();
+}
+
+/** The shared post-first-search update path - matches root's
+ * refreshResultsIfShown naming/behavior: a no-op before the first
+ * "See my coverage" press, a live re-render after it. */
+function refreshResultsIfSearched() {
+  if (!hasSearched) return;
   renderReadout();
   renderMap();
 }
@@ -143,7 +245,7 @@ function renderQuiver() {
     if (picker) {
       picker.addEventListener("change", () => {
         ski.selected_length_cm = Number(picker.value);
-        renderMap();
+        refreshResultsIfSearched();
       });
     }
     const btn = document.createElement("button");
@@ -154,10 +256,11 @@ function renderQuiver() {
     li.appendChild(btn);
     quiverEl.appendChild(li);
   });
+  searchBtnEl.disabled = quiver.length === 0;
 }
 
 function renderReadout() {
-  if (quiver.length === 0) {
+  if (!hasSearched || quiver.length === 0) {
     readoutEl.textContent = "";
     return;
   }
@@ -170,9 +273,13 @@ function renderReadout() {
 
 /**
  * The coverage map, TL;DR summary, and condition cards all live in one
- * section below the hero and live-update with the quiver — no "Find
- * gaps" button, matching this direction's no-friction feel (see
- * readout above). When the quiver has gaps and nothing is being
+ * section below the hero. Gated behind "See my coverage" (see
+ * search()/hasSearched) rather than appearing on the first add - build
+ * the whole quiver, then press search, matching root's "Find gaps"
+ * flow instead of this direction's earlier no-friction/live-update
+ * feel. Once revealed, later add/remove/length-change calls still
+ * update it live (see refreshResultsIfSearched) - only the *first*
+ * reveal is gated. When the quiver has gaps and nothing is being
  * manually compared, the map doubles as "what should I add" using the
  * same greedy-suggestion algorithm as root (selectTopSuggestionsForMap)
  * — see coverage-map.js/condition-cards.js/scoring.js. grid/gaps are
@@ -180,7 +287,7 @@ function renderReadout() {
  * renderResults -> renderDashboard.
  */
 function renderMap() {
-  if (quiver.length === 0) {
+  if (!hasSearched || quiver.length === 0) {
     mapSectionEl.hidden = true;
     // is-in survives on these wrapper nodes even though the section is
     // hidden - the early return here never reaches the innerHTML writes
@@ -285,6 +392,8 @@ searchEl.addEventListener("keydown", (e) => {
     if (ski) add(ski);
   }
 });
+
+searchBtnEl.addEventListener("click", search);
 
 /* Scroll reveals - see reveal.js, loaded separately below so
    method.html can share the same behaviour without pulling in

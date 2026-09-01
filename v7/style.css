@@ -255,6 +255,27 @@ html {
 }
 .quiver .length-picker option { color: var(--ink); }
 
+/* The one primary action in the hero, so it's solid-filled (var(--ink))
+   rather than the outlined/frosted treatment everything else in the
+   search module uses - it needs to read as "the next step," not
+   another passive control next to the search field. Disabled until
+   there's at least one ski to search on (see renderQuiver in app.js). */
+.search-btn {
+  display: block;
+  margin-top: 0.85rem;
+  padding: 0.75rem 1.4rem;
+  background: var(--ink); color: var(--paper);
+  border: none; border-radius: 100px;
+  font-family: var(--mono);
+  font-size: 0.6875rem; font-weight: 500;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.25s var(--ease), transform 0.15s var(--ease);
+}
+.search-btn:hover:not(:disabled) { opacity: 0.85; }
+.search-btn:active:not(:disabled) { transform: scale(0.98); }
+.search-btn:disabled { opacity: 0.3; cursor: default; }
+
 .readout {
   font-family: var(--mono);
   font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase;
