@@ -2026,6 +2026,143 @@
       "source_url": "https://blisterreview.com/gear-reviews/2025-2026-salomon-qst-100",
       "verified_date": "2026-09-01",
       "notes": "Part of the redesigned 'v4 QST' collection (2025-2026) that replaced the QST 92/98 generation with QST 94/100 - direct current-generation successor to the already-catalogued QST 98 (that older entry left untouched as a legacy record). Construction: full poplar wood core + small titanal binding-reinforcement plate + basalt/fiberglass (v4 QST line dropped the old carbon/flax C/FX layer for basalt) - the titanal is explicitly a small binding-area plate, not edge-to-edge - partial, same classification logic and construction family as QST 106 already in the dataset (whose notes cite the identical 'binding reinforcement' pattern from SOURCING.md's own worked example). Tail shape is a judgment call: mount point measured ~-9cm from center (just past SOURCING.md's 8cm directional threshold) but source explicitly says 'a lot more tail rocker than most traditional, directional options,' 'near twin-tipped shape,' and 'not a true twin' - classified modified_twin (real, generous tail rocker, asymmetric to tip) rather than directional, consistent with how QST 98/106 are already classified in this dataset. rocker_percent (21% tip / 17% tail per Salomon's stated figures) sourced directly, not estimated. Weight/radius (1975g/17.5m at 180cm) is Blister's own stated figure, described as 'right about average' for the class."
+    },
+    {
+      "name": "Atomic Maverick 115 CTi",
+      "brand": "Atomic",
+      "model_year": "2025-2026",
+      "reference_length_cm": 185,
+      "waist_width_mm": 115,
+      "weight_g": 2150,
+      "turn_radius_m": 18,
+      "rocker_profile": "camber_tip_tail_rocker",
+      "rocker_percent": 50,
+      "metal_content": "full",
+      "tail_shape": "directional",
+      "source": "Atomic official spec page",
+      "source_url": "https://www.atomic.com/en-us/shop/product/maverick-115-cti-aa6647.html",
+      "verified_date": "2026-09-01",
+      "notes": "metal_content=full: CTi construction is explicitly described (Atomic official copy, Blister, multiple reviews) as 'a sheet of Titanal' combined with carbon stringers over an ash/poplar wood core - a genuine sheet, not a mesh or binding-area plate (contrast with the partial Vantage 97 Ti's 'Titanium Tank Mesh' already in this dataset, now itself discontinued per an earlier freshness pass). Published rocker split 30% tip / 50% camber / 20% tail (Atomic official datasheet) - rocker_percent = 30+20=50. Atomic's own site explicitly labels this 'Directional Shape'; mount point independently reported at -9.5cm from true center ('pretty traditional/set-back' per Blister) with shallower tail rocker than tip - both support directional. Radius from Atomic's official per-length datasheet: 17m@177cm/18m@185cm/19m@193cm. weight_g: kept as Atomic's own on-page figure (2150g) per SOURCING.md's manufacturer-first sourcing rule, despite the page displaying this identical number under all three length rows (177/185/193cm) - real per-length weights normally vary, so this reads as a probable copy-paste artifact on Atomic's site, not independently corroborated at 185cm specifically. Flagged here rather than silently substituted with an alternate figure; worth a recheck if Atomic corrects the page or a Blister measured weight turns up."
+    },
+    {
+      "name": "Armada ARV 106 Ti",
+      "brand": "Armada",
+      "model_year": "2025-2026",
+      "reference_length_cm": 180,
+      "waist_width_mm": 106,
+      "weight_g": 2100,
+      "turn_radius_m": 20,
+      "rocker_profile": "camber_tip_tail_rocker",
+      "rocker_percent": 40,
+      "metal_content": "partial",
+      "tail_shape": "twin_tip",
+      "source": "Blister Review",
+      "source_url": "https://blisterreview.com/gear-reviews/2026-2027-armada-arv-106-ti",
+      "verified_date": "2026-09-01",
+      "notes": "metal_content=partial, not full despite the 'Ti' name: Armada's own copy states ATB-X 'takes Titanal bands and focuses them into the underfoot section...while reducing the amount and weight in the tips and tails' - explicitly underfoot-concentrated, not edge-to-edge. Same pattern SOURCING.md warns about (a name implying more metal than the actual layup). Poplar wood core; the Ti bands replace the ash binding-reinforcement insert used in the standard (non-Ti) ARV 106. rocker_percent estimated from profile category (no published tip/tail % split found). tail_shape=twin_tip: mount point ~-2cm from true center (near-center) and a 'pretty deep tip rocker...shallower tail...pretty high, twinned tail' with comparable tip/tail splay (60/51mm) - matches this dataset's existing ARV 96 Ti (also twin_tip) convention. Weight/radius table from evo.com/retailer listings, consistent across multiple sources.",
+      "length_options": [
+        {
+          "length_cm": 164,
+          "weight_g": 1860,
+          "turn_radius_m": 17
+        },
+        {
+          "length_cm": 172,
+          "weight_g": 1950,
+          "turn_radius_m": 18
+        },
+        {
+          "length_cm": 180,
+          "weight_g": 2100,
+          "turn_radius_m": 20
+        },
+        {
+          "length_cm": 188,
+          "weight_g": 2250,
+          "turn_radius_m": 22
+        }
+      ]
+    },
+    {
+      "name": "Blizzard Sheeva 11",
+      "brand": "Blizzard",
+      "model_year": "2026-2027",
+      "reference_length_cm": 168,
+      "womens_specific": true,
+      "waist_width_mm": 112,
+      "weight_g": 1826,
+      "turn_radius_m": 16,
+      "rocker_profile": "camber_tip_tail_rocker",
+      "rocker_percent": 40,
+      "metal_content": "partial",
+      "tail_shape": "modified_twin",
+      "source": "Blizzard-Tecnica official spec page",
+      "source_url": "https://www.blizzard-tecnica.com/us/en/collection/women/skis/sheeva/sheeva-11-flat-2",
+      "verified_date": "2026-09-01",
+      "notes": "Distinct current model from the already-catalogued Sheeva 9 (96mm, full metal) - Sheeva 11 is the wider, separate product in the line, 112mm waist. reference_length_cm=168, the shortest of 3 available lengths (168/174/180) and closest to the 165cm women's-line target. metal_content=partial: construction research describes titanal plates on the SIDES of the ski with a fiberglass-laminate CENTER piece at 168/174cm - segmented/tapered coverage, not a full edge-to-edge sheet. At the longer 180cm length only, Sheeva 11 gains a third titanal piece and becomes construction-identical to the men's Rustler 11 (whose current-generation official page also now lists 'FluxForm Freeride Ti' - possibly a change from the metal-free build already recorded for the existing Rustler 11 catalog entry; flagged as a separate, out-of-scope freshness-audit candidate for a future pass, not acted on here). weight_g: Blizzard's official page lists 3840g at 174cm, per-pair (halved = 1920g/ski, per SOURCING.md's per-pair-detection rule). The 168cm reference weight (1826g) is scaled DOWN from that 174cm anchor via SOURCING.md's weight-scaling formula (rate 0.00814) - not independently sourced at 168cm itself, so treat with the same lower confidence as any formula-estimated figure. 180cm's length_options row deliberately omitted - its weight wasn't independently confirmed (only the 174cm per-pair figure was directly on the official table), and estimating a second layer of derived-from-derived numbers on top of an already-estimated reference wasn't worth the false precision. turn_radius_m=16m at 168cm IS directly published (official site table), high confidence. rocker_percent estimated from profile category. tail_shape=modified_twin: described elsewhere as 'a partial twin tip tail that is turned up but not as much as the tip' - real but asymmetric tail rocker, matching Rustler 9/11 and Sheeva 9's existing classification in this catalog.",
+      "length_options": [
+        {
+          "length_cm": 168,
+          "weight_g": 1826,
+          "turn_radius_m": 16
+        },
+        {
+          "length_cm": 174,
+          "weight_g": 1920,
+          "turn_radius_m": 17.5
+        }
+      ]
+    },
+    {
+      "name": "Nordica Unleashed 120",
+      "brand": "Nordica",
+      "model_year": "2025-2026",
+      "reference_length_cm": 180,
+      "waist_width_mm": 120,
+      "weight_g": 2020,
+      "turn_radius_m": 21.3,
+      "rocker_profile": "flat_tip_tail_rocker",
+      "rocker_percent": 55,
+      "metal_content": "partial",
+      "tail_shape": "modified_twin",
+      "source": "Nordica official spec page",
+      "source_url": "https://www.nordica.com/canada/en/collection/men/skis/unleashed/unleashed-120",
+      "verified_date": "2026-09-01",
+      "notes": "Newest, widest model in Nordica's Unleashed line - distinct from the already-catalogued Unleashed 98/108 (both narrower, both partial/Terrain Specific Metal). metal_content=partial: multiple sources describe 'a titanal band that runs the whole contact point...wider than the binding platform...without adding too much metal', and one source explicitly states 'a layer of Titanal (not full width)' - a band/strip, not an edge-to-edge sheet, consistent with the same Terrain Specific Metal family philosophy as the existing Unleashed 98/108 entries. Only 2 lengths sold (180/190cm); 180cm used as reference (exact match to the 180cm target). Weight (2020g) and radius (21.3m) both from Nordica's own official per-length spec page. rocker_profile: reviews describe 'much longer and more gradual rocker profile with tips that lift off the snow earlier and have an overall flatter shape' and 'long and deep rocker lines in the tip and tail' - deeper/flatter than the standard camber_tip_tail_rocker category, closer to flat_tip_tail_rocker; rocker_percent nudged above the camber_tip_tail_rocker default accordingly - a judgment call worth a second look against a Blister measured-camber figure if one turns up. tail_shape=modified_twin: 'fairly traditional-looking fat twin tip silhouette' with tail rocker 'longer and more gradual' but still asymmetric to the tip, not a true centered twin. No length_options - no per-ski weight at 190cm was confirmed independently of a per-pair figure."
+    },
+    {
+      "name": "Volkl Revolt 114",
+      "brand": "Volkl",
+      "model_year": "2025-2026",
+      "reference_length_cm": 177,
+      "waist_width_mm": 114,
+      "weight_g": 2250,
+      "turn_radius_m": 19,
+      "rocker_profile": "camber_tip_tail_rocker",
+      "rocker_percent": 40,
+      "metal_content": "none",
+      "tail_shape": "directional",
+      "source": "SkiEssentials 2026 Ski Test",
+      "source_url": "https://www.skiessentials.com/2026-ski-test/skis/2026-volkl-revolt-114",
+      "verified_date": "2026-09-01",
+      "notes": "New, genuinely distinct line from the already-catalogued Volkl Mantra M6/M7/Katana 108 (all full-metal) - Revolt is Volkl's metal-free freestyle-leaning freeride line. metal_content=none: source explicitly states 'Unlike other hard-charging Volkl models like the Mantra, there's no metal inside the Revolt, with Volkl relying on the wood core for damping' - Multi-Layer Wood Core (beech/poplar), no titanal. tail_shape=directional: described as having 'a massive shovel and a very tapered, almost pin-tail like rear' - strongly asymmetric, forward-only shape. reference_length_cm=177 chosen as the shortest of 3 lengths (177/184/191) and closest to the 180cm target; weight_g (2250g) directly published at this length. turn_radius_m: only a 184cm figure (19m) was confidently sourced; used here as a same-ballpark estimate for the 177cm reference since Volkl's 3D Radius Sidecut construction (long radii at tip/tail, short mid-body) makes generic length-scaling unreliable - flagged as lower-confidence, sourced at an adjacent length rather than the reference length itself. rocker_percent estimated from profile category. No length_options - a full per-length weight/radius table wasn't cleanly extractable this pass."
+    },
+    {
+      "name": "Salomon QST X",
+      "brand": "Salomon",
+      "model_year": "2025-2026",
+      "reference_length_cm": 178,
+      "waist_width_mm": 116,
+      "weight_g": 1835,
+      "turn_radius_m": 24,
+      "rocker_profile": "camber_tip_tail_rocker",
+      "rocker_percent": 56,
+      "metal_content": "partial",
+      "tail_shape": "modified_twin",
+      "source": "Blister Review",
+      "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2024-2025-salomon-qst-x",
+      "verified_date": "2026-09-01",
+      "notes": "Genuinely distinct current model from the already-catalogued QST Blank (115mm) - reviews explicitly distinguish the two: QST X is Salomon's newer, lighter, human-powered-access-oriented powder ski (116mm), while QST Blank is the heavier resort/high-speed freeride model. Official marketing name is simply 'QST X' (no width number in the name, unlike QST 98/106/100) - waist recorded as the stated 116mm. metal_content=partial: construction list explicitly includes 'titanal binding reinforcement' running 'edge-to-edge underfoot' - the same pattern SOURCING.md calls out for the QST 106 precedent (marketed as a no-metal carbon/flax family, but with a binding-area titanal plate = partial, not none). Core is karuba/poplar wood + cork tip/tail dampers + flax/carbon fiber, no full titanal sheet. weight_g: Blister's own MEASURED weight at 178cm was 1826g & 1845g per ski (avg 1835g) - used over Salomon's stated figure since Blister explicitly measured per-ski (avoids any per-pair ambiguity). turn_radius_m: Blister/manufacturer state 25m at 184cm; 24m used here as an estimate for the 178cm reference (shorter length -> smaller radius) since no source gave a 178cm-specific number - flagged as an ESTIMATE, lower-confidence than the weight. rocker_percent: 30% tip / 26% tail published by manufacturer = 56. tail_shape=modified_twin: rockered, fairly playful profile for a big powder ski but not a true centered twin (positioned as freeride-first, not park)."
     }
   ]
 }
