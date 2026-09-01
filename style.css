@@ -876,6 +876,13 @@ html {
   padding: 0 clamp(1.3rem, 4vw, 3.2rem) clamp(2.2rem, 5vh, 3rem);
   font-size: 0.5625rem; letter-spacing: 0.2em; text-transform: uppercase;
 }
+.foot a {
+  color: inherit; text-decoration: none;
+  border-bottom: 1px solid rgba(244, 247, 250, 0.35);
+  padding-bottom: 0.15rem;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.foot a:hover { color: var(--paper); border-bottom-color: var(--paper); }
 
 /* ---------- motion ---------- */
 
