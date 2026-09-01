@@ -268,7 +268,7 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-k2-mindbender-116c",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "'C' = carbon build, no titanal (vs the 'Ti' Mindbenders). 'Powder rocker' with deeper tip rocker than the Ti models; rocker_percent nudged above the category default for that reason. Checked 2026-08-17: only one length (186cm, the existing reference) has any published turn radius/weight data anywhere checked - matches closely (22.9m vs 22.9m, 2019-2051g vs 2062g). No correction needed, no length_options added."
     },
     {
@@ -285,7 +285,7 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-blizzard-bonafide-97",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "2 full sheets titanal (TrueBlend construction). Mostly full camber with all-mountain tip rocker + slight tail rocker - nudged below category default. rocker_percent estimated. Corrected 2026-08-16: reference_length_cm was recorded as 180cm, a length this ski was never actually sold in (real run is 165/171/177/183/189cm) - moved to 177cm, the length the cited Blister review actually measured. weight_g corrected from 2150g to 2282g to match that same review's stated measured weight at 177cm (independently re-confirmed). No length_options added yet - weight isn't reliably published at the other four lengths. length_options (2026-08-17): turn radius real (evo.com/skis.com, from prior research); weight not published beyond the 177cm reference anywhere checked, so weight at 165, 171, 183, 189cm is estimated via the SOURCING.md scaling formula (rate 0.81%/cm), not sourced - only the 177cm row's weight is real.",
       "length_options": [
         {
@@ -329,7 +329,7 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2020-2021-blizzard-brahma-88",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "2 full sheets titanal + carbon fiber tips. v3 has 'much shallower rocker lines' than prior versions - nudged below category default. rocker_percent estimated. Corrected 2026-08-17: reference_length_cm was 180cm, a length the cited generation (TrueBlend Flipcore redesign, per the cited 2020-2021 Blister review) was never sold in - real run is 165/171/177/183/189cm (independently re-confirmed). Moved to 177cm; turn_radius_m (16m) and weight_g (1999g, close to Blister's measured 1990/2036g avg) both already matched the real 177cm figures, so neither needed to change, just the length label. length_options: radius real at all 5 lengths; weight only real at 177cm - 165, 171, 183, 189cm estimated via the scaling formula.",
       "length_options": [
         {
@@ -1177,7 +1177,7 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2018-2019-elan-ripstick-96",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "Poplar/paulownia core + carbon/fiberglass, no titanal mentioned. Elan's 'Amphibio' asymmetric tip/tail rocker (longer camber line on inside edges) - modeled here as the standard camber_tip_tail_rocker category since the app doesn't have an asymmetric-rocker axis. turn_radius_m sourced at 175cm, closest available to the 181cm weight figure. rocker_percent estimated from profile category. Corrected 2026-08-17: turn_radius_m was 16.8m, previously noted as approximated \"at 175cm, closest available\" - but the exact cited Blister source (re-fetched directly) explicitly states \"Stated Sidecut Radius: 18.0 meters\" at the actual 181cm reference, matching evo.com's independent table exactly. No approximation should have been needed. length_options: radius real at all 4 lengths; weight only real at the 181cm reference - 167, 174, 188cm estimated via the scaling formula.",
       "length_options": [
         {
@@ -1255,7 +1255,7 @@
       "tail_shape": "twin_tip",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-armada-arv-96-ti",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "The 'Ti' variant (vs. the metal-free ARV 96) - full titanal laminate. Mellow tip/tail rocker with 6-7mm of camber underfoot - rocker_percent nudged below category default. turn_radius_m sourced at 177cm, close to the 184cm weight figure. Corrected 2026-08-17: turn_radius_m was 19m, which is actually the real 177cm value, not 184cm's (20m, confirmed by both evo.com and the cited Blister review; weight 2100g matches exactly at 184cm) - looks like a row mix-up. length_options: radius real at all 4 lengths; weight only real at the 184cm reference - 163, 170, 177cm estimated via the scaling formula.",
       "length_options": [
         {
@@ -1372,7 +1372,7 @@
       "tail_shape": "modified_twin",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2017-2018-faction-prodigy-2-0",
-      "verified_date": "2026-08-17",
+      "verified_date": "2026-09-01",
       "notes": "Full poplar/beech core, no metal. turn_radius_m sourced from a newer (2026-2027) model year at 171cm, closest available reference. rocker_percent estimated from profile category. Note (2026-08-17): this ski has a genuine multi-radius sidecut (published as \"18/20\" front/rear, not a single number) - the schema only holds one turn_radius_m value, so the existing 16m isn't clearly \"wrong\" so much as this ski not fitting the single-radius model cleanly. Left unchanged rather than picking one of two real numbers arbitrarily. Only one length (178cm) has any published data at all, so no length_options added either way."
     },
     {
@@ -1422,19 +1422,19 @@
     {
       "name": "Black Crows Camox",
       "brand": "Black Crows",
-      "model_year": "2021-2022",
+      "model_year": "2025-2026",
       "reference_length_cm": 175,
       "waist_width_mm": 97,
-      "weight_g": 1700,
+      "weight_g": 1900,
       "turn_radius_m": 18,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 25,
       "metal_content": "none",
       "tail_shape": "modified_twin",
       "source": "Blister Review",
-      "source_url": "https://blisterreview.com/gear-reviews/2021-2022-black-crows-camox",
-      "verified_date": "2026-08-12",
-      "notes": "Poplar core + fiberglass, no titanal - confirmed metal-free. Shallow rocker lines with close to 10mm of camber underfoot (more than most skis in the dataset) - rocker_percent nudged well below category default."
+      "source_url": "https://mtngear.com/black-crows-camox-skis-2026",
+      "verified_date": "2026-09-01",
+      "notes": "Poplar core + fiberglass, no titanal - confirmed metal-free, unchanged. Shallow rocker lines with close to 10mm of camber underfoot (more than most skis in the dataset) - rocker_percent nudged well below category default. Refreshed 2026-09-01: now in its 4th generation - manufacturer/retail copy confirms an added ash-wood reinforcement pocket underfoot (previously a more uniform poplar core), explicitly cited as the cause of a real weight increase (\"~100g heftier than the outgoing version\"). weight_g corrected from 1700g to 1900g at the same 175cm reference length - a genuine construction change, not noise. turn_radius_m (18m) left unchanged - current sources only confirm radius at 182cm (18m), not independently re-verified at the 175cm reference; no correction made without a matched-length source. metal_content unchanged (none) - ash is wood, not metal reinforcement."
     },
     {
       "name": "Fischer Ranger 96",
@@ -1632,25 +1632,25 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/2019-2020-blizzard-zero-g-105",
-      "verified_date": "2026-08-12",
+      "verified_date": "2026-09-01",
       "notes": "Touring-oriented; full paulownia core + Carbon Drive layup, no metal. Fills a light/playful gap next to DPS Pagoda Tour 100 at a wider waist. rocker_percent estimated from profile category."
     },
     {
       "name": "K2 Reckoner 102",
       "brand": "K2",
-      "model_year": "2021-2022",
+      "model_year": "2025-2026",
       "reference_length_cm": 184,
       "waist_width_mm": 102,
       "weight_g": 2050,
       "turn_radius_m": 19.4,
       "rocker_profile": "camber_tip_tail_rocker",
       "rocker_percent": 45,
-      "metal_content": "partial",
+      "metal_content": "none",
       "tail_shape": "modified_twin",
-      "source": "Blister Review",
-      "source_url": "https://blisterreview.com/gear-reviews/2020-2021-k2-reckoner-102",
-      "verified_date": "2026-08-12",
-      "notes": "Carbon/Titanal hybrid construction (not a traditional full sheet) - partial. Notable camber underfoot, but pretty deep rocker lines for its width - rocker_percent nudged above category default. K2's freestyle-leaning all-mountain line, distinct from the Mindbender family."
+      "source": "SkiEssentials 2026 Ski Test",
+      "source_url": "https://www.skiessentials.com/2026-ski-test/skis/2026-k2-reckoner-102",
+      "verified_date": "2026-09-01",
+      "notes": "Refreshed 2026-09-01: construction changed from the recorded 2020-2021 \"Carbon/Titanal hybrid (partial)\" build to an all-composite layup - aspen wood core, Spectral Braid (variable-angle fiberglass), Carbon Boost Braid (longitudinal carbon stringers), Triaxial Braid fiberglass wrap, no titanal. metal_content corrected from partial to none - confirmed across four independent current-season sources (Blister, k2snow.com, SkiEssentials, evo), none mentioning metal anywhere, including a specific check for a hidden binding-area metal plate per SOURCING.md's own warning pattern - found none. weight_g (2050g @ 184cm) unchanged - identical across both the old and new construction at the same reference length. Notable camber underfoot, but pretty deep rocker lines for its width - rocker_percent nudged above category default, left unchanged as no source suggested a rocker-profile change. K2's freestyle-leaning all-mountain line, distinct from the Mindbender family; no metal-branded (\"Ti\") sibling exists in the Reckoner line to confuse this with."
     },
     {
       "name": "Nordica Steadfast 85 DC",
@@ -1768,7 +1768,7 @@
       "tail_shape": "directional",
       "source": "Blister Review",
       "source_url": "https://blisterreview.com/gear-reviews/ski-reviews/2020-2021-k2-disruption-82ti",
-      "verified_date": "2026-08-13",
+      "verified_date": "2026-09-01",
       "notes": "Chosen over K2 Anthem (no Blister review; internally-inconsistent retail specs). Blister explicitly states 'tail type is flat,' supporting directional classification. Titanal I-Beam construction treated as full per the same convention already used for K2 Mindbender's Y-Beam elsewhere in this dataset."
     },
     {
