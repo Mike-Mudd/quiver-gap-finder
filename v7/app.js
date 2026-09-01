@@ -158,7 +158,7 @@ function renderQuiver() {
 
 function renderReadout() {
   if (quiver.length === 0) {
-    readoutEl.textContent = "Nine kinds of ski day. Add what you own to see which ones you cover.";
+    readoutEl.textContent = "";
     return;
   }
   const z = zones(quiver);
