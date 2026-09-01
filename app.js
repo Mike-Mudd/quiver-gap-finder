@@ -91,7 +91,22 @@ function renderResults() {
       const li = document.createElement("li");
       li.setAttribute("role", "option");
       li.innerHTML = `<span>${ski.name}</span><span class="spec">${ski.waist_width_mm}mm</span>`;
-      li.addEventListener("mousedown", (e) => { e.preventDefault(); add(ski); });
+      // mousedown (not click) so this fires before the input's blur
+      // hides the dropdown. Touch devices don't reliably synthesize
+      // mousedown from a tap when it's also dismissing the on-screen
+      // keyboard, so touchstart needs its own handler too - guarded
+      // with a flag so a device that fires both doesn't call add()
+      // twice. Both preventDefault() to stop the blur/keyboard-dismiss
+      // from racing the selection at all.
+      let handled = false;
+      const select = (e) => {
+        e.preventDefault();
+        if (handled) return;
+        handled = true;
+        add(ski);
+      };
+      li.addEventListener("touchstart", select, { passive: false });
+      li.addEventListener("mousedown", select);
       resultsEl.appendChild(li);
     });
   }
