@@ -52,12 +52,25 @@ const coverageMap = window.CoverageMap.create({
 });
 const conditionCards = window.ConditionCards.create();
 
+/* The catalog is the whole product, so a failure here is total. Say so in
+ * the reader's terms and keep the cause in the console for whoever is
+ * debugging - a visitor cannot act on an HTTP status, and this page is
+ * live. */
 fetch("../data/skis.json")
-  .then((r) => r.json())
-  .then((d) => { all = d.skis; })
-  .catch(() => {
-    searchEl.placeholder = "Serve this folder over http to load the catalog";
+  .then((r) => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  })
+  .then((d) => {
+    if (!d || !Array.isArray(d.skis)) throw new Error("unexpected format");
+    all = d.skis;
+  })
+  .catch((err) => {
+    console.error("Could not load data/skis.json:", err);
+    searchEl.placeholder = "Catalog unavailable";
     searchEl.disabled = true;
+    readoutEl.textContent =
+      "The ski catalog didn't load. Refreshing usually fixes it — if it keeps happening, something's wrong on our end.";
   });
 
 function matches() {

@@ -89,10 +89,12 @@ async function init() {
     }
     allSkis = payload.skis;
   } catch (err) {
+    // Visitor-facing copy; the cause goes to the console so it stays
+    // diagnosable without putting an HTTP status on a live page.
+    console.error("Could not load data/skis.json:", err);
     searchResultsEl.hidden = false;
-    searchResultsEl.innerHTML = `<li class="no-match">Couldn't load data/skis.json (${escapeHtml(
-      String(err.message || err)
-    )}). If you opened this file directly from disk, serve it with a local server instead — see README.md.</li>`;
+    searchResultsEl.innerHTML =
+      `<li class="no-match">The ski catalog didn't load. Refreshing usually fixes it — if it keeps happening, something's wrong on our end.</li>`;
     return;
   }
 
