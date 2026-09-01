@@ -714,48 +714,6 @@ html {
   .candidate-picker .search-wrap { max-width: none; }
 }
 
-/* ---------- ledger ---------- */
-
-.ledger {
-  background: var(--paper);
-  padding: clamp(3.4rem, 9vh, 6rem) clamp(1.3rem, 4vw, 3.2rem);
-}
-.ledger-inner { max-width: 1080px; margin: 0 auto; }
-
-.ledger-lead {
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: clamp(1.4rem, 2.7vw, 2.15rem);
-  line-height: 1.36;
-  letter-spacing: 0.004em;
-  margin: 0 0 clamp(2.6rem, 6vh, 4rem);
-  max-width: 30ch;
-  color: var(--ink);
-}
-.ledger-lead em { font-style: italic; }
-
-.ledger-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(1rem, 3vw, 2.4rem);
-  margin: 0;
-  border-top: 1px solid var(--line);
-  padding-top: 1.5rem;
-}
-.ledger-stats dt {
-  font-size: 0.5625rem; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--ink-faint);
-  margin-bottom: 0.55rem;
-}
-.ledger-stats dd {
-  font-family: var(--serif);
-  font-size: clamp(1.7rem, 3.4vw, 2.6rem);
-  font-weight: 300;
-  line-height: 1;
-  margin: 0;
-  color: var(--ink);
-}
-
 /* ---------- zones ---------- */
 
 .zones {
@@ -956,5 +914,4 @@ html {
   .copy h1 { font-size: clamp(2.5rem, 11.5vw, 3.4rem); }
   #ski-search { font-size: 1rem; }
   .search-module { width: 100%; }
-  .ledger-stats { grid-template-columns: repeat(2, 1fr); gap: 1.6rem 1rem; }
 }
