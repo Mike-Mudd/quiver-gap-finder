@@ -47,7 +47,10 @@ Port into v7's charcoal-on-snow system:
 2. **Condition cards** — the status-coded grid, plus the separate Park
    card driven by `tail_shape`.
 3. **Candidate comparison** — "what if I added this" search.
-4. **Interest bias chips** — Trees / Powder / Speed.
+4. ~~Interest bias chips — Trees / Powder / Speed.~~ Migrated, then
+   removed entirely (see `PRODUCT.md`) after concluding it wasn't
+   meaningfully different from the ability-level idea the product had
+   already rejected on the same grounds.
 5. **Length pickers** — per-ski, feeding `effectiveSpecs`.
 6. **Details section** — the plain-language gap and redundancy list.
 

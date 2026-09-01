@@ -35,13 +35,6 @@ const STAB_RADIUS = 12; // stability points (0-100 scale)
 const WEIGHT_MIN = 1500;
 const WEIGHT_MAX = 2360;
 
-// Turn-radius range used to normalize the Trees/Powder/Speed interest
-// bias below (see INTERESTS). Spans the tightest (Rossignol Forza 70
-// V-Ti, 14m) to widest-arcing (Black Crows Corvus, 25m) turn radius in
-// the sourced dataset.
-const RADIUS_MIN = 14;
-const RADIUS_MAX = 25;
-
 // Contribution of metal content to the stability score (0-1 scale).
 const METAL_SCORE = { none: 0, partial: 0.5, full: 1 };
 
@@ -165,80 +158,6 @@ function rectsOverlap(a, b) {
 }
 
 /* ------------------------------------------------------------------ *
- *  Interest bias — "Trees / Powder / Speed"
- *
- *  Not a new axis and not sourced data: each affinity score is a 0-1
- *  lean built entirely from specs already in every ski's record (waist
- *  width, turn radius, rocker, weight, and the existing stability
- *  score). It only nudges *which* already-qualifying ski wins a
- *  gap-bucket tiebreak (see bucketFitDistance) - it never changes which
- *  buckets count as gaps or lets a non-fitting ski into the running.
- *
- *  "Park" deliberately isn't included here - it depends on twin-tip
- *  construction and mount point, neither of which exists in the
- *  dataset, so there's no honest way to derive it (same reasoning that
- *  ruled out "stiff" for the Y-axis wording - see git history).
- * ------------------------------------------------------------------ */
-
-function normalize01(value, min, max) {
-  return clamp((value - min) / (max - min), 0, 1);
-}
-
-const INTERESTS = [
-  {
-    key: "trees",
-    label: "Trees",
-    // Quick, easy pivots: short turn radius + more rocker + lighter
-    // weight. Uses effectiveSpecs so a length change (see the length
-    // picker) shifts the lean too, same as every other length-aware
-    // number in the app.
-    affinity(ski) {
-      const specs = effectiveSpecs(ski);
-      const radius = normalize01(specs.turn_radius_m ?? RADIUS_MAX, RADIUS_MIN, RADIUS_MAX);
-      const rocker = rockerPercent(ski) / 100;
-      const weight = normalize01(specs.weight_g, WEIGHT_MIN, WEIGHT_MAX);
-      return (1 - radius) * 0.5 + rocker * 0.3 + (1 - weight) * 0.2;
-    },
-  },
-  {
-    key: "powder",
-    label: "Powder",
-    // Float and easy surfacing: wide waist + more rocker.
-    affinity(ski) {
-      const waist = normalize01(ski.waist_width_mm, WAIST_MIN, WAIST_MAX);
-      const rocker = rockerPercent(ski) / 100;
-      return waist * 0.6 + rocker * 0.4;
-    },
-  },
-  {
-    key: "speed",
-    label: "Speed",
-    // Planted at pace: reuses the existing damp/charging stability
-    // score (heavier, more metal, less rocker), plus a longer turn
-    // radius for wide-arcing turns at speed.
-    affinity(ski) {
-      const specs = effectiveSpecs(ski);
-      const stab = stabilityScore(ski) / 100;
-      const radius = normalize01(specs.turn_radius_m ?? RADIUS_MIN, RADIUS_MIN, RADIUS_MAX);
-      return stab * 0.7 + radius * 0.3;
-    },
-  },
-];
-
-function interestAffinity(ski, interestKey) {
-  const interest = INTERESTS.find((i) => i.key === interestKey);
-  return interest ? interest.affinity(ski) : 0;
-}
-
-// How much a full-affinity (1.0) match can pull a ski's bucketFitDistance
-// closer to "best pick." Distances are normalized fractions of each
-// axis span (see bucketFitDistance) and stay small for anything that
-// overlaps a bucket at all - 0.15 is enough to flip a close tiebreak
-// toward the interest-matching ski without overriding a genuinely
-// better-centered one for the bucket itself.
-const INTEREST_BIAS_WEIGHT = 0.15;
-
-/* ------------------------------------------------------------------ *
  *  Temperament display helpers
  *
  *  The underlying 0-100 number (computed by stabilityScore) is never
@@ -310,7 +229,7 @@ function bucketCenter(bucket) {
  * because of its raw units). Shared by both the per-bucket suggestion
  * list (bullets/tooltips) and the map's cross-bucket ranking below.
  */
-function bucketFitDistance(ski, waistBucket, stabBucket, interestKey = null) {
+function bucketFitDistance(ski, waistBucket, stabBucket) {
   const region = coverageRegion(ski);
   const overlaps =
     rectsOverlap({ xMin: region.xMin, xMax: region.xMax }, waistBucket) &&
@@ -319,17 +238,7 @@ function bucketFitDistance(ski, waistBucket, stabBucket, interestKey = null) {
 
   const dx = (ski.waist_width_mm - bucketCenter(waistBucket)) / (WAIST_MAX - WAIST_MIN);
   const dy = (region.stab - bucketCenter(stabBucket)) / (STAB_MAX - STAB_MIN);
-  let distance = Math.sqrt(dx * dx + dy * dy);
-
-  // Tiebreak only, not a filter (see INTERESTS above) - only reachable
-  // once a ski has already passed the overlap check, so this can never
-  // pull a non-fitting ski into the running, only reorder among ones
-  // that already qualify.
-  if (interestKey) {
-    distance -= interestAffinity(ski, interestKey) * INTEREST_BIAS_WEIGHT;
-  }
-
-  return distance;
+  return Math.sqrt(dx * dx + dy * dy);
 }
 
 /**
@@ -338,10 +247,10 @@ function bucketFitDistance(ski, waistBucket, stabBucket, interestKey = null) {
  * full dataset as `catalogSkis` since this module holds no state of
  * its own.
  */
-function suggestSkisForBucket(catalogSkis, waistBucket, stabBucket, quiverNames, limit = 2, interestKey = null) {
+function suggestSkisForBucket(catalogSkis, waistBucket, stabBucket, quiverNames, limit = 2) {
   return catalogSkis
     .filter((ski) => !quiverNames.has(ski.name))
-    .map((ski) => ({ ski, distance: bucketFitDistance(ski, waistBucket, stabBucket, interestKey) }))
+    .map((ski) => ({ ski, distance: bucketFitDistance(ski, waistBucket, stabBucket) }))
     .filter((c) => c.distance !== null)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, limit)
@@ -361,7 +270,7 @@ function suggestSkisForBucket(catalogSkis, waistBucket, stabBucket, quiverNames,
  * genuinely doesn't have a fit for what's left - surfaced to the
  * caller as `uncoveredCount` rather than hidden).
  */
-function selectTopSuggestionsForMap(catalogSkis, gaps, quiverNames, interestKey = null) {
+function selectTopSuggestionsForMap(catalogSkis, gaps, quiverNames) {
   const remaining = new Set(gaps);
   const suggestions = [];
   const used = new Set();
@@ -381,7 +290,7 @@ function selectTopSuggestionsForMap(catalogSkis, gaps, quiverNames, interestKey 
       const covers = new Set();
       let totalDistance = 0;
       for (const cell of remaining) {
-        const distance = bucketFitDistance(ski, cell.waistBucket, cell.stabBucket, interestKey);
+        const distance = bucketFitDistance(ski, cell.waistBucket, cell.stabBucket);
         if (distance !== null) {
           covers.add(cell);
           totalDistance += distance;
@@ -441,16 +350,12 @@ window.QuiverScoring = {
   STAB_RADIUS,
   WEIGHT_MIN,
   WEIGHT_MAX,
-  RADIUS_MIN,
-  RADIUS_MAX,
   REDUNDANCY_THRESHOLD,
   MAX_QUIVER_SIZE,
   MAX_CANDIDATES: 3,
   WAIST_BUCKETS,
   STAB_BUCKETS,
   BUCKET_DESCRIPTIONS,
-  INTERESTS,
-  INTEREST_BIAS_WEIGHT,
   // functions
   clamp,
   rockerPercent,
@@ -458,8 +363,6 @@ window.QuiverScoring = {
   stabilityScore,
   coverageRegion,
   rectsOverlap,
-  normalize01,
-  interestAffinity,
   temperamentBucket,
   temperamentPhrase,
   buildGrid,

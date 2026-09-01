@@ -18,13 +18,11 @@ const {
   MAX_CANDIDATES,
   WAIST_BUCKETS,
   STAB_BUCKETS,
-  INTERESTS,
   clamp,
   rockerPercent,
   effectiveSpecs,
   stabilityScore,
   coverageRegion,
-  interestAffinity,
   temperamentBucket,
   temperamentPhrase,
   buildGrid,
@@ -51,15 +49,6 @@ let quiver = []; // array of ski objects, max MAX_QUIVER_SIZE
 // whenever "Find gaps" runs fresh (see onFindGaps), but NOT when a
 // candidate is added/removed - that re-render path is renderResults().
 let candidateSkis = []; // capped at MAX_CANDIDATES, from scoring.js
-
-// Optional "lean toward" interest (see INTERESTS below) - one of
-// INTERESTS[].key or null for "no lean." Single-select: Trees and Speed
-// pull in opposite directions (short/light vs. long/heavy), so letting
-// both be active at once would muddy the bias with no clean way to
-// combine them. Persists across quiver/candidate changes like quiver
-// does, until the user picks a different chip or clears it - not reset
-// by onFindGaps.
-let selectedInterest = null;
 
 /* ------------------------------------------------------------------ *
  *  DOM references
@@ -115,25 +104,6 @@ async function init() {
   window.addEventListener("scroll", checkTooltipAnchorMoved, { capture: true, passive: true });
 
   findGapsBtn.addEventListener("click", onFindGaps);
-  wireInterestPicker();
-}
-
-/** Single-select "lean toward" chips (see selectedInterest) - clicking
- * the already-active chip clears it back to "no lean," same toggle
- * pattern as the coverage map's info/table buttons. Lives in the
- * static index.html markup (unlike quiver/results), so it's wired once
- * here rather than re-wired on every render - live-updates results in
- * place via refreshResultsIfShown, same as a length picker change. */
-function wireInterestPicker() {
-  const chips = document.querySelectorAll(".interest-chip");
-  chips.forEach((chip) => {
-    chip.addEventListener("click", () => {
-      const key = chip.dataset.interest;
-      selectedInterest = selectedInterest === key ? null : key;
-      chips.forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.interest === selectedInterest)));
-      refreshResultsIfShown();
-    });
-  });
 }
 
 /* ------------------------------------------------------------------ *
@@ -335,7 +305,7 @@ function renderDashboard(grid, skis) {
   let gapSuggestions = [];
   let suggestionResult = null;
   if (gaps.length > 0) {
-    suggestionResult = selectTopSuggestionsForMap(allSkis, gaps, quiverNames, selectedInterest);
+    suggestionResult = selectTopSuggestionsForMap(allSkis, gaps, quiverNames);
     gapSuggestions = suggestionResult.suggestions;
   }
 
@@ -357,7 +327,7 @@ function renderDashboard(grid, skis) {
     renderConditionCardsSection(grid, skis),
   ];
 
-  sections.push(renderDetailsSection(gaps, redundant, quiverNames, selectedInterest));
+  sections.push(renderDetailsSection(gaps, redundant, quiverNames));
 
   resultsEl.innerHTML = sections.join("\n");
 
@@ -674,10 +644,8 @@ function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggest
             uncoveredCount === 1 ? "it" : "them"
           }.`
         : "";
-    const interestMeta = selectedInterest ? INTERESTS.find((i) => i.key === selectedInterest) : null;
-    const interestNote = interestMeta ? ` Leaning toward ${escapeHtml(interestMeta.label)}.` : "";
     caption = `Blue is your quiver. Red (${comparisonSkis.length}) is the smallest set of
-        catalog skis that covers your gaps with the least overlap.${uncoveredNote}${interestNote}`;
+        catalog skis that covers your gaps with the least overlap.${uncoveredNote}`;
   } else {
     caption = `Each dot is a ski. The shaded box is the terrain/temperament range it covers —
         darker overlap means more coverage. Tap a dot for details.`;
@@ -1130,13 +1098,13 @@ function renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions) {
 
 /* ---- Collapsible plain-language detail ------------------------------ */
 
-function renderDetailsSection(gaps, redundant, quiverNames, interestKey = null) {
+function renderDetailsSection(gaps, redundant, quiverNames) {
   const gapItems =
     gaps.length === 0
       ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No gaps — every bucket has at least one ski covering it.</span></li>`
       : gaps
           .map((cell) => {
-            const suggestions = suggestSkisForBucket(allSkis, cell.waistBucket, cell.stabBucket, quiverNames, 2, interestKey);
+            const suggestions = suggestSkisForBucket(allSkis, cell.waistBucket, cell.stabBucket, quiverNames, 2);
             return `<li class="result-item gap"><span class="status-icon status-critical" aria-hidden="true">✕</span><span>No coverage for <strong>${escapeHtml(
               bucketLabel(cell)
             )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}. <span class="result-suggestion">${suggestionPhrase(

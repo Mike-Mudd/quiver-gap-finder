@@ -61,8 +61,7 @@ state, that never reproduced in desktop or emulated-mobile testing).
 
 Current testers are friends giving informal, real-world feedback — not a
 formal user-research program, but feedback that has already driven real
-product decisions (the 1-2-ski positioning pivot, the recent
-Trees/Powder/Speed interest bias, axis-label wording).
+product decisions (the 1-2-ski positioning pivot, axis-label wording).
 
 ## Capabilities and Constraints
 
@@ -78,17 +77,20 @@ Trees/Powder/Speed interest bias, axis-label wording).
 - **Gap-finding + recommendation:** identifies buckets with zero coverage
   and greedily suggests catalog skis that close the most gaps with the
   least overlap.
-- **Optional interest bias** (Trees / Powder / Speed): reweights which
-  already-qualifying ski wins a recommendation tiebreak. Built entirely
-  from specs already in the dataset — deliberately excludes "Park" since
-  twin-tip/mount-point data doesn't exist in the dataset and can't be
-  honestly derived from what's there.
 - **Park/twin-tip detection:** a separate condition card based on
   `tail_shape`, orthogonal to the main waist/temperament coverage grid.
 - **Explicitly not implemented:** ability-level tagging (beginner/
   intermediate/advanced/expert) — considered and rejected; not reliably
   derivable from current spec fields without a new, dedicated sourcing
   effort.
+- **Also removed: the Trees/Powder/Speed interest bias.** Built and
+  shipped for a time (reweighted which already-qualifying ski won a
+  recommendation tiebreak, from specs already in the dataset), then
+  pulled after a v7 critique asked whether it was meaningfully different
+  from the ability-level idea above — both infer something beyond raw
+  spec matching from the same four fields. Concluded not different
+  enough to keep as-is; may return later, but not in this shape. See
+  `scoring.js`/`app.js`/`v7/app.js` git history for the implementation.
 - **Partial length coverage:** per-length weight/turn-radius data
   (`length_options`) exists for 35 of 61 skis. Further backfill is
   paused for cost/time reasons, not abandoned — an open, resumable task.

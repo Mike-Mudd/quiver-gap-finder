@@ -238,7 +238,7 @@ Three shapes carry the whole system: **pill** (100px) marks anything actionable 
 ## Components
 
 ### Buttons / Toggles
-- **Toggle/Secondary** (table-toggle-btn, interest-chip, info-btn): pill-shaped, transparent/no-fill at rest with a hairline border, mono uppercase label text. Active/pressed state (interest-chip) fills solid Ink with Paper text; hover state (table-toggle-btn, info-btn) darkens the border and text to Ink without a fill change. Both use `aria-pressed` as the sole state hook.
+- **Toggle/Secondary** (table-toggle-btn, info-btn): pill-shaped, transparent/no-fill at rest with a hairline border, mono uppercase label text. Hover state darkens the border and text to Ink without a fill change. Uses `aria-pressed` as the sole state hook.
 
 ### Chips
 - **Quiver chip:** pill-shaped, solid Ink fill, Paper text — the one place in the system a component is filled dark by default rather than flat/outlined, since it represents something the user has actively committed to (added to their quiver). Its remove-button and embedded length-picker both use a translucent-white-on-ink treatment to stay legible against the dark fill.

@@ -255,39 +255,6 @@ html {
 }
 .quiver .length-picker option { color: var(--ink); }
 
-/* Optional "lean toward" bias on which suggestion wins a tiebreak (see
-   selectedInterest in app.js / scoring.js INTERESTS) - hidden until
-   there's a quiver to bias, matching this hero's reveal-as-you-go feel
-   rather than showing an inert control from the first paint. */
-.interest-picker:not([hidden]) {
-  display: flex; align-items: center; flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.85rem;
-}
-.interest-picker-label {
-  font-family: var(--mono);
-  font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-faint);
-  margin-right: 0.15rem;
-}
-.interest-chip {
-  font-family: var(--mono);
-  font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--ink-soft);
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  padding: 0.35rem 0.75rem;
-  cursor: pointer;
-  transition: border-color 0.2s var(--ease), color 0.2s var(--ease), background 0.2s var(--ease);
-}
-.interest-chip:hover { border-color: var(--ink-soft); color: var(--ink); }
-.interest-chip[aria-pressed="true"] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
-}
-
 .readout {
   font-family: var(--mono);
   font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase;

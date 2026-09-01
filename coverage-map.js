@@ -21,7 +21,7 @@
  *      escapeHtml,             // caller supplies (root already has one)
  *    });
  *    section.innerHTML = map.renderSection(quiver, comparisonSkis, {
- *      usingCandidates, suggestionResult, allSkis, selectedInterest,
+ *      usingCandidates, suggestionResult, allSkis,
  *    });
  *    map.wire(section, quiver, comparisonSkis, { allSkis, quiver, onCandidatesChange });
  * ------------------------------------------------------------------ */
@@ -35,7 +35,6 @@ const {
   STAB_MAX,
   WAIST_BUCKETS,
   STAB_BUCKETS,
-  INTERESTS,
   MAX_CANDIDATES,
   effectiveSpecs,
   stabilityScore,
@@ -479,7 +478,7 @@ function create(opts = {}) {
    * auto-suggestion(s) or a user-picked candidate (red).
    */
   function renderSection(skis, comparisonSkis, ctx) {
-    const { usingCandidates, suggestionResult, selectedInterest, candidateSkis = [] } = ctx || {};
+    const { usingCandidates, suggestionResult, candidateSkis = [] } = ctx || {};
     const hasComparison = comparisonSkis.length > 0;
 
     let caption;
@@ -495,10 +494,8 @@ function create(opts = {}) {
               uncoveredCount === 1 ? "it" : "them"
             }.`
           : "";
-      const interestMeta = selectedInterest ? INTERESTS.find((i) => i.key === selectedInterest) : null;
-      const interestNote = interestMeta ? ` Leaning toward ${escapeHtml(interestMeta.label)}.` : "";
       caption = `Blue is your quiver. Red (${comparisonSkis.length}) is the smallest set of
-          catalog skis that covers your gaps with the least overlap.${uncoveredNote}${interestNote}`;
+          catalog skis that covers your gaps with the least overlap.${uncoveredNote}`;
     } else if (skis.length === 0) {
       caption = `Add a ski above to see its coverage.`;
     } else {

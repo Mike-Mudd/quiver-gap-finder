@@ -248,13 +248,13 @@ function create(opts = {}) {
    * cards) - the same numbers in plain sentences, for anyone who wants
    * the raw per-bucket detail instead of the summarized view.
    */
-  function renderDetailsSection(gaps, redundant, quiverNames, allSkis, interestKey = null) {
+  function renderDetailsSection(gaps, redundant, quiverNames, allSkis) {
     const gapItems =
       gaps.length === 0
         ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No gaps — every bucket has at least one ski covering it.</span></li>`
         : gaps
             .map((cell) => {
-              const suggestions = suggestSkisForBucket(allSkis, cell.waistBucket, cell.stabBucket, quiverNames, 2, interestKey);
+              const suggestions = suggestSkisForBucket(allSkis, cell.waistBucket, cell.stabBucket, quiverNames, 2);
               return `<li class="result-item gap"><span class="status-icon status-critical" aria-hidden="true">✕</span><span>No coverage for <strong>${escapeHtml(
                 bucketLabel(cell)
               )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}. <span class="result-suggestion">${suggestionPhrase(

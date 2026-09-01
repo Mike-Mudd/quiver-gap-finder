@@ -34,18 +34,12 @@ const mapSectionEl = document.getElementById("map-section");
 const mapContentEl = document.getElementById("map-content");
 const summaryContentEl = document.getElementById("summary-content");
 const conditionContentEl = document.getElementById("condition-content");
-const interestPickerEl = document.getElementById("interest-picker");
-const interestChips = document.querySelectorAll(".interest-chip");
 const detailsContentEl = document.getElementById("details-content");
 
 let all = [];
 let quiver = [];
 let cursor = -1;
 let candidateSkis = []; // "what if I added this" — see coverage-map.js
-// Optional "lean toward" interest (see scoring.js INTERESTS) - one of
-// INTERESTS[].key or null for "no lean." Single-select: clicking the
-// already-active chip clears it, same toggle pattern as root.
-let selectedInterest = null;
 
 const coverageMap = window.CoverageMap.create({
   tooltipEl: document.getElementById("chart-tooltip"),
@@ -141,7 +135,6 @@ function lengthPickerHtml(ski) {
 }
 
 function renderQuiver() {
-  interestPickerEl.hidden = quiver.length === 0;
   quiverEl.innerHTML = "";
   quiver.forEach((ski) => {
     const li = document.createElement("li");
@@ -210,7 +203,7 @@ function renderMap() {
   let suggestionResult = null;
 
   if (!usingCandidates && gaps.length > 0) {
-    suggestionResult = selectTopSuggestionsForMap(all, gaps, quiverNames, selectedInterest);
+    suggestionResult = selectTopSuggestionsForMap(all, gaps, quiverNames);
     comparisonSkis = suggestionResult.suggestions;
   }
 
@@ -221,13 +214,12 @@ function renderMap() {
     suggestionResult ? suggestionResult.suggestions : null
   );
   conditionContentEl.innerHTML = conditionCards.renderConditionCardsSection(grid, quiver);
-  detailsContentEl.innerHTML = conditionCards.renderDetailsSection(gaps, redundant, quiverNames, all, selectedInterest);
+  detailsContentEl.innerHTML = conditionCards.renderDetailsSection(gaps, redundant, quiverNames, all);
 
   mapContentEl.innerHTML = coverageMap.renderSection(quiver, comparisonSkis, {
     usingCandidates,
     suggestionResult,
     candidateSkis,
-    selectedInterest,
   });
   coverageMap.wire(mapContentEl, quiver, comparisonSkis, {
     getAllSkis: () => all,
@@ -292,19 +284,6 @@ searchEl.addEventListener("keydown", (e) => {
     const ski = all.find((s) => s.name === items[cursor].firstChild.textContent);
     if (ski) add(ski);
   }
-});
-
-/** Single-select "lean toward" chips (see selectedInterest) - clicking
- * the already-active chip clears it back to "no lean," same toggle
- * pattern as root. Lives in static markup, wired once here rather than
- * re-wired on every renderMap() call. */
-interestChips.forEach((chip) => {
-  chip.addEventListener("click", () => {
-    const key = chip.dataset.interest;
-    selectedInterest = selectedInterest === key ? null : key;
-    interestChips.forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.interest === selectedInterest)));
-    renderMap();
-  });
 });
 
 /* ------------------------------------------------------------------ *
