@@ -11,11 +11,13 @@
 <script src="scoring.js"></script>
 <!-- AvantLink affiliate-application ownership verification (evo
      application id 1645925). One-time confirmation ping, safe to
-     remove once the application shows approved. https:// used
-     instead of the http:// AvantLink supplied, since skigap.app
-     enforces HTTPS and a plain http:// script src would be blocked
-     as mixed content. -->
-<script type="text/javascript" src="https://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=0dbd1ad69fc2bce33f174943f74686d30aecb155"></script>
+     remove once the application shows approved. Left as the exact
+     http:// AvantLink supplied - their verifier appears to do a
+     literal string match against the snippet they issued, so an
+     earlier https:// substitution (made to dodge mixed-content
+     blocking) broke their confirmation check even though the script
+     still loaded fine in a real browser. -->
+<script type="text/javascript" src="http://classic.avantlink.com/affiliate_app_confirm.php?mode=js&authResponse=0dbd1ad69fc2bce33f174943f74686d30aecb155"></script>
 </head>
 <body>
 
