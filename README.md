@@ -4,8 +4,10 @@ A single-page tool for skiers to find coverage gaps in their ski quiver.
 Pick up to 6 skis you own (or are considering), and it tells you which
 kinds of ski days you're covered for — and which you're not.
 
-No build tooling, no backend, no framework: just `index.html`, `style.css`,
-and `app.js`, plus a static `data/skis.json` dataset.
+No build tooling, no backend, no framework: `index.html`/`style.css`/
+`app.js` for the page itself, `scoring.js`/`coverage-map.js`/
+`condition-cards.js` as the shared render/scoring modules, plus a
+static `data/skis.json` dataset.
 
 ## Running it
 

@@ -1,18 +1,16 @@
 "use strict";
 
 /* ------------------------------------------------------------------ *
- *  Shared condition-cards component — the "what's your quiver built
- *  for" status grid (Groomers / All-Mountain / Powder / Park) and the
- *  plain-language TL;DR summary paragraph above it. Same portability
- *  approach as coverage-map.js: pure render functions returning HTML
- *  strings against a fixed class contract (.condition-card,
- *  .quiver-summary, ...), so each visual direction supplies its own
- *  CSS for those classes rather than re-deriving the logic. See
- *  ROADMAP.md "Phase 1."
+ *  Condition-cards component — the "what's your quiver built for"
+ *  status grid (Groomers / All-Mountain / Powder / Park) and the
+ *  plain-language TL;DR summary paragraph above it. Same approach as
+ *  coverage-map.js: pure render functions returning HTML strings
+ *  against a fixed class contract (.condition-card, .quiver-summary,
+ *  ...) defined in style.css, kept separate from app.js.
  *
  *  Depends on scoring.js (window.QuiverScoring) being loaded first.
  *  No DOM wiring needed - these are pure render functions, no
- *  interactivity (see root app.js: condition cards are static once
+ *  interactivity (see app.js: condition cards are static once
  *  rendered, unlike the coverage map's tooltip/toggle/picker).
  *
  *  Usage from a page:

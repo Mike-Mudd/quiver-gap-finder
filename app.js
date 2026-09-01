@@ -1,1264 +1,419 @@
 "use strict";
 
-/* ------------------------------------------------------------------ *
- *  Scoring engine: pulled in from scoring.js (loaded before this file
- *  in index.html) so the coverage-space math has exactly one copy
- *  shared by every visual direction. See scoring.js for the constants,
- *  bucket definitions, and pure functions destructured below, and
- *  README.md for the reasoning behind the numbers themselves.
- * ------------------------------------------------------------------ */
+/* Search and coverage readout run on the real dataset and the real
+   coverage math from scoring.js (see README.md for the reasoning), not
+   a re-derived copy. Loading order matters: index.html pulls in
+   scoring.js before this file. */
 
-const {
-  WAIST_MIN,
-  WAIST_MAX,
-  STAB_MIN,
-  STAB_MAX,
-  REDUNDANCY_THRESHOLD,
-  MAX_QUIVER_SIZE,
-  MAX_CANDIDATES,
-  WAIST_BUCKETS,
-  STAB_BUCKETS,
-  clamp,
-  rockerPercent,
-  effectiveSpecs,
-  stabilityScore,
-  coverageRegion,
-  temperamentBucket,
-  temperamentPhrase,
-  buildGrid,
-  bucketLabel,
-  bucketDescription,
-  bucketCenter,
-  bucketFitDistance,
-  suggestSkisForBucket,
-  selectTopSuggestionsForMap,
-  statusMeta,
-  metalLabel,
-} = window.QuiverScoring;
+const { buildGrid, selectTopSuggestionsForMap, REDUNDANCY_THRESHOLD } = window.QuiverScoring;
 
-/* ------------------------------------------------------------------ *
- *  State
- * ------------------------------------------------------------------ */
+// Short zone labels for the readout copy ("Narrow" / "playful"), kept
+// separate from scoring.js's own bucket.label ("narrow / firm-groomer")
+// so this direction's voice doesn't change just by sharing the math.
+const WAIST_SHORT = { narrow: "Narrow", allmtn: "All-mountain", wide: "Wide" };
+const FEEL_SHORT = { playful: "playful", balanced: "balanced", damp: "charging" };
 
-let allSkis = [];
-let quiver = []; // array of ski objects, max MAX_QUIVER_SIZE
+function zones(quiver) {
+  return buildGrid(quiver).map((cell) => ({
+    label: `${WAIST_SHORT[cell.waistBucket.key]} + ${FEEL_SHORT[cell.stabBucket.key]}`,
+    covered: cell.skis.length > 0,
+  }));
+}
 
-// User-picked "what if I added this" comparison skis for the coverage
-// map - independent of the quiver and of the algorithm's own
-// gap-suggestions (see renderDashboard/renderCandidatePicker). Reset
-// whenever "Find gaps" runs fresh (see onFindGaps), but NOT when a
-// candidate is added/removed - that re-render path is renderResults().
-let candidateSkis = []; // capped at MAX_CANDIDATES, from scoring.js
+/* ------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------------ *
- *  DOM references
- * ------------------------------------------------------------------ */
-
-const searchInput = document.getElementById("ski-search");
-const searchResultsEl = document.getElementById("search-results");
-const quiverListEl = document.getElementById("quiver-list");
-const quiverCountEl = document.getElementById("quiver-count");
-const findGapsBtn = document.getElementById("find-gaps-btn");
+const searchEl = document.getElementById("ski-search");
 const resultsEl = document.getElementById("results");
-const tooltipEl = document.getElementById("chart-tooltip");
+const quiverEl = document.getElementById("quiver");
+const searchBtnEl = document.getElementById("search-btn");
+const readoutEl = document.getElementById("readout");
+const mapSectionEl = document.getElementById("map-section");
+const mapContentEl = document.getElementById("map-content");
+const summaryContentEl = document.getElementById("summary-content");
+const conditionContentEl = document.getElementById("condition-content");
+const detailsContentEl = document.getElementById("details-content");
 
-/* ------------------------------------------------------------------ *
- *  Init
- * ------------------------------------------------------------------ */
+let all = [];
+let quiver = [];
+let cursor = -1;
+// Gates the readout + map behind "See my coverage" (see search()) -
+// build the whole quiver first, then reveal results once, rather than
+// re-computing on every add. Once true, add/remove/length-change keep
+// results live again without needing another press. Reset back to
+// false when the quiver empties out (see remove()), so starting over
+// gets the same before/after-search behavior as the first time.
+let hasSearched = false;
+let candidateSkis = []; // "what if I added this" — see coverage-map.js
 
-init();
+const coverageMap = window.CoverageMap.create({
+  tooltipEl: document.getElementById("chart-tooltip"),
+});
+const conditionCards = window.ConditionCards.create();
 
-async function init() {
-  try {
-    const res = await fetch("data/skis.json");
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const payload = await res.json();
-    if (!payload || !Array.isArray(payload.skis)) {
-      throw new Error("Unexpected data/skis.json format (expected a { skis: [...] } object)");
-    }
-    allSkis = payload.skis;
-  } catch (err) {
-    // Visitor-facing copy; the cause goes to the console so it stays
-    // diagnosable without putting an HTTP status on a live page.
+/* The catalog is the whole product, so a failure here is total. Say so in
+ * the reader's terms and keep the cause in the console for whoever is
+ * debugging - a visitor cannot act on an HTTP status, and this page is
+ * live. */
+fetch("data/skis.json")
+  .then((r) => {
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  })
+  .then((d) => {
+    if (!d || !Array.isArray(d.skis)) throw new Error("unexpected format");
+    all = d.skis;
+  })
+  .catch((err) => {
     console.error("Could not load data/skis.json:", err);
-    searchResultsEl.hidden = false;
-    searchResultsEl.innerHTML =
-      `<li class="no-match">The ski catalog didn't load. Refreshing usually fixes it — if it keeps happening, something's wrong on our end.</li>`;
-    return;
-  }
-
-  searchInput.addEventListener("input", onSearchInput);
-  searchInput.addEventListener("focus", onSearchInput);
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".search-wrap")) {
-      hideSearchResults();
-      const candidateResultsEl = document.getElementById("candidate-search-results");
-      if (candidateResultsEl) candidateResultsEl.hidden = true;
-    }
+    searchEl.placeholder = "Catalog unavailable";
+    searchEl.disabled = true;
+    readoutEl.textContent =
+      "The ski catalog didn't load. Refreshing usually fixes it — if it keeps happening, something's wrong on our end.";
   });
 
-  // Capture phase so this also catches scroll on the chart's own
-  // horizontal-scroll container, which doesn't bubble a "scroll" event
-  // up to window - see checkTooltipAnchorMoved for the rest of the
-  // reasoning.
-  window.addEventListener("scroll", checkTooltipAnchorMoved, { capture: true, passive: true });
-
-  findGapsBtn.addEventListener("click", onFindGaps);
+function matches() {
+  const q = searchEl.value.trim().toLowerCase();
+  const taken = new Set(quiver.map((s) => s.name));
+  return all.filter((s) => s.name.toLowerCase().includes(q) && !taken.has(s.name)).slice(0, 6);
 }
 
-/* ------------------------------------------------------------------ *
- *  Search / multi-select
- * ------------------------------------------------------------------ */
+function renderResults() {
+  const list = matches();
+  cursor = -1;
+  resultsEl.innerHTML = "";
+  if (list.length === 0) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = `Nothing matches "${searchEl.value.trim()}"`;
+    resultsEl.appendChild(li);
+  } else {
+    list.forEach((ski) => {
+      const li = document.createElement("li");
+      li.setAttribute("role", "option");
+      li.innerHTML = `<span>${ski.name}</span><span class="spec">${ski.waist_width_mm}mm</span>`;
+      li.addEventListener("mousedown", (e) => { e.preventDefault(); add(ski); });
+      resultsEl.appendChild(li);
+    });
+  }
+  resultsEl.hidden = false;
+}
 
-function onSearchInput() {
-  const query = searchInput.value.trim().toLowerCase();
-  const selectedNames = new Set(quiver.map((s) => s.name));
+function add(ski) {
+  if (quiver.some((s) => s.name === ski.name)) return;
+  // A shallow copy, not the shared `all` reference - each quiver slot
+  // tracks its own selected_length_cm independently (see
+  // scoring.js effectiveSpecs), defaulting to the ski's reference
+  // length. Matches root's addToQuiver.
+  quiver.push({ ...ski, selected_length_cm: ski.reference_length_cm });
+  searchEl.value = "";
+  resultsEl.hidden = true;
+  renderQuiver();
+  refreshResultsIfSearched();
+  searchEl.focus();
+}
 
-  let matches = allSkis.filter((s) => s.name.toLowerCase().includes(query));
-  matches = matches.slice(0, 8);
+function remove(name) {
+  quiver = quiver.filter((s) => s.name !== name);
+  // A stale comparison no longer applies once the quiver it was being
+  // compared against has changed underneath it — same reasoning as
+  // root's onFindGaps resetting candidateSkis on a fresh run.
+  candidateSkis = [];
+  renderQuiver();
+  if (quiver.length === 0) {
+    // Starting over from empty should feel like starting over: the
+    // next add builds up to a fresh "See my coverage" press, not
+    // results that silently reappear from the last search. Render
+    // once *before* clearing hasSearched, so the now-empty state
+    // actually reaches the DOM (hide the map, clear the readout) -
+    // refreshResultsIfSearched() would otherwise no-op once the flag
+    // is already false, leaving stale results on screen.
+    renderReadout();
+    renderMap();
+    hasSearched = false;
+  } else {
+    refreshResultsIfSearched();
+  }
+}
 
-  searchResultsEl.innerHTML = "";
-
-  if (matches.length === 0) {
-    searchResultsEl.innerHTML = `<li class="no-match">No skis match "${escapeHtml(
-      searchInput.value
-    )}"</li>`;
-    searchResultsEl.hidden = false;
+/**
+ * Native `scroll-behavior: smooth` (used everywhere else on this page,
+ * e.g. the nav's #zones/#method anchors) has a short, fixed duration -
+ * not independently sped up or slowed down via CSS. This search
+ * button's scroll is the one moment on the page meant to read as
+ * unmistakably slow and deliberate (user testing: the native version
+ * "moves fairly quick"), so it gets its own rAF-driven animation
+ * instead, timed explicitly and using the same --ease curve as every
+ * other transition on the page rather than inventing a new one.
+ *
+ * getTargetY is a function, called every frame, not a fixed number -
+ * as of this commit, real-machine testing still reports a "waits ~1s,
+ * then snaps" symptom that a fixed-target version didn't fix (see git
+ * history), so this isn't confirmed as the actual resolution yet. The
+ * theory: renderMap() unhiding and building the map/summary/cards/
+ * details is real synchronous DOM work that can itself take a real
+ * beat, and nothing can paint - not this animation's first frame, not
+ * anything else - until the main thread is free, so any target
+ * measured once (before or after that work) is measuring the wrong
+ * thing. Re-measuring live sidesteps needing to know how long
+ * rendering takes: the animation moves toward wherever the target
+ * *currently* is on every frame it manages to paint. If the symptom
+ * persists after this too, the bottleneck is likely something other
+ * than target-measurement timing - profile what's actually blocking
+ * the main thread between click and first paint before trying a third
+ * theory blind.
+ */
+function smoothScrollTo(getTargetY, duration) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    window.scrollTo(0, getTargetY());
     return;
   }
+  const startY = window.scrollY;
+  // cubic-bezier(0.16, 1, 0.3, 1) has no closed-form inverse worth
+  // reaching for here - this is a plain, close-enough cubic ease-out
+  // (fast start, gentle settle) in the same spirit, not a literal port.
+  const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+  let startTime = null;
 
-  for (const ski of matches) {
-    const li = document.createElement("li");
-    const alreadyAdded = selectedNames.has(ski.name);
-    const quiverFull = quiver.length >= MAX_QUIVER_SIZE;
-    const disabled = alreadyAdded || quiverFull;
-
-    li.setAttribute("role", "option");
-    li.setAttribute("aria-disabled", String(disabled));
-    li.innerHTML = `
-      <span>${escapeHtml(ski.name)}${alreadyAdded ? " ✓" : ""}</span>
-      <span class="ski-spec">${ski.waist_width_mm}mm</span>
-    `;
-
-    if (!disabled) {
-      li.addEventListener("click", () => {
-        addToQuiver(ski);
-        searchInput.value = "";
-        hideSearchResults();
-        searchInput.focus();
-      });
-    }
-
-    searchResultsEl.appendChild(li);
+  function step(now) {
+    if (startTime === null) startTime = now;
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const distance = getTargetY() - startY;
+    window.scrollTo(0, startY + distance * easeOutCubic(t));
+    if (t < 1) requestAnimationFrame(step);
   }
-
-  searchResultsEl.hidden = false;
+  requestAnimationFrame(step);
 }
 
-function hideSearchResults() {
-  searchResultsEl.hidden = true;
+/** Runs the initial search: reveals the readout + map for the first
+ * time and marks the session as "searched," so every add/remove/
+ * length-change after this point keeps results live without another
+ * button press (see refreshResultsIfSearched). Then scrolls to what
+ * was just generated - only here, on the actual button press, not on
+ * every live update afterward (see refreshResultsIfSearched), since a
+ * length-picker change shouldn't yank the reader back down the page. */
+function search() {
+  if (quiver.length === 0) return;
+  hasSearched = true;
+  // Start the scroll animation before the render work below, not
+  // after - renderMap() is real, possibly-slow synchronous DOM work
+  // (building the map SVG, condition cards, details table), and
+  // nothing can paint while the main thread is busy with it. Starting
+  // the animation first means it's already running - re-reading
+  // mapSectionEl's position every frame, see smoothScrollTo - the
+  // instant the browser gets a free frame, rather than sitting behind
+  // the render work waiting to measure a target that doesn't exist
+  // until that work finishes anyway.
+  smoothScrollTo(() => mapSectionEl.getBoundingClientRect().top + window.scrollY, 1300);
+  renderReadout();
+  renderMap();
 }
 
-function addToQuiver(ski) {
-  if (quiver.length >= MAX_QUIVER_SIZE) return;
-  if (quiver.some((s) => s.name === ski.name)) return;
-  // A shallow copy, not the shared allSkis reference - each quiver slot
-  // tracks its own selected_length_cm independently (see effectiveSpecs),
-  // defaulting to the ski's reference length.
-  quiver.push({ ...ski, selected_length_cm: ski.reference_length_cm });
-  renderQuiver();
+/** The shared post-first-search update path - matches root's
+ * refreshResultsIfShown naming/behavior: a no-op before the first
+ * "See my coverage" press, a live re-render after it. */
+function refreshResultsIfSearched() {
+  if (!hasSearched) return;
+  renderReadout();
+  renderMap();
 }
 
-function removeFromQuiver(name) {
-  quiver = quiver.filter((s) => s.name !== name);
-  renderQuiver();
-}
-
-/** <select> of a ski's available lengths (see length_options in
+/**
+ * <select> of a ski's available lengths (see length_options in
  * data/SOURCING.md) - quietly absent rather than showing a picker with
  * nothing to pick, for the (currently most) skis that haven't been
- * backfilled with any yet. */
+ * backfilled with any yet. Matches root's lengthPickerHtml.
+ */
 function lengthPickerHtml(ski) {
   if (!ski.length_options || ski.length_options.length === 0) return "";
   const options = ski.length_options
-    .map(
-      (o) =>
-        `<option value="${o.length_cm}" ${
-          o.length_cm === ski.selected_length_cm ? "selected" : ""
-        }>${o.length_cm}cm</option>`
-    )
+    .map((o) => `<option value="${o.length_cm}" ${o.length_cm === ski.selected_length_cm ? "selected" : ""}>${o.length_cm}cm</option>`)
     .join("");
-  return `<select class="length-picker" data-length-for="${escapeHtml(
-    ski.name
-  )}" aria-label="Length for ${escapeHtml(ski.name)}">${options}</select>`;
-}
-
-/** Re-renders results in place if they're already showing (e.g. after
- * changing a length picker), without forcing results open if "Find
- * gaps" hasn't been clicked yet. */
-function refreshResultsIfShown() {
-  if (resultsEl.querySelector(".dashboard-card")) {
-    renderResults();
-  }
+  return `<select class="length-picker" aria-label="Length for ${ski.name}">${options}</select>`;
 }
 
 function renderQuiver() {
-  quiverCountEl.textContent = `${quiver.length} / ${MAX_QUIVER_SIZE}`;
-
-  if (quiver.length === 0) {
-    quiverListEl.innerHTML = `<li class="empty-hint">No skis added yet — search above to add up to ${MAX_QUIVER_SIZE}.</li>`;
-  } else {
-    quiverListEl.innerHTML = "";
-    for (const ski of quiver) {
-      const li = document.createElement("li");
-      li.className = "quiver-chip";
-      li.innerHTML = `
-        <span>${escapeHtml(ski.name)}</span>
-        ${lengthPickerHtml(ski)}
-        <button type="button" aria-label="Remove ${escapeHtml(ski.name)}">✕</button>
-      `;
-      li.querySelector("button").addEventListener("click", () => removeFromQuiver(ski.name));
-      const picker = li.querySelector(".length-picker");
-      if (picker) {
-        picker.addEventListener("change", () => {
-          ski.selected_length_cm = Number(picker.value);
-          refreshResultsIfShown();
-        });
-      }
-      quiverListEl.appendChild(li);
+  quiverEl.innerHTML = "";
+  quiver.forEach((ski) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<span>${ski.name}</span>${lengthPickerHtml(ski)}`;
+    const picker = li.querySelector(".length-picker");
+    if (picker) {
+      picker.addEventListener("change", () => {
+        ski.selected_length_cm = Number(picker.value);
+        refreshResultsIfSearched();
+      });
     }
-  }
-
-  findGapsBtn.disabled = quiver.length === 0;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.setAttribute("aria-label", `Remove ${ski.name}`);
+    btn.innerHTML = `<svg viewBox="0 0 12 12" width="9" height="9" fill="none" aria-hidden="true"><path d="M1.5 1.5 L10.5 10.5 M10.5 1.5 L1.5 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+    btn.addEventListener("click", () => remove(ski.name));
+    li.appendChild(btn);
+    quiverEl.appendChild(li);
+  });
+  searchBtnEl.disabled = quiver.length === 0;
 }
 
-/* ------------------------------------------------------------------ *
- *  Scoring
- * ------------------------------------------------------------------ */
+function renderReadout() {
+  if (!hasSearched || quiver.length === 0) {
+    readoutEl.textContent = "";
+    return;
+  }
+  const z = zones(quiver);
+  const missing = z.filter((x) => !x.covered);
+  readoutEl.innerHTML = missing.length === 0
+    ? "9 of 9 zones covered — nothing missing."
+    : `${9 - missing.length} of 9 covered · <span class="gap">biggest gap: ${missing[0].label}</span>`;
+}
 
 /**
- * A compact "word + gauge" widget: a track with dividers at the bucket
- * boundaries, a dot marking the ski's position, and a short phrase
- * (never the bare number) as the headline. Used identically in the
- * coverage-map tooltip and the table view so temperament reads the same
- * way everywhere it appears.
+ * The coverage map, TL;DR summary, and condition cards all live in one
+ * section below the hero. Gated behind "See my coverage" (see
+ * search()/hasSearched) rather than appearing on the first add - build
+ * the whole quiver, then press search, matching root's "Find gaps"
+ * flow instead of this direction's earlier no-friction/live-update
+ * feel. Once revealed, later add/remove/length-change calls still
+ * update it live (see refreshResultsIfSearched) - only the *first*
+ * reveal is gated. When the quiver has gaps and nothing is being
+ * manually compared, the map doubles as "what should I add" using the
+ * same greedy-suggestion algorithm as root (selectTopSuggestionsForMap)
+ * — see coverage-map.js/condition-cards.js/scoring.js. grid/gaps are
+ * computed once here and reused across all three, same as root's
+ * renderResults -> renderDashboard.
  */
-function renderTemperamentGauge(score) {
-  const pct = clamp(score, 0, 100);
-  const phrase = temperamentPhrase(score);
-  return `
-    <div class="temperament-gauge" role="img" aria-label="Temperament: ${escapeHtml(phrase)} (${Math.round(
-    score
-  )} of 100)">
-      <div class="temperament-gauge-track">
-        <span class="temperament-gauge-divider" style="left: 33.33%"></span>
-        <span class="temperament-gauge-divider" style="left: 66.67%"></span>
-        <span class="temperament-gauge-dot" style="left: ${pct.toFixed(1)}%"></span>
-      </div>
-      <div class="temperament-gauge-caption">
-        <span class="temperament-gauge-phrase">${escapeHtml(phrase)}</span>
-        <span class="temperament-gauge-value">(${Math.round(score)})</span>
-      </div>
-    </div>
-  `;
-}
-
-function onFindGaps() {
-  if (quiver.length === 0) return;
-  // A fresh run: any previous "what if I added this" comparison no
-  // longer applies once the quiver/gaps it was being compared against
-  // have changed underneath it.
-  candidateSkis = [];
-  renderResults();
-}
-
-/** Re-renders the results panel from the current quiver + candidateSkis
- * state, without resetting either - used both by the "Find gaps" button
- * (via onFindGaps, which resets candidateSkis first) and by the
- * candidate-picker's add/remove actions (which shouldn't reset it). */
-function renderResults() {
-  const grid = buildGrid(quiver);
-  renderDashboard(grid, quiver);
-}
-
-/** Plain-language phrasing for a bucket's suggestions, or the honest
- * fallback when the current catalog doesn't have a good fit yet. */
-function suggestionPhrase(suggestions) {
-  if (suggestions.length === 0) {
-    return "Nothing in the current catalog centers on this zone yet.";
+function renderMap() {
+  if (!hasSearched || quiver.length === 0) {
+    mapSectionEl.hidden = true;
+    // is-in survives on these wrapper nodes even though the section is
+    // hidden - the early return here never reaches the innerHTML writes
+    // below that would otherwise refresh them. Clear it explicitly so
+    // the stagger plays again next time the section is reached from
+    // empty, rather than only once per page load.
+    mapSectionEl.querySelectorAll(".stage").forEach((el) => el.classList.remove("is-in"));
+    return;
   }
-  return `Consider: ${suggestions.map((s) => escapeHtml(s.name)).join(", ")}.`;
-}
+  const firstReveal = mapSectionEl.hidden;
+  mapSectionEl.hidden = false;
 
-function renderDashboard(grid, skis) {
+  const grid = buildGrid(quiver);
   const gaps = grid.filter((c) => c.skis.length === 0);
   const redundant = grid.filter((c) => c.skis.length >= REDUNDANCY_THRESHOLD);
-  const quiverNames = new Set(skis.map((s) => s.name));
 
-  // Computed up front (not just when the map needs it) so the TL;DR
-  // summary's "add this ski" line always names the same pick the map
-  // shows below - one gap-filling computation, reused everywhere it's
-  // mentioned. Always the algorithm's pick, regardless of whether the
-  // user is currently comparing something else on the map (see below) -
-  // the summary answers "what does the data recommend," the map's
-  // candidate picker answers "let me check something specific."
-  let gapSuggestions = [];
-  let suggestionResult = null;
-  if (gaps.length > 0) {
-    suggestionResult = selectTopSuggestionsForMap(allSkis, gaps, quiverNames);
-    gapSuggestions = suggestionResult.suggestions;
-  }
-
-  // The coverage map is the app's most-used visual (tester feedback), so
-  // it now doubles as the answer to "what should I add": quiver (blue)
-  // plus either the algorithm's own top pick(s) or a user-picked "what
-  // if I added this" comparison (red), on the same chart - instead of a
-  // plain map first and a separate, near-duplicate "suggestions" chart
-  // further down. A user comparison always overrides the auto-suggestion
-  // display when present; both read from the same rendering path.
+  const quiverNames = new Set(quiver.map((s) => s.name));
   const usingCandidates = candidateSkis.length > 0;
-  const comparisonSkis = usingCandidates ? candidateSkis : gapSuggestions;
+  let comparisonSkis = candidateSkis;
+  let suggestionResult = null;
 
-  // Coverage details: was a 3-tile KPI row (Coverage / Coverage gaps /
-  // Redundant zones) here, replaced with the TL;DR summary paragraph below.
-  const sections = [
-    renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions),
-    renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggestionResult),
-    renderConditionCardsSection(grid, skis),
-  ];
-
-  sections.push(renderDetailsSection(gaps, redundant, quiverNames));
-
-  resultsEl.innerHTML = sections.join("\n");
-
-  wireCoverageMap(skis, comparisonSkis);
-}
-
-/* ---- Coverage map (SVG scatter + region plot) ---------------------- */
-
-// Same breakpoint the condition cards collapse to a single column at
-// (see style.css) - kept consistent rather than inventing a second one.
-const MAP_COMPACT_BREAKPOINT_PX = 480;
-
-/**
- * Two complete geometry profiles, not one shrunk to fit. A phone-width
- * container (~240-260px after panel padding) rendering the same 640x380
- * canvas as desktop scales everything - including text - down to ~35-40%
- * of size, well below legible (verified: ~5px rendered text height).
- * Fitting the *content* into a genuinely narrower, taller canvas keeps
- * text/marks close to their designed physical size instead. Chosen over
- * a fixed-min-width + horizontal-scroll fix so the whole chart stays
- * visible without a scroll gesture.
- *
- * Read once per render call (not on a live resize listener) - like the
- * rest of the results panel, this reflects the viewport at the moment
- * "Find gaps" was clicked, not a continuously-responsive layout.
- */
-function getMapGeometry() {
-  const compact = window.innerWidth <= MAP_COMPACT_BREAKPOINT_PX;
-  const W = compact ? 240 : 640;
-  const H = compact ? 320 : 380;
-  const MARGIN = compact ? { top: 10, right: 8, bottom: 22, left: 8 } : { top: 16, right: 16, bottom: 30, left: 16 };
-  return {
-    compact,
-    W,
-    H,
-    MARGIN,
-    plotW: W - MARGIN.left - MARGIN.right,
-    plotH: H - MARGIN.top - MARGIN.bottom,
-  };
-}
-
-function mapX(waist, geo) {
-  return geo.MARGIN.left + ((waist - WAIST_MIN) / (WAIST_MAX - WAIST_MIN)) * geo.plotW;
-}
-
-function mapY(stab, geo) {
-  // Inverted: higher stability score plots nearer the top.
-  return geo.MARGIN.top + ((STAB_MAX - stab) / (STAB_MAX - STAB_MIN)) * geo.plotH;
-}
-
-function skiAriaLabel(ski) {
-  const stab = stabilityScore(ski);
-  const specs = effectiveSpecs(ski);
-  const yearPart = ski.model_year ? `${ski.model_year} model, ` : "";
-  return `${ski.name}: ${yearPart}${specs.length_cm}cm, ${ski.waist_width_mm}mm waist, ${
-    specs.weight_g
-  } grams, ${metalLabel(ski.metal_content)} metal, temperament: ${temperamentPhrase(stab)} (${Math.round(
-    stab
-  )} of 100)`;
-}
-
-/**
- * On-map label text only: drops the brand prefix ("Nordica Enforcer 94"
- * -> "Enforcer 94") to shrink the label's footprint in the coverage
- * map's fixed plot area, especially on the compact mobile geometry.
- * The full name is still used everywhere else - tooltip, aria-label,
- * table view - this is purely about what's drawn next to the dot.
- */
-function shortSkiLabel(ski) {
-  if (ski.brand && ski.name.startsWith(ski.brand + " ")) {
-    return ski.name.slice(ski.brand.length + 1);
+  if (!usingCandidates && gaps.length > 0) {
+    suggestionResult = selectTopSuggestionsForMap(all, gaps, quiverNames);
+    comparisonSkis = suggestionResult.suggestions;
   }
-  return ski.name;
-}
 
-/**
- * The shared, static part of any coverage-space SVG: plot border,
- * bucket-boundary gridlines, and axis zone labels. Identical across the
- * primary coverage map and the suggestions map so both read the same way.
- */
-function renderMapChrome(geo) {
-  const plotLeft = geo.MARGIN.left;
-  const plotRight = geo.MARGIN.left + geo.plotW;
-  const plotTop = geo.MARGIN.top;
-  const plotBottom = geo.MARGIN.top + geo.plotH;
-
-  const vx1 = mapX(89.5, geo);
-  const vx2 = mapX(109.5, geo);
-  const hy1 = mapY(33.33, geo);
-  const hy2 = mapY(66.67, geo);
-
-  let svg = `<rect x="${plotLeft}" y="${plotTop}" width="${geo.plotW}" height="${geo.plotH}" class="map-plot-border" />`;
-  svg += `<line x1="${vx1}" y1="${plotTop}" x2="${vx1}" y2="${plotBottom}" class="map-gridline" />`;
-  svg += `<line x1="${vx2}" y1="${plotTop}" x2="${vx2}" y2="${plotBottom}" class="map-gridline" />`;
-  svg += `<line x1="${plotLeft}" y1="${hy1}" x2="${plotRight}" y2="${hy1}" class="map-gridline" />`;
-  svg += `<line x1="${plotLeft}" y1="${hy2}" x2="${plotRight}" y2="${hy2}" class="map-gridline" />`;
-
-  // X-axis zone labels, centered under each waist bucket. Compact mode
-  // reuses the same short labels already defined on WAIST_BUCKETS
-  // (WAIST_BUCKETS[].short) rather than inventing new abbreviations.
-  const xLabels = geo.compact ? WAIST_BUCKETS.map((b) => b.short) : ["Narrow", "All-mountain", "Wide / powder"];
-  const xCenters = [(WAIST_MIN + 89) / 2, (90 + 109) / 2, (110 + WAIST_MAX) / 2];
-  xLabels.forEach((label, i) => {
-    const x = mapX(xCenters[i], geo);
-    svg += `<text x="${x.toFixed(1)}" y="${geo.H - (geo.compact ? 7 : 10)}" text-anchor="middle" class="map-axis-label">${escapeHtml(
-      label
-    )}</text>`;
-  });
-
-  // Y-axis zone labels, top-left of each stability band (charging at
-  // top). Deliberately says "Charging" here rather than "Damp" (still
-  // used elsewhere, e.g. temperamentPhrase's "Leans damp/charging") -
-  // "damp" reads as wet snow out of ski-jargon context, where
-  // "charging" doesn't need that context to land.
-  const yLabels = ["Charging", "Balanced", "Playful"];
-  const bandTopY = [plotTop, hy2, hy1];
-  yLabels.forEach((label, i) => {
-    svg += `<text x="${(plotLeft + (geo.compact ? 6 : 8)).toFixed(1)}" y="${(bandTopY[i] + (geo.compact ? 13 : 16)).toFixed(
-      1
-    )}" text-anchor="start" class="map-axis-label map-axis-label-y">${escapeHtml(label)}</text>`;
-  });
-
-  return svg;
-}
-
-/**
- * One mark per entry: a translucent region (opacity stacks where marks
- * overlap - the redundancy signal on the primary map) plus a solid dot
- * at the exact spec position and a direct name label. `variant` selects
- * the color: "quiver" (default, blue - identical on both maps) or
- * "suggestion" (red - see .ski-mark--suggestion in style.css).
- *
- * Direct labels are shown only when they don't collide with one already
- * placed — a quiver with several similar skis clusters tightly, and a
- * pile of overlapping text is worse than a dot with a hover/focus
- * tooltip (every ski's full spec is also in the "View as table" twin
- * and the mark's aria-label, so nothing is gated behind the label).
- * Collision tracking is shared across every entry passed in one call,
- * so quiver and suggestion labels compete for space fairly on the
- * suggestions map.
- */
-function renderSkiMarks(entries, geo) {
-  const plotRight = geo.MARGIN.left + geo.plotW;
-  const plotTop = geo.MARGIN.top;
-  // Same proportions as the original fixed 90px/18px thresholds
-  // (relative to the normal-geometry plot size), generalized so they
-  // scale sensibly in compact geometry too.
-  const rightEdgeZone = geo.plotW * 0.148;
-  const topEdgeZone = geo.plotH * 0.054;
-
-  const placedLabelBoxes = [];
-  const CHAR_W = 5.6; // px, approx. at 11px font
-  const LABEL_H = 13;
-  const LABEL_PAD = 4; // extra buffer so near-misses don't render edge-to-edge
-
-  let svg = "";
-
-  entries.forEach(({ ski, index, variant = "quiver" }) => {
-    const region = coverageRegion(ski);
-    const rx1 = mapX(region.xMin, geo);
-    const rx2 = mapX(region.xMax, geo);
-    const ry1 = mapY(region.yMax, geo);
-    const ry2 = mapY(region.yMin, geo);
-    const cx = mapX(ski.waist_width_mm, geo);
-    const cy = mapY(region.stab, geo);
-
-    const nearRight = cx > plotRight - rightEdgeZone;
-    const nearTop = cy < plotTop + topEdgeZone;
-    const labelX = nearRight ? cx - 9 : cx + 9;
-    const labelY = nearTop ? cy + 18 : cy - 9;
-    const anchor = nearRight ? "end" : "start";
-
-    const shortLabel = shortSkiLabel(ski);
-    const labelW = shortLabel.length * CHAR_W;
-    const box = {
-      left: (anchor === "end" ? labelX - labelW : labelX) - LABEL_PAD,
-      right: (anchor === "end" ? labelX : labelX + labelW) + LABEL_PAD,
-      top: labelY - LABEL_H - LABEL_PAD,
-      bottom: labelY + LABEL_PAD,
-    };
-    const collides = placedLabelBoxes.some(
-      (b) => box.left < b.right && box.right > b.left && box.top < b.bottom && box.bottom > b.top
-    );
-
-    let labelSvg = "";
-    if (!collides) {
-      placedLabelBoxes.push(box);
-      labelSvg = `<text class="ski-mark-label" x="${labelX.toFixed(1)}" y="${labelY.toFixed(
-        1
-      )}" text-anchor="${anchor}">${escapeHtml(shortLabel)}</text>`;
-    }
-
-    const markClass = variant === "suggestion" ? "ski-mark ski-mark--suggestion" : "ski-mark";
-    svg += `
-      <g class="${markClass}" tabindex="0" role="img" data-ski-index="${index}" aria-label="${escapeHtml(
-      skiAriaLabel(ski)
-    )}">
-        <rect class="ski-region" x="${rx1.toFixed(1)}" y="${ry1.toFixed(1)}" width="${(rx2 - rx1).toFixed(
-      1
-    )}" height="${(ry2 - ry1).toFixed(1)}" rx="8" />
-        <circle class="ski-hit" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="15" />
-        <circle class="ski-dot" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="5" />
-        ${labelSvg}
-      </g>
-    `;
-  });
-
-  return svg;
-}
-
-function renderCoverageMapSvg(skis) {
-  const geo = getMapGeometry();
-  const chrome = renderMapChrome(geo);
-  const marks = renderSkiMarks(
-    skis.map((ski, index) => ({ ski, index })),
-    geo
+  summaryContentEl.innerHTML = conditionCards.renderQuiverSummarySection(
+    grid,
+    gaps,
+    redundant,
+    suggestionResult ? suggestionResult.suggestions : null
   );
-  return `<svg viewBox="0 0 ${geo.W} ${geo.H}" class="coverage-map" role="img" aria-label="Scatter map of your quiver's coverage by waist width and temperament">${chrome}${marks}</svg>`;
-}
+  conditionContentEl.innerHTML = conditionCards.renderConditionCardsSection(grid, quiver);
+  detailsContentEl.innerHTML = conditionCards.renderDetailsSection(gaps, redundant, quiverNames, all);
 
-/** comparisonNames marks rows that belong to the map's red overlay
- * (auto-suggestion or user-picked candidate) with a small badge, since a
- * merged quiver+comparison table would otherwise read as one undifferentiated
- * list - see renderCoverageMapSection. */
-function renderCoverageMapTable(skis, comparisonNames = new Set()) {
-  const rows = skis
-    .map((ski) => {
-      const region = coverageRegion(ski);
-      const wBucket =
-        WAIST_BUCKETS.find((b) => ski.waist_width_mm >= b.min && ski.waist_width_mm <= b.max) ||
-        WAIST_BUCKETS[WAIST_BUCKETS.length - 1];
-      const sBucket = temperamentBucket(region.stab);
-      const nameCell = comparisonNames.has(ski.name)
-        ? `${escapeHtml(ski.name)} <span class="count-badge">comparing</span>`
-        : escapeHtml(ski.name);
-      return `<tr><td>${nameCell}</td><td>${escapeHtml(
-        ski.model_year || "—"
-      )}</td><td>${ski.waist_width_mm}</td><td>${escapeHtml(
-        rockerProfileLabel(ski.rocker_profile)
-      )} (${rockerPercent(ski)}%)</td><td>${renderTemperamentGauge(
-        region.stab
-      )}</td><td>${escapeHtml(wBucket.label)} + ${escapeHtml(sBucket.label)}</td></tr>`;
-    })
-    .join("");
+  mapContentEl.innerHTML = coverageMap.renderSection(quiver, comparisonSkis, {
+    usingCandidates,
+    suggestionResult,
+    candidateSkis,
+  });
+  coverageMap.wire(mapContentEl, quiver, comparisonSkis, {
+    getAllSkis: () => all,
+    candidateSkis,
+    onCandidatesChange: (next) => {
+      candidateSkis = next;
+      renderMap();
+    },
+  });
 
-  return `
-    <div class="map-info-panel map-info-panel--table">${mapAxisLegendHtml()}</div>
-    <table class="chart-table">
-      <thead><tr><th>Ski</th><th>Year</th><th>Waist (mm)</th><th>Rocker</th><th>Temperament</th><th>Bucket</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
-}
-
-function renderSuggestionsMapSvg(quiverSkis, comparisonSkis) {
-  const geo = getMapGeometry();
-  const chrome = renderMapChrome(geo);
-  const entries = [
-    // Quiver: identical blue styling regardless of what's being compared.
-    ...quiverSkis.map((ski, index) => ({ ski, index, variant: "quiver" })),
-    // Comparison set: red, boxed too - whether it's the algorithm's
-    // deliberately-chosen pick(s) (see selectTopSuggestionsForMap) or a
-    // ski the user picked themselves, its coverage footprint is worth
-    // showing, not just its position.
-    ...comparisonSkis.map((ski, i) => ({ ski, index: quiverSkis.length + i, variant: "suggestion" })),
-  ];
-  const marks = renderSkiMarks(entries, geo);
-  return `<svg viewBox="0 0 ${geo.W} ${geo.H}" class="coverage-map" role="img" aria-label="Your quiver's coverage, with a comparison ski shown for reference">${chrome}${marks}</svg>`;
-}
-
-/**
- * The single coverage-map section: always the plain quiver-only map,
- * except when there's something to compare it against, in which case
- * the same chart doubles as the answer to "what should I add" - quiver
- * (blue) plus either the algorithm's auto-suggestion(s) or a user-picked
- * candidate (red). comparisonSkis is empty for the plain case;
- * usingCandidates distinguishes "user picked this" from "the algorithm
- * picked this" for caption wording; suggestionResult (only present for
- * the auto-suggestion case) supplies the uncovered-gap count.
- */
-/**
- * Plain-language explanation of what the two axes/buckets mean,
- * including their real ranges - built from WAIST_BUCKETS/STAB_BUCKETS
- * directly so it can never drift out of sync with the actual boundaries.
- * Shared by the on-demand info panel (see renderCoverageMapSection) and
- * the "View as table" caption (see renderCoverageMapTable) rather than
- * duplicated - on-chart labels stay uncluttered; this is for whoever
- * actually goes looking for the explanation.
- */
-function mapAxisLegendHtml() {
-  const widthParts = WAIST_BUCKETS.map((b) => `${escapeHtml(b.short)} ${b.min}–${b.max}mm`).join(" · ");
-  const feelParts = STAB_BUCKETS.map(
-    (b) => `${escapeHtml(b.short)} ${Math.round(b.min)}–${Math.round(b.max)}`
-  ).join(" · ");
-  return `
-    <p><strong>Ski width:</strong> ${widthParts}</p>
-    <p><strong>Ride feel</strong> (score out of 100): ${feelParts}</p>
-  `;
-}
-
-function renderCoverageMapSection(skis, comparisonSkis, usingCandidates, suggestionResult) {
-  const hasComparison = comparisonSkis.length > 0;
-
-  let caption;
-  if (usingCandidates) {
-    caption = `Blue is your quiver. Red is what you're comparing — tap either for details.`;
-  } else if (hasComparison) {
-    const uncoveredCount = suggestionResult ? suggestionResult.uncoveredCount : 0;
-    const uncoveredNote =
-      uncoveredCount > 0
-        ? ` ${uncoveredCount} gap${
-            uncoveredCount === 1 ? "" : "s"
-          } couldn't be matched to anything in the current catalog — the dataset likely needs to grow to cover ${
-            uncoveredCount === 1 ? "it" : "them"
-          }.`
-        : "";
-    caption = `Blue is your quiver. Red (${comparisonSkis.length}) is the smallest set of
-        catalog skis that covers your gaps with the least overlap.${uncoveredNote}`;
+  if (firstReveal) {
+    playMapReveal();
   } else {
-    caption = `Each dot is a ski. The shaded box is the terrain/temperament range it covers —
-        darker overlap means more coverage. Tap a dot for details.`;
+    // Every renderMap() after the first replaces these nodes wholesale
+    // (innerHTML), which drops the is-in class fresh HTML starts
+    // without. Re-apply immediately so a chip toggle or length change
+    // doesn't fade content back in that the reader is already looking
+    // at - the stagger is a one-time intro, not a per-update effect.
+    mapSectionEl.querySelectorAll(".stage").forEach((el) => el.classList.add("is-in"));
   }
-
-  const svg = hasComparison ? renderSuggestionsMapSvg(skis, comparisonSkis) : renderCoverageMapSvg(skis);
-  const comparisonNames = new Set(comparisonSkis.map((s) => s.name));
-  const table = renderCoverageMapTable([...skis, ...comparisonSkis], comparisonNames);
-
-  return `
-    <section class="panel dashboard-card">
-      <div class="card-header">
-        <h3>Coverage map
-          <button type="button" class="info-btn" id="map-info-toggle" aria-pressed="false" aria-label="What do the axes mean?">ⓘ</button>
-        </h3>
-        <button type="button" class="table-toggle-btn" id="map-table-toggle" aria-pressed="false">View as table</button>
-      </div>
-      <p class="map-caption">${caption}</p>
-      <div class="map-info-panel" id="map-info-panel" hidden>${mapAxisLegendHtml()}</div>
-      <div class="chart-wrap" id="map-chart-wrap">${svg}</div>
-      <div class="chart-table-wrap" id="map-table-wrap" hidden>${table}</div>
-      ${renderCandidatePicker()}
-    </section>
-  `;
 }
 
-/** Search box for "what if I added this" - independent of the auto
- * -suggestion above, and available regardless of whether there's a gap
- * (someone might want to check a specific ski even at full coverage). */
-function renderCandidatePicker() {
-  const atMax = candidateSkis.length >= MAX_CANDIDATES;
-  const chips = candidateSkis
-    .map(
-      (ski) => `
-      <li class="quiver-chip">
-        <span>${escapeHtml(ski.name)}</span>
-        ${lengthPickerHtml(ski)}
-        <button type="button" data-remove-candidate="${escapeHtml(
-          ski.name
-        )}" aria-label="Remove ${escapeHtml(ski.name)} from comparison">×</button>
-      </li>
-    `
-    )
-    .join("");
-
-  return `
-    <div class="candidate-picker">
-      <h4>Comparing something specific?</h4>
-      <p class="map-caption">
-        Search any ski to see exactly where it'd land on your map${
-          candidateSkis.length > 0 ? " — replaces the suggested pick above" : ""
-        }.
-      </p>
-      <div class="search-wrap">
-        <label for="candidate-search" class="visually-hidden">Search a ski to compare</label>
-        <input
-          type="text"
-          id="candidate-search"
-          class="search-input"
-          placeholder="${atMax ? `Remove one to compare another (max ${MAX_CANDIDATES})` : "Search skis by name…"}"
-          autocomplete="off"
-          ${atMax ? "disabled" : ""}
-        />
-        <ul id="candidate-search-results" class="search-results" role="listbox" hidden></ul>
-      </div>
-      ${chips ? `<ul class="quiver-list">${chips}</ul>` : ""}
-    </div>
-  `;
-}
-
-function skiTooltipHtml(ski) {
-  const title = document.createElement("div");
-  title.className = "tooltip-title";
-  title.textContent = ski.name;
-
-  // Specs (weight, radius, etc.) drift year to year — sourced model_year
-  // is shown so a tester can spot-check it against the exact ski they
-  // own and flag a mismatch, without the app having to support picking
-  // a specific year (see data/SOURCING.md). Length is shown alongside it
-  // now too - weight/turn radius/temperament below are all *for this
-  // length* (see effectiveSpecs), so it's worth being explicit about
-  // which one is being described, especially once a length picker makes
-  // it possible to change.
-  const specs = effectiveSpecs(ski);
-  const year = document.createElement("div");
-  year.className = "tooltip-year";
-  year.textContent = ski.model_year
-    ? `${ski.model_year} model · ${specs.length_cm}cm`
-    : `Model year unknown · ${specs.length_cm}cm`;
-
-  // One fact per row, in a label/value grid — not run-on text joined by
-  // "·" separators, which gets ragged the moment a value is long enough
-  // to wrap inside the tooltip's narrow width.
-  const specGrid = document.createElement("div");
-  specGrid.className = "tooltip-spec-grid";
-  specGrid.append(
-    specRow("Waist", `${ski.waist_width_mm}mm`),
-    specRow("Weight", `${specs.weight_g}g`),
-    specRow("Turn radius", specs.turn_radius_m ? `${specs.turn_radius_m}m` : "—"),
-    specRow("Metal", metalContentLabel(ski.metal_content)),
-    specRow("Rocker", `${rockerProfileLabel(ski.rocker_profile)} (${rockerPercent(ski)}%)`)
-  );
-
-  // renderTemperamentGauge() only ever embeds a fixed phrase + a number,
-  // both already escaped inside it - safe to insert as HTML.
-  const gauge = document.createElement("div");
-  gauge.className = "tooltip-gauge-wrap";
-  gauge.innerHTML = renderTemperamentGauge(stabilityScore(ski));
-
-  const wrap = document.createElement("div");
-  wrap.append(title, year, specGrid, gauge);
-  return wrap;
-}
-
-/** One label/value row for a tooltip spec grid (see .tooltip-spec-grid). */
-function specRow(label, value) {
-  const row = document.createElement("div");
-  row.className = "tooltip-spec-row";
-
-  const labelEl = document.createElement("span");
-  labelEl.className = "tooltip-spec-label";
-  labelEl.textContent = label;
-
-  const valueEl = document.createElement("span");
-  valueEl.className = "tooltip-spec-value";
-  valueEl.textContent = value;
-
-  row.append(labelEl, valueEl);
-  return row;
-}
-
-function metalContentLabel(metal) {
-  if (metal === "none") return "None";
-  if (metal === "partial") return "Partial";
-  return "Full";
-}
-
-function rockerProfileLabel(profile) {
-  const labels = {
-    full_camber: "Full camber",
-    camber_tip_rocker: "Camber + tip",
-    camber_tip_tail_rocker: "Camber + tip/tail",
-    flat_tip_tail_rocker: "Flat + tip/tail",
-    full_rocker: "Full rocker",
-  };
-  return labels[profile] || "Unknown profile";
-}
-
-function wireCoverageMap(skis, comparisonSkis = []) {
-  const combined = [...skis, ...comparisonSkis];
-  const chartWrap = document.getElementById("map-chart-wrap");
-  const tableWrap = document.getElementById("map-table-wrap");
-  const toggleBtn = document.getElementById("map-table-toggle");
-
-  toggleBtn.addEventListener("click", () => {
-    const showTable = tableWrap.hidden;
-    tableWrap.hidden = !showTable;
-    chartWrap.hidden = showTable;
-    toggleBtn.setAttribute("aria-pressed", String(showTable));
-    toggleBtn.textContent = showTable ? "View as chart" : "View as table";
-  });
-
-  const infoBtn = document.getElementById("map-info-toggle");
-  const infoPanel = document.getElementById("map-info-panel");
-  infoBtn.addEventListener("click", () => {
-    const showing = infoPanel.hidden;
-    infoPanel.hidden = !showing;
-    infoBtn.setAttribute("aria-pressed", String(showing));
-  });
-
-  chartWrap.querySelectorAll(".ski-mark").forEach((mark) => {
-    const ski = combined[Number(mark.dataset.skiIndex)];
-    const show = () => showTooltip(mark, skiTooltipHtml(ski));
-    mark.addEventListener("pointerenter", show);
-    mark.addEventListener("focus", show);
-    mark.addEventListener("pointerleave", hideTooltip);
-    mark.addEventListener("blur", hideTooltip);
-  });
-
-  const candidateSearchInput = document.getElementById("candidate-search");
-  if (candidateSearchInput) {
-    candidateSearchInput.addEventListener("input", onCandidateSearchInput);
-    candidateSearchInput.addEventListener("focus", onCandidateSearchInput);
+/**
+ * The summary sentence, then the map + condition cards together, then
+ * the details fallback - three beats instead of one instant dump, so
+ * the reader gets the headline before the evidence and the evidence
+ * before the deep-dive (see the v7 critique, P1: five surfaces
+ * revealing simultaneously). Runs once per reveal, not on every
+ * renderMap() call - a chip toggle or length change should not
+ * re-animate content the reader is already looking at.
+ */
+function playMapReveal() {
+  const stages = mapSectionEl.querySelectorAll(".stage");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced) {
+    stages.forEach((el) => el.classList.add("is-in"));
+    return;
   }
-
-  document.querySelectorAll("[data-remove-candidate]").forEach((btn) => {
-    btn.addEventListener("click", () => removeCandidate(btn.dataset.removeCandidate));
-  });
-
-  document.querySelectorAll(".candidate-picker .length-picker").forEach((picker) => {
-    const candidate = candidateSkis.find((s) => s.name === picker.dataset.lengthFor);
-    if (!candidate) return;
-    picker.addEventListener("change", () => {
-      candidate.selected_length_cm = Number(picker.value);
-      renderResults();
+  requestAnimationFrame(() => {
+    stages.forEach((el) => {
+      const stage = Number(el.dataset.stage || 1);
+      setTimeout(() => el.classList.add("is-in"), (stage - 1) * 160);
     });
   });
 }
 
-function onCandidateSearchInput() {
-  const searchEl = document.getElementById("candidate-search");
-  const candidateResultsEl = document.getElementById("candidate-search-results");
-  if (!searchEl || !candidateResultsEl) return;
-
-  const query = searchEl.value.trim().toLowerCase();
-  const excludedNames = new Set([...quiver.map((s) => s.name), ...candidateSkis.map((s) => s.name)]);
-  const matches = allSkis.filter((s) => s.name.toLowerCase().includes(query) && !excludedNames.has(s.name)).slice(0, 8);
-
-  candidateResultsEl.innerHTML = "";
-
-  if (matches.length === 0) {
-    candidateResultsEl.innerHTML = `<li class="no-match">No skis match "${escapeHtml(searchEl.value)}"</li>`;
-    candidateResultsEl.hidden = false;
-    return;
+searchEl.addEventListener("input", renderResults);
+searchEl.addEventListener("focus", renderResults);
+searchEl.addEventListener("blur", () => setTimeout(() => { resultsEl.hidden = true; }, 120));
+searchEl.addEventListener("keydown", (e) => {
+  const items = [...resultsEl.querySelectorAll("li:not(.empty)")];
+  if (e.key === "Escape") { resultsEl.hidden = true; searchEl.blur(); return; }
+  if (!items.length) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    cursor = e.key === "ArrowDown" ? (cursor + 1) % items.length : (cursor - 1 + items.length) % items.length;
+    items.forEach((li, i) => li.setAttribute("data-active", String(i === cursor)));
+    items[cursor].scrollIntoView({ block: "nearest" });
   }
-
-  for (const ski of matches) {
-    const li = document.createElement("li");
-    li.setAttribute("role", "option");
-    li.innerHTML = `
-      <span>${escapeHtml(ski.name)}</span>
-      <span class="ski-spec">${ski.waist_width_mm}mm</span>
-    `;
-    li.addEventListener("click", () => {
-      addCandidate(ski);
-    });
-    candidateResultsEl.appendChild(li);
+  if (e.key === "Enter" && cursor >= 0) {
+    e.preventDefault();
+    const ski = all.find((s) => s.name === items[cursor].firstChild.textContent);
+    if (ski) add(ski);
   }
+});
 
-  candidateResultsEl.hidden = false;
-}
+searchBtnEl.addEventListener("click", search);
 
-function addCandidate(ski) {
-  if (candidateSkis.length >= MAX_CANDIDATES) return;
-  if (candidateSkis.some((s) => s.name === ski.name)) return;
-  // Shallow copy, same reasoning as addToQuiver - its own
-  // selected_length_cm, independent of any other copy of this ski.
-  candidateSkis.push({ ...ski, selected_length_cm: ski.reference_length_cm });
-  renderResults();
-}
+/* Scroll reveals - see reveal.js, loaded separately below so
+   method.html can share the same behaviour without pulling in
+   everything above this point. */
 
-function removeCandidate(name) {
-  candidateSkis = candidateSkis.filter((s) => s.name !== name);
-  renderResults();
-}
-
-/* ---- Condition cards (prototype replacement for the coverage grid) - */
-
-/**
- * Collapsed from the original 9 waist x temperament cells down to just
- * the 3 width bands - the temperament-level split ("quick, playful
- * groomer days" vs "all-day groomer cruising with a bit of pop" vs
- * "high-speed carving on firm, hard snow") read as near-duplicates at a
- * glance, and 9 cards was too many for a quick-glance read. These 3 map
- * onto vocabulary skiers already use for "what kind of day is this."
- */
-const CONDITION_GROUPS = [
-  { waistKey: "narrow", title: "Groomers" },
-  { waistKey: "allmtn", title: "All-Mountain" },
-  { waistKey: "wide", title: "Powder" },
-];
-
-/**
- * The Park card, unlike the 3 above, isn't derived from the grid at all
- * - tail_shape is orthogonal to waist/temperament (see data/SOURCING.md),
- * so this reads the quiver's raw ski list directly instead of a bucket.
- * 3 states instead of the other cards' plain yes/no, because tail_shape
- * itself is 3-valued: a `modified_twin` genuinely has some switch
- * capability without being a park ski, and collapsing that into a
- * binary would misrepresent it either way (see the tail_shape research
- * pass - 40% of the dataset is `modified_twin`, only 4% is a true
- * `twin_tip`, so "any non-directional ski counts" would call nearly
- * half the dataset "park-covered," which overstates it just as much as
- * requiring a true twin_tip would understate it for a partial ski).
- */
-function renderParkCard(quiverSkis) {
-  const twinTips = quiverSkis.filter((s) => s.tail_shape === "twin_tip");
-  const modifiedTwins = quiverSkis.filter((s) => s.tail_shape === "modified_twin");
-
-  let status, detail;
-  if (twinTips.length > 0) {
-    status = "good";
-    detail = `Covered by ${escapeHtml(twinTips.map((s) => s.name).join(", "))}`;
-  } else if (modifiedTwins.length > 0) {
-    status = "warning";
-    detail = `Partial — ${escapeHtml(
-      modifiedTwins.map((s) => s.name).join(", ")
-    )} can handle some switch riding, but nothing built specifically for park.`;
-  } else {
-    status = "critical";
-    detail = `Nothing in your quiver yet.`;
-  }
-
-  const meta = statusMeta(status);
-  return `
-    <div class="condition-card" data-status="${status}">
-      <span class="condition-icon" aria-hidden="true">${meta.icon}</span>
-      <div class="condition-body">
-        <p class="condition-desc">Park</p>
-        <p class="condition-detail">${detail}</p>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Framed the way a skier actually thinks about it - "what do I grab
- * today" - instead of an abstract axis grid. Deliberately just a yes/no
- * per condition (Park excepted - see renderParkCard), no recommendations
- * on the card itself - the Suggested additions section already covers
- * "what should I add," and mixing that in here made the quick-glance
- * read too busy.
- */
-function renderConditionCardsSection(grid, quiverSkis) {
-  const cards = CONDITION_GROUPS.map((group) => {
-    const cells = grid.filter((c) => c.waistBucket.key === group.waistKey);
-    const skiNames = [...new Set(cells.flatMap((c) => c.skis.map((s) => s.name)))];
-    const status = skiNames.length > 0 ? "good" : "critical";
-    const meta = statusMeta(status);
-    const detail = skiNames.length > 0 ? `Covered by ${escapeHtml(skiNames.join(", "))}` : `Nothing in your quiver yet.`;
-
-    return `
-      <div class="condition-card" data-status="${status}">
-        <span class="condition-icon" aria-hidden="true">${meta.icon}</span>
-        <div class="condition-body">
-          <p class="condition-desc">${escapeHtml(group.title)}</p>
-          <p class="condition-detail">${detail}</p>
-        </div>
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <section class="panel dashboard-card">
-      <h3>What's your quiver built for?</h3>
-      <p class="map-caption">The most common ski days, and which of your skis (if any) covers each.</p>
-      <div class="condition-cards">${cards}${renderParkCard(quiverSkis)}</div>
-    </section>
-  `;
-}
-
-/* ---- Quiver summary (plain-language TL;DR paragraph) --------------- */
-
-/**
- * The 3x3 grid sliced into "bands": 3 rows (fixed temperament, varying
- * width) and 3 columns (fixed width, varying temperament). A band that's
- * fully covered or fully empty describes as one clean span ("nothing
- * playful, at any width") instead of listing three buckets one by one -
- * used by both the strength and weakness halves of the summary below.
- */
-function gridBands(grid) {
-  const rows = STAB_BUCKETS.map((stabBucket) => ({
-    axis: "stab",
-    bucket: stabBucket,
-    cells: WAIST_BUCKETS.map((wb) => grid.find((c) => c.stabBucket.key === stabBucket.key && c.waistBucket.key === wb.key)),
-  }));
-  const columns = WAIST_BUCKETS.map((waistBucket) => ({
-    axis: "waist",
-    bucket: waistBucket,
-    cells: STAB_BUCKETS.map((sb) => grid.find((c) => c.waistBucket.key === waistBucket.key && c.stabBucket.key === sb.key)),
-  }));
-  return [...rows, ...columns];
-}
-
-function bandTotalSkis(band) {
-  return band.cells.reduce((sum, c) => sum + c.skis.length, 0);
-}
-
-/** Picks the fully-covered band (every cell has >=1 ski) with the most total skis. */
-function bestCoveredBand(grid) {
-  const candidates = gridBands(grid).filter((band) => band.cells.every((c) => c.skis.length > 0));
-  if (candidates.length === 0) return null;
-  return candidates.sort((a, b) => bandTotalSkis(b) - bandTotalSkis(a))[0];
-}
-
-/** Picks the fully-empty band (every cell has 0 skis), preferring the widest gap. */
-function worstEmptyBand(grid) {
-  const candidates = gridBands(grid).filter((band) => band.cells.every((c) => c.skis.length === 0));
-  if (candidates.length === 0) return null;
-  return candidates[0];
-}
-
-/** "everything from <first cell's description> to <last cell's description>" */
-function describeCoveredBand(band) {
-  const first = escapeHtml(bucketDescription(band.cells[0]));
-  const last = escapeHtml(bucketDescription(band.cells[band.cells.length - 1]));
-  return `everything from ${first} to ${last}`;
-}
-
-/** e.g. "nothing playful / light, at any width" or "nothing at all in wide / powder terrain" */
-function describeEmptyBand(band) {
-  const label = escapeHtml(band.bucket.label);
-  if (band.axis === "stab") {
-    return `nothing ${label}, at any width`;
-  }
-  return `nothing at all in ${label} terrain`;
-}
-
-function strengthSentence(grid) {
-  const band = bestCoveredBand(grid);
-  if (band) {
-    return `Your quiver covers ${describeCoveredBand(band)}.`;
-  }
-  // No fully-covered row or column - fall back to the single deepest cell.
-  const best = [...grid].sort((a, b) => b.skis.length - a.skis.length)[0];
-  if (!best || best.skis.length === 0) return null;
-  return `Your quiver is built for ${escapeHtml(bucketDescription(best))}.`;
-}
-
-function weaknessSentence(grid, gaps) {
-  if (gaps.length === 0) return null;
-  const band = worstEmptyBand(grid);
-  if (band) {
-    return `There's ${describeEmptyBand(band)}.`;
-  }
-  // Gaps are scattered rather than a clean band - name up to 2.
-  const named = gaps.slice(0, 2).map((cell) => escapeHtml(bucketDescription(cell)));
-  const phrase = named.length === 2 ? `${named[0]} or ${named[1]}` : named[0];
-  const more = gaps.length > named.length ? `, among a few other gaps` : "";
-  return `You're not covered for ${phrase}${more}.`;
-}
-
-function actionSentence(gapSuggestions) {
-  if (!gapSuggestions || gapSuggestions.length === 0) return null;
-  return `If you're adding one ski, the <strong>${escapeHtml(gapSuggestions[0].name)}</strong> would close the most ground.`;
-}
-
-function renderQuiverSummarySection(grid, gaps, redundant, gapSuggestions) {
-  const sentences = [strengthSentence(grid)];
-
-  if (gaps.length === 0) {
-    sentences.push(
-      redundant.length > 0
-        ? `There are no real gaps, though a few skis overlap in coverage — worth a look if you're trying to trim down, not fill in.`
-        : `There are no real gaps — every terrain and temperament combination has at least one ski built for it.`
-    );
-  } else {
-    sentences.push(weaknessSentence(grid, gaps));
-    sentences.push(actionSentence(gapSuggestions));
-  }
-
-  const text = sentences.filter(Boolean).join(" ");
-
-  return `
-    <section class="panel dashboard-card quiver-summary">
-      <p class="quiver-summary-text">${text}</p>
-    </section>
-  `;
-}
-
-/* ---- Collapsible plain-language detail ------------------------------ */
-
-function renderDetailsSection(gaps, redundant, quiverNames) {
-  const gapItems =
-    gaps.length === 0
-      ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No gaps — every bucket has at least one ski covering it.</span></li>`
-      : gaps
-          .map((cell) => {
-            const suggestions = suggestSkisForBucket(allSkis, cell.waistBucket, cell.stabBucket, quiverNames, 2);
-            return `<li class="result-item gap"><span class="status-icon status-critical" aria-hidden="true">✕</span><span>No coverage for <strong>${escapeHtml(
-              bucketLabel(cell)
-            )}</strong> — nothing built for ${escapeHtml(bucketDescription(cell))}. <span class="result-suggestion">${suggestionPhrase(
-              suggestions
-            )}</span></span></li>`;
-          })
-          .join("");
-
-  const redItems =
-    redundant.length === 0
-      ? `<li class="result-item ok"><span class="status-icon status-good" aria-hidden="true">✓</span><span>No buckets have ${REDUNDANCY_THRESHOLD}+ overlapping skis — your quiver looks efficiently spread out.</span></li>`
-      : redundant
-          .map((cell) => {
-            const names = cell.skis.map((s) => s.name).join(", ");
-            return `<li class="result-item redundancy"><span class="status-icon status-warning" aria-hidden="true">▲</span><span><strong>${cell.skis.length} skis</strong> overlap in <strong>${escapeHtml(
-              bucketLabel(cell)
-            )}</strong> — you may have redundant width/temperament here (${escapeHtml(names)}).</span></li>`;
-          })
-          .join("");
-
-  return `
-    <details class="result-details">
-      <summary>Plain-language details</summary>
-      <div class="result-group">
-        <h4>Coverage gaps</h4>
-        <ul class="result-list">${gapItems}</ul>
-      </div>
-      <div class="result-group">
-        <h4>Redundancy</h4>
-        <ul class="result-list">${redItems}</ul>
-      </div>
-    </details>
-  `;
-}
-
-/* ------------------------------------------------------------------ *
- *  Shared chart tooltip
- * ------------------------------------------------------------------ */
-
-// The tooltip is positioned once, in viewport pixels, when it opens
-// (see positionTooltip) rather than tracked continuously, so once its
-// anchor mark has visually moved from where it was when the tooltip
-// opened, the box is no longer over the dot it describes. Close it once
-// that movement passes a small, fixed, position-independent threshold -
-// tracking the anchor's own getBoundingClientRect() rather than
-// intersection-with-viewport handles page scroll and the chart's own
-// horizontal-scroll container the same way, with one comparison.
-//
-// Two other approaches were tried and rejected first:
-// - A plain always-on "scroll" listener closed on ANY scroll, including
-//   a few px of incidental scroll a mobile browser can produce by
-//   auto-scrolling a newly-focused element into view on tap - a false
-//   positive.
-// - Closing only once the anchor's intersection with the viewport
-//   dropped below a threshold (even a generous 50%) turned out to still
-//   require nearly as much scrolling as waiting for it to disappear
-//   entirely, for any anchor that started mid-screen - intersection
-//   can't change at all until the viewport edge reaches the anchor, so
-//   the threshold barely mattered; most of the "large scroll" feeling
-//   came from the anchor's distance from the edge, not the threshold.
-//
-// Measuring the anchor's own movement fixes both: incidental nudges are
-// a few px, comfortably under the threshold, while closing no longer
-// depends on where the anchor happened to be on screen.
-const TOOLTIP_MOVE_CLOSE_PX = 60;
-let tooltipAnchorEl = null;
-let tooltipAnchorRect = null;
-
-// Root-caused via a real device's ?debug=1 event log (see git history):
-// a single tap on iOS genuinely opens, closes, and reopens the tooltip,
-// not a rendering glitch. Touch has no real "hover," so pointerleave
-// fires the moment the finger lifts (hideTooltip), closing it - then
-// ~30-40ms later, iOS's synthesized compatibility mouse sequence for
-// the same tap fires a mousedown that shifts focus onto the mark
-// (focus -> showTooltip), reopening it. Both transitions are real and
-// intentional on their own (pointerleave/blur genuinely should close
-// it; focus genuinely should open it) - the bug is only that they
-// happen back-to-back inside one physical tap, closing and reopening
-// fast enough to read as a flash.
-//
-// Fix: don't act on hideTooltip() immediately - wait a beat, and
-// cancel the pending hide if a showTooltip() (for anything) follows
-// before it fires. The close-then-reopen still happens internally
-// exactly as before; tooltipEl.hidden just never actually flips to
-// true in between, so there's nothing to see. 100ms is comfortably
-// longer than the ~30-40ms gap measured in the real device log.
-const TOOLTIP_HIDE_DELAY_MS = 100;
-let tooltipHideTimer = null;
-
-function showTooltip(targetEl, contentNode) {
-  if (tooltipHideTimer) {
-    clearTimeout(tooltipHideTimer);
-    tooltipHideTimer = null;
-  }
-  tooltipEl.innerHTML = "";
-  tooltipEl.appendChild(contentNode);
-  tooltipEl.hidden = false;
-  positionTooltip(targetEl);
-  tooltipAnchorEl = targetEl;
-  tooltipAnchorRect = targetEl.getBoundingClientRect();
-}
-
-/** Wired once, on window, capture phase (see init()) - catches page
- * scroll and the chart's own horizontal-scroll container alike, since
- * "scroll" doesn't bubble but capture-phase listeners still see it. */
-function checkTooltipAnchorMoved() {
-  if (tooltipEl.hidden || !tooltipAnchorEl) return;
-  const current = tooltipAnchorEl.getBoundingClientRect();
-  const dx = Math.abs(current.left - tooltipAnchorRect.left);
-  const dy = Math.abs(current.top - tooltipAnchorRect.top);
-  if (dx > TOOLTIP_MOVE_CLOSE_PX || dy > TOOLTIP_MOVE_CLOSE_PX) hideTooltip();
-}
-
-function positionTooltip(targetEl) {
-  const rect = targetEl.getBoundingClientRect();
-  const tw = tooltipEl.offsetWidth;
-  const th = tooltipEl.offsetHeight;
-  let left = rect.left + rect.width / 2 - tw / 2;
-  let top = rect.top - th - 10;
-  if (top < 8) top = rect.bottom + 10;
-  left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
-  tooltipEl.style.left = `${left}px`;
-  tooltipEl.style.top = `${top}px`;
-}
-
-function hideTooltip() {
-  // Only the FIRST call starts the countdown - repeat calls while one's
-  // already pending (e.g. one per scroll tick during an active scroll
-  // gesture) must not keep pushing it back, or it never gets a clear
-  // 100ms to actually fire until scrolling stops entirely. Found via a
-  // real device log: dy was already 296+ (way past the 60px close
-  // threshold) on every one of several consecutive scroll ticks, each
-  // resetting the timer instead of counting down. Only showTooltip()
-  // should be able to cancel a pending hide now.
-  if (tooltipHideTimer) {
-    return;
-  }
-  tooltipHideTimer = setTimeout(() => {
-    tooltipEl.hidden = true;
-    tooltipAnchorEl = null;
-    tooltipAnchorRect = null;
-    tooltipHideTimer = null;
-  }, TOOLTIP_HIDE_DELAY_MS);
-}
-
-/* ------------------------------------------------------------------ *
- *  Utils
- * ------------------------------------------------------------------ */
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+/* The scroll cue is fixed to the viewport, so it has to retire itself
+   once the reader has started scrolling — otherwise it follows them
+   down the whole page telling them to do what they are already doing. */
+(function wireScrollCue() {
+  const cue = document.querySelector(".scroll-cue");
+  if (!cue) return;
+  let ticking = false;
+  const update = () => {
+    cue.dataset.hidden = String(window.scrollY > 80);
+    ticking = false;
+  };
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    },
+    { passive: true }
+  );
+  update();
+})();

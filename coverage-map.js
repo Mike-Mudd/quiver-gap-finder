@@ -1,17 +1,14 @@
 "use strict";
 
 /* ------------------------------------------------------------------ *
- *  Shared coverage-map component — the SVG scatter/region chart, its
+ *  Coverage-map component — the SVG scatter/region chart, its
  *  accessible table twin, the hover/focus tooltip, and the "what if I
  *  added this" candidate picker. No visual styling lives here: every
- *  element carries the same class names root's style.css already
- *  defines (.coverage-map, .ski-mark, .chart-tooltip, ...), and each
- *  visual direction supplies its own CSS for those classes. This is
- *  what makes the component portable — v7 (or any future direction)
- *  gets the real, tested behaviour (two geometry profiles, the
- *  ?debug=1-era touch fixes, label-collision avoidance, the accessible
- *  table view) by loading this file and its own stylesheet, not by
- *  re-deriving any of it. See ROADMAP.md "Phase 1."
+ *  element carries class names style.css defines (.coverage-map,
+ *  .ski-mark, .chart-tooltip, ...) - this file is the real, tested
+ *  behaviour (two geometry profiles, the ?debug=1-era touch fixes,
+ *  label-collision avoidance, the accessible table view), kept
+ *  separate from app.js so it stays one implementation to maintain.
  *
  *  Depends on scoring.js (window.QuiverScoring) being loaded first.
  *
@@ -353,8 +350,7 @@ function create(opts = {}) {
    * with nothing to pick, for the (currently most) skis that haven't
    * been backfilled with any yet. Used on the candidate-picker's own
    * chips below; the main quiver's chips have their own copy of this
-   * (see root app.js / v7 app.js) since they're rendered outside this
-   * module.
+   * (see app.js) since they're rendered outside this module.
    */
   function lengthPickerHtml(ski) {
     if (!ski.length_options || ski.length_options.length === 0) return "";

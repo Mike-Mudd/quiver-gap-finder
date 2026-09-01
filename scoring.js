@@ -2,11 +2,11 @@
 
 /* ------------------------------------------------------------------ *
  *  Shared scoring engine — the coverage-space math, with no DOM and no
- *  framework dependency. Both the root app (index.html/app.js) and any
- *  visual direction under v1-v9 import from this single copy so a fix
- *  (like the zonesCovered region-overlap correction) only has to be
- *  made once. See README.md for the reasoning behind these numbers,
- *  and data/SOURCING.md for how the dataset itself is built.
+ *  framework dependency. Both the live app (index.html/app.js) and any
+ *  kept exploration under v1/v2/v3/v8/v9 import from this single copy
+ *  so a fix (like the zonesCovered region-overlap correction) only has
+ *  to be made once. See README.md for the reasoning behind these
+ *  numbers, and data/SOURCING.md for how the dataset itself is built.
  *
  *  Loaded as a plain <script> (not an ES module) so it works from a
  *  bare `python -m http.server` with no build step: everything below
