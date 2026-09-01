@@ -809,7 +809,11 @@ html {
 }
 .zone-grid li:hover { background: #FFFFFF; }
 .zone-n {
-  font-size: 0.5625rem; letter-spacing: 0.2em;
+  /* Smallest + lowest-contrast text on the page (--ink-faint, 4.11:1),
+     on the one section meant to teach a first-timer what the zones
+     mean - moved up to the Label scale's more common step rather than
+     its floor (DESIGN.md: 0.5625rem-0.7rem, "most commonly 0.625rem"). */
+  font-size: 0.625rem; letter-spacing: 0.18em;
   color: var(--ink-faint);
   margin-bottom: 0.9rem;
 }
