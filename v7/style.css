@@ -787,9 +787,10 @@ html {
 /* ---------- pitch ---------- */
 /* The outcome-focused sales pitch, right after the hero - not a
    rewrite of .method below, a separate section. .method stays put
-   further down the page as the sourcing case for anyone who scrolls
-   that far and remains the page's one dark ("ink") moment; this one
-   sells the result to everyone else. Kept on paper deliberately - an
+   further down the page as a short method teaser (links to
+   method.html) for anyone who scrolls that far and remains the page's
+   one dark ("ink") moment; this one sells the result to everyone
+   else. Kept on paper deliberately - an
    ink spread landing this early, right off the hero photo, read as a
    stark flip rather than a deliberate beat (no established
    paper/ink rhythm yet to place it in). Matches .map-section and
@@ -818,6 +819,14 @@ html {
   padding: clamp(4rem, 11vh, 7rem) clamp(1.3rem, 4vw, 3.2rem);
 }
 .method-inner { max-width: 1080px; margin: 0 auto; }
+.method h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  line-height: 1.08;
+  margin: 0 0 clamp(1.4rem, 3vh, 2rem);
+  color: var(--paper);
+}
 .method-lead {
   font-family: var(--serif);
   font-weight: 300;

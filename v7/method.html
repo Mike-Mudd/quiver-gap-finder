@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quiver Gap Finder — how a recommendation gets picked</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="method-page.css" />
+</head>
+<body>
+
+<!-- Same nav/footer chrome as index.html, no hero photo - a plain
+     content page. .nav's own CSS doesn't depend on sitting inside
+     .hero (it just uses --ink/--ink-soft, which read fine on --paper
+     too), so it's reused as-is rather than duplicated. -->
+<header class="nav nav-plain">
+  <a class="brand" href="index.html">Quiver Gap Finder</a>
+  <nav aria-label="Primary">
+    <a href="index.html#zones">The nine zones</a>
+    <a href="index.html#method">Method</a>
+    <a href="method.html" aria-current="page">How it works</a>
+  </nav>
+</header>
+
+<main class="method-page">
+  <div class="method-page-inner">
+    <p class="method-page-eyebrow reveal">How it works</p>
+    <h1 class="reveal">How a recommendation<br />gets <em>picked</em></h1>
+
+    <p class="method-page-lead reveal">
+      Once the tool knows which kinds of ski day your quiver doesn't
+      cover, it has to decide what to actually suggest. Here's the
+      logic behind that, in plain terms.
+    </p>
+
+    <div class="method-page-body">
+      <section class="reveal">
+        <h2>A ski covers an area, not a point</h2>
+        <p>
+          Every ski lands somewhere on the map based on how wide it is
+          underfoot and how it rides — heavier and metal-reinforced
+          skis read as more damp and charging-oriented, and rocker
+          pulls that back toward playful, independent of weight. But a
+          ski isn't only good for its exact spot. It covers a small
+          area around itself, since a ski that's slightly narrower or
+          slightly livelier than the "ideal" for a zone can still
+          genuinely handle it.
+        </p>
+      </section>
+
+      <section class="reveal">
+        <h2>Finding what's missing</h2>
+        <p>
+          With the coverage areas for every ski in your quiver mapped
+          out, the tool checks all nine zones and flags the ones
+          nothing in your quiver reaches. Those are the real gaps —
+          not guesses, just the zones no ski you own has a claim on.
+        </p>
+      </section>
+
+      <section class="reveal">
+        <h2>Picking the ski that closes the most ground</h2>
+        <p>
+          For each gap, the tool looks across the full catalog for
+          skis that would cover it, then works one step further: rather
+          than picking the single best-fit ski for each gap
+          separately, it looks for the ski that closes the
+          <em>most</em> open gaps at once. That ski gets suggested,
+          its gaps are marked covered, and the process repeats for
+          whatever's still open.
+        </p>
+        <p>
+          The result is a short, deliberate list rather than a pile of
+          similar skis that all happen to fit the same zone. If a
+          leftover gap has nothing in the catalog that reasonably
+          covers it, the tool says so instead of forcing a
+          recommendation that doesn't really fit.
+        </p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="foot">
+  <span>Quiver Gap Finder</span>
+</footer>
+
+<script src="reveal.js"></script>
+</body>
+</html>

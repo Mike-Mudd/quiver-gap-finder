@@ -286,46 +286,9 @@ searchEl.addEventListener("keydown", (e) => {
   }
 });
 
-/* ------------------------------------------------------------------ *
- *  Scroll reveals
- *
- *  IntersectionObserver rather than a scroll handler: the browser does
- *  the work off the main thread, so nothing is computed per frame while
- *  scrolling. Each element animates once and is then unobserved.
- * ------------------------------------------------------------------ */
-
-(function wireReveals() {
-  const items = document.querySelectorAll(".reveal");
-  if (!items.length) return;
-
-  // Stagger index for the zone grid, set here rather than in markup so
-  // the CSS delay stays a presentational detail.
-  document.querySelectorAll(".zone-grid li").forEach((li, i) => {
-    li.style.setProperty("--i", String(i));
-  });
-
-  if (!("IntersectionObserver" in window) ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    items.forEach((el) => el.classList.add("is-in"));
-    return;
-  }
-
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-in");
-        io.unobserve(entry.target);
-      });
-    },
-    // Fires a little before the element reaches the fold, so content is
-    // settled by the time it is properly in view rather than animating
-    // under the reader's eye.
-    { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
-  );
-
-  items.forEach((el) => io.observe(el));
-})();
+/* Scroll reveals - see reveal.js, loaded separately below so
+   method.html can share the same behaviour without pulling in
+   everything above this point. */
 
 /* The scroll cue is fixed to the viewport, so it has to retire itself
    once the reader has started scrolling — otherwise it follows them

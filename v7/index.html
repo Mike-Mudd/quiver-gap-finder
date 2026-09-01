@@ -24,7 +24,7 @@
     <nav aria-label="Primary">
       <a href="#zones">The nine zones</a>
       <a href="#method">Method</a>
-      <a href="https://github.com/Mike-Mudd/quiver-gap-finder/blob/main/data/SOURCING.md">Sourcing</a>
+      <a href="method.html">How it works</a>
     </nav>
   </header>
 
@@ -90,22 +90,19 @@
 
 <section class="method" id="method" aria-label="Method">
   <div class="method-inner">
-    <!-- Deliberately not "nothing is estimated" - same reasoning as
-         index.html's footer: rocker uses profile-category defaults and
-         non-reference lengths use the scaling formula, both disclosed
-         per-ski in notes. Claim only what data/SOURCING.md backs. -->
+    <h2 class="reveal">Method</h2>
     <p class="method-lead reveal">
-      Every waist width, weight and turn radius traces to a
-      manufacturer spec sheet or a measured review. Where a figure
-      is estimated instead, the entry <em>says so</em>.
+      Every ski covers a small area on the map, not just a single
+      point. When a gap turns up, the tool doesn't just find the
+      closest fit — it looks for whichever real ski closes the
+      <em>most</em> ground at once.
     </p>
-    <a class="method-link reveal" href="https://github.com/Mike-Mudd/quiver-gap-finder/blob/main/data/SOURCING.md">Read the sourcing method</a>
+    <a class="method-link reveal" href="method.html">See how it works</a>
   </div>
 </section>
 
 <footer class="foot">
   <span>Quiver Gap Finder</span>
-  <span>Specs sourced, estimates labeled</span>
 </footer>
 
 <div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
@@ -113,5 +110,6 @@
 <script src="../coverage-map.js"></script>
 <script src="../condition-cards.js"></script>
 <script src="app.js"></script>
+<script src="reveal.js"></script>
 </body>
 </html>
